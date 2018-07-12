@@ -4,6 +4,8 @@
     {
         DSSO,
         DSS,
+        DSG,
+        DiGlu,
         DisulfideBond,
         UserDefined
     }
@@ -84,6 +86,30 @@
                 DeadendMassH2O = 156.0786;
                 DeadendMassNH2 = 155.0946;
                 DeadendMassTris = 259.142;
+            }
+            if (name == CrosslinkerType.DSG)
+            {
+                CrosslinkerName = "DSG";
+                Cleavable = false;
+                TotalMass = 96.021129;
+                CrosslinkerModSites = "K";
+                CrosslinkerModSites2 = "K";
+                LoopMass = 96.021129;
+                DeadendMassH2O = 114.031694;
+                DeadendMassNH2 = 113.047678;
+                DeadendMassTris = 217.095023;
+            }
+            if (name == CrosslinkerType.DiGlu)
+            {
+                CrosslinkerName = "DiGlu";
+                Cleavable = false;
+                TotalMass = 139.063329;
+                CrosslinkerModSites = "K";
+                CrosslinkerModSites2 = "K";
+                LoopMass = 139.063329;
+                DeadendMassH2O = 157.073893;
+                DeadendMassNH2 = 156.089878;
+                DeadendMassTris = 260.137222;
             }
 
             return this;
