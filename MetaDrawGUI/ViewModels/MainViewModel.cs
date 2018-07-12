@@ -47,14 +47,14 @@ namespace ViewModels
             var tmp = new PlotModel { Title = "Spectrum Annotation", Subtitle = "using OxyPlot" };
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            this.privateModel = tmp;
+            this.Model = tmp;
         }
 
         //To Do: Just draw an scan w/o annotation
-        public void UpdateScanModel(Ms2ScanWithSpecificMass MsScanForDraw)
+        public void UpdateScanModel(MsDataScan MsScanForDraw)
         {
-            var x = MsScanForDraw.TheScan.MassSpectrum.XArray;
-            var y = MsScanForDraw.TheScan.MassSpectrum.YArray;
+            var x = MsScanForDraw.MassSpectrum.XArray;
+            var y = MsScanForDraw.MassSpectrum.YArray;
 
             string scanNum = MsScanForDraw.OneBasedScanNumber.ToString();
 
@@ -384,6 +384,45 @@ namespace ViewModels
                 PdfExporter pdf = new PdfExporter { Width = 500, Height = 210 };
                 pdf.Export(model, stream);
             }
+        }
+
+        public void UpdateDecon(PlotModel OriginalModel, IsotopicEnvelope isotopicEnvelope)
+        {
+
+            var peaks = isotopicEnvelope.peaks;
+
+            LineSeries[] lsPeaks = new LineSeries[peaks.Count];
+            for (int i = 0; i < peaks.Count; i++)
+            {
+                lsPeaks[i] = new LineSeries();
+                lsPeaks[i].Color = OxyColors.Red;
+                lsPeaks[i].StrokeThickness = 1;
+                lsPeaks[i].Points.Add(new DataPoint(peaks[i].mz, 0));
+                lsPeaks[i].Points.Add(new DataPoint(peaks[i].mz, peaks[i].intensity));
+                OriginalModel.Series.Add(lsPeaks[i]);
+            }
+            var peakAnno = new TextAnnotation();
+            peakAnno.TextRotation = 90;
+            peakAnno.Font = "Arial";
+            peakAnno.FontSize = 12;
+            peakAnno.TextColor = OxyColors.Red;
+            peakAnno.StrokeThickness = 0;
+            peakAnno.TextPosition = lsPeaks[0].Points[1];
+            peakAnno.Text = isotopicEnvelope.monoisotopicMass.ToString("f1") + "@" + isotopicEnvelope.charge.ToString();
+
+            OriginalModel.Annotations.Add(peakAnno);
+
+            // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
+            this.Model = OriginalModel;
+        }
+
+        public void ResetViewModel()
+        {
+            // Create the plot model
+            var tmp = new PlotModel { Title = "Spectrum Annotation", Subtitle = "using OxyPlot" };
+
+            // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
+            this.Model = tmp;
         }
     }
 }

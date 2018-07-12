@@ -29,6 +29,12 @@ namespace MetaDrawGUI
         private readonly ObservableCollection<SpectrumForDataGrid> spectrumNumsObservableCollection = new ObservableCollection<SpectrumForDataGrid>();
         private CommonParameters CommonParameters;
 
+       
+        private readonly ObservableCollection<EnvolopForDataGrid> envolopObservableCollection = new ObservableCollection<EnvolopForDataGrid>();
+        public List<IsotopicEnvelope> IsotopicEnvelopes { get; set; } = null;
+        public DeconViewModel DeconViewModel { get; set; } = null;
+        public MsDataScan MsDataScan { get; set; } = null;
+
         public MainWindow()
         {
 
@@ -38,11 +44,17 @@ namespace MetaDrawGUI
 
             plotView.DataContext = mainViewModel;
 
+            DeconViewModel = new DeconViewModel();
+
+            plotViewDecon.DataContext = DeconViewModel;
+
             dataGridMassSpectraFiles.DataContext = spectraFilesObservableCollection;
 
             dataGridResultFiles.DataContext = resultFilesObservableCollection;
 
             dataGridScanNums.DataContext = spectrumNumsObservableCollection;
+
+            dataGridDeconNums.DataContext = envolopObservableCollection;
 
             Title = "MetaDraw: version " + GlobalVariables.MetaMorpheusVersion;
 
@@ -355,6 +367,66 @@ namespace MetaDrawGUI
             zdotCheckBox.IsChecked = CommonParameters.ZdotIons;
             productMassToleranceTextBox.Text = CommonParameters.ProductMassTolerance.Value.ToString(CultureInfo.InvariantCulture);
             productMassToleranceComboBox.SelectedIndex = CommonParameters.ProductMassTolerance is AbsoluteTolerance ? 0 : 1;
+        }
+
+        private void btnLoadData_Click(object sender, RoutedEventArgs e)
+        {
+            if (!spectraFilesObservableCollection.Any())
+            {
+                return;
+            }
+
+            LoadScans loadScans = new LoadScans(spectraFilesObservableCollection.Where(b => b.Use).First().FilePath, null);
+
+            MsDataFile = loadScans.Run();
+        }
+
+        private void btnDecon_Click(object sender, RoutedEventArgs e)
+        {
+            int x = Convert.ToInt32(txtDeconScanNum.Text);
+            MsDataScan = MsDataFile.GetAllScansList().Where(p => p.OneBasedScanNumber == x).First();
+            IsotopicEnvelopes = MsDataScan.MassSpectrum.Deconvolute(MsDataScan.ScanWindowRange, 1, 40, 5.0, 3).OrderByDescending(p => p.peaks.Count).ToList();
+            int i=1;
+            foreach (var item in IsotopicEnvelopes)
+            {
+                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.monoisotopicMass, item.charge, item.totalIntensity));
+                i++;
+            }
+            mainViewModel.UpdateScanModel(MsDataScan);
+        }
+
+        private void UpdateDeconModel(int x)
+        {
+            var envo = IsotopicEnvelopes[x-1];
+            DeconViewModel.UpdataModelForDecon(MsDataScan, envo);
+
+            mainViewModel.UpdateDecon(mainViewModel.Model, envo);
+        }
+
+        private void Decon_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (sender != null)
+            {
+                try
+                {
+                    Regex regex = new Regex(@"\d+");
+                    int x = Convert.ToInt32(regex.Match(sender.ToString()).Value);
+                    UpdateDeconModel(x);
+
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("Please check the data loaded.");
+                }
+            }
+        }
+
+        private void btnResetDecon_Click(object sender, RoutedEventArgs e)
+        {
+            MsDataScan = null;           
+            envolopObservableCollection.Clear();
+            DeconViewModel.ResetDeconModel();
+            mainViewModel.ResetViewModel();
         }
     }
 }

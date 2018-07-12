@@ -129,6 +129,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="BasicClasses\CompactPeptideDraw.cs" />
+    <Compile Include="DataGrids\EnvolopForDataGrid.cs" />
     <Compile Include="LoadScans.cs" />
     <Compile Include="BasicClasses\PepWithSetModForCompactPep.cs" />
     <Compile Include="BasicClasses\PsmDraw.cs" />
@@ -136,6 +137,7 @@
     <Compile Include="DataGrids\SpectrumForDataGrid.cs" />
     <Compile Include="TsvResultReader.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="ViewModels\DeconViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
