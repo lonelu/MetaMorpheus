@@ -129,13 +129,25 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="BasicClasses\CompactPeptideDraw.cs" />
+    <Compile Include="ChargeDeconEnvelope.cs" />
+    <Compile Include="ChargeDeconPerMS1Scan.cs" />
+    <Compile Include="ChargeParsi.cs" />
+    <Compile Include="DataGrids\ChargeEnvelopesForDataGrid.cs" />
     <Compile Include="DataGrids\EnvolopForDataGrid.cs" />
     <Compile Include="LoadScans.cs" />
     <Compile Include="BasicClasses\PepWithSetModForCompactPep.cs" />
     <Compile Include="BasicClasses\PsmDraw.cs" />
     <Compile Include="DataGrids\RawDataForDataGrid.cs" />
     <Compile Include="DataGrids\SpectrumForDataGrid.cs" />
+    <Compile Include="Regression\GaussianModel.cs" />
+    <Compile Include="Regression\LevenbergMarquardtSolver.cs" />
+    <Compile Include="Regression\Model.cs" />
+    <Compile Include="Regression\NonlinearModel.cs" />
+    <Compile Include="Regression\NonlinearSolver.cs" />
+    <Compile Include="Regression\Solver.cs" />
+    <Compile Include="Regression\SolverOptions.cs" />
     <Compile Include="TsvResultReader.cs" />
+    <Compile Include="ViewModels\ChargeEnveViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\DeconViewModel.cs" />
     <Page Include="MainWindow.xaml">
@@ -188,6 +200,7 @@
       <Name>TaskLayer</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\mzLib.1.0.318\build\net471\mzLib.targets" Condition="Exists('..\packages\mzLib.1.0.318\build\net471\mzLib.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

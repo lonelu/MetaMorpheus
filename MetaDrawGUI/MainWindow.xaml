@@ -16,6 +16,8 @@
                 <ColumnDefinition Width="5*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
             <Grid>
                 <Grid.RowDefinitions>
@@ -42,6 +44,7 @@
                             <TextBox x:Name="txtDeconScanNum" Text="Scan Number"  Width="100"/>
                             <Button x:Name="btnDecon" Content="Decon" Click="btnDecon_Click"/>
                             <Button x:Name="btnResetDecon" Content="Reset Decon" Click="btnResetDecon_Click"/>
+                            <Button x:Name="btnDeconAll" Content="DeconAll" Click="btnDeconAll_Click"/>
                         </StackPanel>
                     </Grid>
                 </GroupBox>
@@ -128,12 +131,16 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="1*"/>
                         <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
                     </Grid.RowDefinitions>
                     <GroupBox Header="PSM" Name="gbPSM" Grid.Row="0">
                         <oxy:PlotView x:Name="plotView" Model="{Binding Model}" FontSize="16" FontStretch="Expanded"/>
                     </GroupBox>
                     <GroupBox Header="Decon" Name="gbPSMDecon" Grid.Row="1">
                         <oxy:PlotView x:Name="plotViewDecon" Model="{Binding DeconModel}" FontSize="16" FontStretch="Expanded"/>
+                    </GroupBox>
+                    <GroupBox Header="Charge Envelopes" Name="gbChargeEnve" Grid.Row="2">
+                        <oxy:PlotView x:Name="plotViewChargeEnve" Model="{Binding ChargeEnveModel}" FontSize="16" FontStretch="Expanded"/>
                     </GroupBox>
                 </Grid>
             </Grid>
@@ -148,6 +155,22 @@
                         <DataGrid.Resources>
                             <Style TargetType="DataGridCell">
                                 <EventSetter Event="MouseDoubleClick" Handler="Decon_MouseDoubleClick"/>
+                            </Style>
+                        </DataGrid.Resources>
+                    </DataGrid>
+                </GroupBox>
+            </Grid>
+            <GridSplitter Grid.Column="5" 
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Stretch"
+                          Background="Silver"
+                          Width="5"/>
+            <Grid Grid.Column="6">
+                <GroupBox Header="ChargeEnve Numbers" >
+                    <DataGrid x:Name="dataGridChargeEnves" VerticalAlignment="Stretch" ItemsSource="{Binding}" IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0">
+                        <DataGrid.Resources>
+                            <Style TargetType="DataGridCell">
+                                <EventSetter Event="MouseDoubleClick" Handler="ChargeEnves_MouseDoubleClick"/>
                             </Style>
                         </DataGrid.Resources>
                     </DataGrid>

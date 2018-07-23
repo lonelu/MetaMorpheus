@@ -2,15 +2,15 @@
 {
     public class EnvolopForDataGrid
     {
-        public EnvolopForDataGrid(int i, double deconMass, int charge, double intensity)
+        public EnvolopForDataGrid(int ind, double deconMass, int charge, double intensity)
         {
-            I = i;
+            Ind = ind;
             DeconMass = deconMass;
             Charge = charge;
             Intensity = intensity;
         }
 
-        public int I { get; set; }
+        public int Ind { get; set; }
 
         public double DeconMass { get; set; }
 
