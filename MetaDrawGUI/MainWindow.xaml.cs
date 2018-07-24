@@ -43,6 +43,7 @@ namespace MetaDrawGUI
         private readonly ObservableCollection<ChargeEnvelopesForDataGrid> chargeEnvelopesObservableCollection = new ObservableCollection<ChargeEnvelopesForDataGrid>();
         public ChargeEnveViewModel ChargeDeconViewModel { get; set; }
         public List<ChargeDeconEnvelope> ScanChargeEnvelopes { get; set; } = new List<ChargeDeconEnvelope>();
+        public ChargeEnve0ViewModel ChargeDecon0ViewModel { get; set; }
 
         public MainWindow()
         {
@@ -60,6 +61,10 @@ namespace MetaDrawGUI
             ChargeDeconViewModel = new ChargeEnveViewModel();
 
             plotViewChargeEnve.DataContext = ChargeDeconViewModel;
+
+            ChargeDecon0ViewModel = new ChargeEnve0ViewModel();
+
+            plotViewChargeEnve0.DataContext = ChargeDecon0ViewModel;
 
             dataGridMassSpectraFiles.DataContext = spectraFilesObservableCollection;
 
@@ -451,6 +456,7 @@ namespace MetaDrawGUI
         {
             var envo = ScanChargeEnvelopes[ind - 1];
             ChargeDeconViewModel.UpdataModelForChargeEnve(msDataScan, envo);
+            ChargeDecon0ViewModel.UpdataModelForChargeEnve0(msDataScan, envo);
         }
 
         private void ChargeEnves_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -477,6 +483,9 @@ namespace MetaDrawGUI
             envolopObservableCollection.Clear();
             DeconViewModel.ResetDeconModel();
             mainViewModel.ResetViewModel();
+            chargeEnvelopesObservableCollection.Clear();
+            ChargeDeconViewModel.ResetDeconModel();
+            ChargeDecon0ViewModel.ResetDeconModel();
         }
 
         private void btnDeconAll_Click(object sender, RoutedEventArgs e)
@@ -554,6 +563,7 @@ namespace MetaDrawGUI
         private List<ChargeDeconEnvelope> ChargeDeconvolution(int OneBasedScanNumber, double rt, List<IsotopicEnvelope> isotopicEnvelopes, List<double?> selectedMs2)
         {
             List<ChargeDeconEnvelope> chargeDeconEnvelopes = new List<ChargeDeconEnvelope>();
+            SingleAbsoluteAroundZeroSearchMode massAccept = new SingleAbsoluteAroundZeroSearchMode(2.2);
             int i = 0;
             bool conditioner = true;
             while(conditioner)
@@ -571,7 +581,7 @@ namespace MetaDrawGUI
 
                             //Decide envelopes are from same mass or not, need better algorithm
                             //use tolenrence
-                            if (isotopicEnvelopes[j + i].monoisotopicMass - 2 <= isotopicEnvelopes[i].monoisotopicMass )
+                            if (massAccept.Accepts(isotopicEnvelopes[j + i].monoisotopicMass, isotopicEnvelopes[i].monoisotopicMass)==0 )
                             {
                                 chargeDecon.Add(isotopicEnvelopes[i + j]);                           
                             }

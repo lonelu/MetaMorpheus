@@ -11,10 +11,11 @@ namespace MetaDrawGUI
 {
     public class ChargeDeconEnvelope
     {
-        private List<IsotopicEnvelope> isotopicEnvelopes;
+        //private List<IsotopicEnvelope> isotopicEnvelopes;
 
         public ChargeDeconEnvelope(int oneBasedScanNumber, double rt, List<IsotopicEnvelope> iso, List<double?> selectedMs2s)
         {
+            
             SelectedMs2s = new List<double?>();
             OneBasedScanNumber = oneBasedScanNumber;
             RT = rt;
@@ -32,22 +33,25 @@ namespace MetaDrawGUI
             for (int i = 0; i < isotopicEnvelopes.Count; i++)
             {
                 chargeStatesFit[i] = isotopicEnvelopes[i].charge;
-                intensitiesFit[i] = isotopicEnvelopes[i].peaks.Sum(p => p.intensity);
+                intensitiesFit[i] = isotopicEnvelopes[i].totalIntensity;
                 mzFit[i] = isotopicEnvelopes[i].peaks.Average(p => p.mz);
             }
+            var intensitiesMax = intensitiesFit.Max();
             for (int i = 0; i < isotopicEnvelopes.Count; i++)
             {
-                intensitiesFit[i] = intensitiesFit[i]/intensitiesFit.Max();
+                intensitiesFit[i] = intensitiesFit[i]/intensitiesMax;
             }
             
-            Array.Sort(mzFit, intensitiesFit);
-            Array.Sort(chargeStatesFit);
+            //Array.Sort(mzFit, intensitiesFit);
+            //Array.Sort(chargeStatesFit);
             double[] intenses = new double[isotopicEnvelopes.Count];
             double mse = new double();
             GetMSE(out mse,out intenses);
             intensitiesModel = intenses;
             MSE = mse;
         }
+
+        public List<IsotopicEnvelope> isotopicEnvelopes { get; set; }
 
         public double isotopicMass { get { return isotopicEnvelopes.First().monoisotopicMass; } }
 
@@ -93,12 +97,11 @@ namespace MetaDrawGUI
             Vector<double> dataY = new DenseVector(intensitiesFit);
             List<Vector<double>> iterations = new List<Vector<double>>();
             int pointCount = dataX.Count;
-            var solverOptions = new SolverOptions(true, 0.0001, 0.0001, 100, new DenseVector(new[] { 0.5, 1.2 }));
+            var solverOptions = new SolverOptions(true, 0.0001, 0.0001, 1000, new DenseVector(new[] { 0.5, 1.2 }));
             NonlinearSolver nonlinearSolver = (solver as NonlinearSolver);
             nonlinearSolver.Estimate(model, solverOptions, pointCount, dataX, model.LogTransform(dataY), ref iterations);
-            outIntensitiesModel = model.GetPowerEValueVector(pointCount, dataX, iterations[iterations.Count - 1]).ToArray();
+            outIntensitiesModel = model.GetPowerETo1ValueVector(pointCount, dataX, iterations[iterations.Count - 1]).ToArray();
             outMse = model.GetPowerEMSE(pointCount, dataX, dataY, iterations[iterations.Count - 1]);
         }
-
     }
 }

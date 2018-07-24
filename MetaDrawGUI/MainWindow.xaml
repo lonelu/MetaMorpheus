@@ -132,15 +132,19 @@
                         <RowDefinition Height="1*"/>
                         <RowDefinition Height="1*"/>
                         <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
                     </Grid.RowDefinitions>
                     <GroupBox Header="PSM" Name="gbPSM" Grid.Row="0">
                         <oxy:PlotView x:Name="plotView" Model="{Binding Model}" FontSize="16" FontStretch="Expanded"/>
                     </GroupBox>
-                    <GroupBox Header="Decon" Name="gbPSMDecon" Grid.Row="1">
-                        <oxy:PlotView x:Name="plotViewDecon" Model="{Binding DeconModel}" FontSize="16" FontStretch="Expanded"/>
+                    <GroupBox Header="Charge Envelopes" Name="gbChargeEnve0" Grid.Row="1">
+                        <oxy:PlotView x:Name="plotViewChargeEnve0" Model="{Binding ChargeEnveModel0}" FontSize="16" FontStretch="Expanded"/>
                     </GroupBox>
-                    <GroupBox Header="Charge Envelopes" Name="gbChargeEnve" Grid.Row="2">
+                    <GroupBox Header="Charge Envelopes stat" Name="gbChargeEnve" Grid.Row="2">
                         <oxy:PlotView x:Name="plotViewChargeEnve" Model="{Binding ChargeEnveModel}" FontSize="16" FontStretch="Expanded"/>
+                    </GroupBox>
+                    <GroupBox Header="Decon" Name="gbPSMDecon" Grid.Row="3">
+                        <oxy:PlotView x:Name="plotViewDecon" Model="{Binding DeconModel}" FontSize="16" FontStretch="Expanded"/>
                     </GroupBox>
                 </Grid>
             </Grid>

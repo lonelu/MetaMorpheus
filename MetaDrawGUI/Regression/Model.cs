@@ -62,6 +62,20 @@ namespace MetaDrawGUI
             return dataYPowerE;
         }
 
+        public Vector<double> GetPowerETo1ValueVector(int pointCount, Vector<double> dataX, Vector<double> parameters)
+        {
+            double max;
+            GetValue(parameters[0], parameters, out max);
+            Vector<double> dataYPowerE = new DenseVector(pointCount);
+            double y;
+            for (int j = 0; j < pointCount; j++)
+            {
+                GetValue(dataX[j], parameters, out y);
+                dataYPowerE[j] = Math.Pow(Math.E, y) / Math.Pow(Math.E, max);
+            }
+            return dataYPowerE;
+        }
+
         public Vector<double> GetPowerEResidualVector(int pointCount, Vector<double> dataX, Vector<double> dataY, Vector<double> parameters)
         {
             Vector<double> PowerEResidual = new DenseVector(pointCount);

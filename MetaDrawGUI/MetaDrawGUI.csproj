@@ -147,6 +147,7 @@
     <Compile Include="Regression\Solver.cs" />
     <Compile Include="Regression\SolverOptions.cs" />
     <Compile Include="TsvResultReader.cs" />
+    <Compile Include="ViewModels\ChargeEnve0ViewModel.cs" />
     <Compile Include="ViewModels\ChargeEnveViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\DeconViewModel.cs" />
