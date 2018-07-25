@@ -31,6 +31,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="30"/>
+                            <RowDefinition Height="30"/>
                         </Grid.RowDefinitions>
                         <DataGrid x:Name="dataGridMassSpectraFiles" ItemsSource="{Binding}" >
                             <DataGrid.Resources>
@@ -41,10 +42,13 @@
                             <Button x:Name="btnAddFiles" Content="Add" Click="btnAddFiles_Click"/>
                             <Button x:Name="btnClearFiles" Content="Clear" Click="btnClearFiles_Click"/>
                             <Button x:Name="btnLoadData" Content="Load" Click="btnLoadData_Click"/>
-                            <TextBox x:Name="txtDeconScanNum" Text="Scan Number"  Width="100"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="2">
+                            <TextBox x:Name="txtDeconScanNum" Text="2076"  Width="50"/>
                             <Button x:Name="btnDecon" Content="Decon" Click="btnDecon_Click"/>
-                            <Button x:Name="btnResetDecon" Content="Reset Decon" Click="btnResetDecon_Click"/>
+                            <Button x:Name="btnResetDecon" Content="Reset" Click="btnResetDecon_Click"/>
                             <Button x:Name="btnDeconAll" Content="DeconAll" Click="btnDeconAll_Click"/>
+                            <Button x:Name="BtnDeconTest" Content="DeconTest" Click="BtnDeconTest_Click"/>
                         </StackPanel>
                     </Grid>
                 </GroupBox>

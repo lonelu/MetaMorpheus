@@ -11,10 +11,10 @@ using System.Collections.Generic;
 using MzLibUtil;
 using System.Text.RegularExpressions;
 using MassSpectrometry;
-using OxyPlot;
 using System.Globalization;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using System.Threading;
 
 namespace MetaDrawGUI
 {
@@ -419,10 +419,10 @@ namespace MetaDrawGUI
             int ind = 1;
             foreach (var theScanChargeEvelope in ScanChargeEnvelopes)
             {
-                chargeEnvelopesObservableCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass));
+                chargeEnvelopesObservableCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
                 ind++;
             }
-
+            chargeEnvelopesObservableCollection.OrderBy(p=>p.MSE);
         }
 
         private void UpdateDeconModel(int x, MsDataScan msDataScan)
@@ -576,21 +576,22 @@ namespace MetaDrawGUI
                     //The j here need to be break in a better way
                     for (int j = 1; j < 20; j++)
                     {
-                        if (i + j < isotopicEnvelopes.Count)
+                        //Decide envelopes are from same mass or not, need better algorithm
+                        //use tolenrence
+                        if (i + j < isotopicEnvelopes.Count 
+                            && massAccept.Accepts(isotopicEnvelopes[j + i].monoisotopicMass, isotopicEnvelopes[i].monoisotopicMass) == 0
+                            && !chargeDecon.Exists(p => p.charge == isotopicEnvelopes[j + i].charge))
                         {
-
-                            //Decide envelopes are from same mass or not, need better algorithm
-                            //use tolenrence
-                            if (massAccept.Accepts(isotopicEnvelopes[j + i].monoisotopicMass, isotopicEnvelopes[i].monoisotopicMass)==0 )
-                            {
-                                chargeDecon.Add(isotopicEnvelopes[i + j]);                           
-                            }
-                            else 
-                            {
-                                i = i + j;
-                                break;
-                            }
-                        }                       
+                            chargeDecon.Add(isotopicEnvelopes[i + j]);
+                        }
+                        else if (chargeDecon.Exists(p => p.charge == isotopicEnvelopes[j + i].charge))
+                        {
+                        }
+                        else
+                        {
+                            i = i + j;
+                            break;
+                        }
                     }
                     i = i + 1;
                     //Decide the charge deconvolution distribution, need better algorithm
@@ -732,6 +733,7 @@ namespace MetaDrawGUI
             return chargeParsis;
         }
 
+
         private void ChargeDeconWriteToTSV(List<ChargeDeconPerMS1Scan> chargeDeconPerMS1ScanList, string outputFolder, string fileName)
         {
             var writtenFile = Path.Combine(outputFolder, fileName + ".mytsv");
@@ -758,5 +760,57 @@ namespace MetaDrawGUI
             }
         }
 
+
+        private void BtnDeconTest_Click(object sender, RoutedEventArgs e)
+        {
+            var MS1Scans = msDataScans.Where(p => p.MsnOrder == 1).ToList();
+            List<WatchEvaluation> evalution = new List<WatchEvaluation>(); 
+            int i = 0;
+            while (i < MS1Scans.Count)
+            {
+                var theScanNum = MS1Scans[i].OneBasedScanNumber;
+                var theRT = MS1Scans[i].RetentionTime;
+
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+
+                var isotopicEnvelopes = MS1Scans[i].MassSpectrum.Deconvolute(MS1Scans[i].ScanWindowRange, 3, 60, 5.0, 3).OrderBy(p => p.monoisotopicMass).ToList();
+
+                watch.Stop();
+
+                var watch1 = System.Diagnostics.Stopwatch.StartNew();
+
+                var chargeDecon = ChargeDeconvolution(MS1Scans[i].OneBasedScanNumber, MS1Scans[i].RetentionTime, isotopicEnvelopes, new List<double?>());
+
+                watch1.Stop();
+
+                var theEvaluation = new WatchEvaluation();
+                theEvaluation.TheScanNumber = theScanNum;
+                theEvaluation.TheRT = theRT;
+                theEvaluation.WatchIsoDecon = watch.ElapsedMilliseconds;
+                theEvaluation.WatchChaDecon = watch1.ElapsedMilliseconds;
+                evalution.Add(theEvaluation);
+                i++;
+
+            }
+
+            var writtenFile = Path.Combine(Path.GetDirectoryName(spectraFilesObservableCollection.First().FilePath), "watches.mytsv");
+            using (StreamWriter output = new StreamWriter(writtenFile))
+            {
+                output.WriteLine("ScanNum\tRT\tIsotopicDecon\tChargeDecon");
+                foreach (var theEvaluation in evalution)
+                {
+                    output.WriteLine(theEvaluation.TheScanNumber.ToString() + "\t" + theEvaluation.TheRT + "\t" + theEvaluation.WatchIsoDecon.ToString() + "\t" + theEvaluation.WatchChaDecon.ToString());
+                }
+            }
+
+        }   
+    }
+
+    public class WatchEvaluation
+    {
+           public int TheScanNumber { get; set; }
+           public double TheRT { get; set; }
+           public double WatchIsoDecon { get; set; }
+           public  double WatchChaDecon { get; set; }
     }
 }
