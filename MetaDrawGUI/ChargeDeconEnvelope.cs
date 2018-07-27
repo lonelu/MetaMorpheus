@@ -103,5 +103,6 @@ namespace MetaDrawGUI
             outIntensitiesModel = model.GetPowerETo1ValueVector(pointCount, dataX, iterations[iterations.Count - 1]).ToArray();
             outMse = model.GetPowerEMSE(pointCount, dataX, dataY, iterations[iterations.Count - 1]);
         }
+
     }
 }

@@ -10,7 +10,7 @@ using MetaDrawGUI;
 
 namespace MassSpectrometry
 {
-    public class MzSpectrumTD
+    public class MzSpectrumBU
     {
         private const int numAveraginesToGenerate = 1500;
         private static readonly double[][] allMasses = new double[numAveraginesToGenerate][];
@@ -25,7 +25,7 @@ namespace MassSpectrometry
         public double[] XArray { get; private set; }
         public double[] YArray { get; private set; }
 
-        static MzSpectrumTD()
+        static MzSpectrumBU()
         {
             // AVERAGINE
             const double averageC = 4.9384;
@@ -65,7 +65,7 @@ namespace MassSpectrometry
             }
         }
 
-        public MzSpectrumTD(double[,] mzintensities)
+        public MzSpectrumBU(double[,] mzintensities)
         {
             var count = mzintensities.GetLength(1);
 
@@ -76,7 +76,7 @@ namespace MassSpectrometry
             peakList = new MzPeak[Size];
         }
 
-        public MzSpectrumTD(double[] mz, double[] intensities, bool shouldCopy)
+        public MzSpectrumBU(double[] mz, double[] intensities, bool shouldCopy)
         {
             if (shouldCopy)
             {
@@ -211,7 +211,7 @@ namespace MassSpectrometry
         }
 
         // Mass tolerance must account for different isotope spacing!
-        public IEnumerable<IsotopicEnvelope> DeconvoluteTD(MzRange theRange, int minAssumedChargeState, int maxAssumedChargeState, double deconvolutionTolerancePpm, double intensityRatioLimit)
+        public IEnumerable<IsotopicEnvelope> DeconvoluteBU (MzRange theRange, int minAssumedChargeState, int maxAssumedChargeState, double deconvolutionTolerancePpm, double intensityRatioLimit)
         {
             if (Size == 0)
             {
