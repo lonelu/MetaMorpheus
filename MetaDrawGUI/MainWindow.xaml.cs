@@ -14,7 +14,6 @@ using MassSpectrometry;
 using System.Globalization;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
-using System.Threading;
 
 namespace MetaDrawGUI
 {
@@ -406,7 +405,9 @@ namespace MetaDrawGUI
         {
             int x = Convert.ToInt32(txtDeconScanNum.Text);
             var msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == x).First();
-            IsotopicEnvelopes = msDataScan.MassSpectrum.Deconvolute(msDataScan.ScanWindowRange, 3, 60, 5.0, 3).OrderBy(p => p.monoisotopicMass).ToList();
+            //IsotopicEnvelopes = msDataScan.MassSpectrum.Deconvolute(msDataScan.ScanWindowRange, 3, 60, 5.0, 3).OrderBy(p => p.monoisotopicMass).ToList();
+            MzSpectrumTD mzSpectrumTD = new MzSpectrumTD(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
+            IsotopicEnvelopes = mzSpectrumTD.DeconvoluteTD(msDataScan.ScanWindowRange, 3, 60, 5.0, 3).OrderBy(p => p.monoisotopicMass).ToList();
             int i=1;
             foreach (var item in IsotopicEnvelopes)
             {
@@ -421,8 +422,7 @@ namespace MetaDrawGUI
             {
                 chargeEnvelopesObservableCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
                 ind++;
-            }
-            chargeEnvelopesObservableCollection.OrderBy(p=>p.MSE);
+            }        
         }
 
         private void UpdateDeconModel(int x, MsDataScan msDataScan)
@@ -493,7 +493,7 @@ namespace MetaDrawGUI
             ChargeDeconvolutionFile(msDataScans);
 
             //List<ChargeParsi> chargeParsis = ChargeParsimony(chargeEnvelopesList, new SingleAbsoluteAroundZeroSearchMode(2), new SingleAbsoluteAroundZeroSearchMode(5));
-            List<ChargeParsi> chargeParsis = ChargeParsimonyByRT(chargeDeconPerMS1Scans, new SingleAbsoluteAroundZeroSearchMode(2.2), new SingleAbsoluteAroundZeroSearchMode(5));
+            List<ChargeParsi> chargeParsis = ChargeParsimony(chargeDeconPerMS1Scans, new SingleAbsoluteAroundZeroSearchMode(2.2), new SingleAbsoluteAroundZeroSearchMode(5));
 
             var total = msDataScans.Where(p => p.MsnOrder == 2).Count();
             int ms2ScanBeAssigned = chargeParsis.Sum(p => p.MS2ScansCount);
@@ -564,6 +564,7 @@ namespace MetaDrawGUI
         {
             List<ChargeDeconEnvelope> chargeDeconEnvelopes = new List<ChargeDeconEnvelope>();
             SingleAbsoluteAroundZeroSearchMode massAccept = new SingleAbsoluteAroundZeroSearchMode(2.2);
+            SinglePpmAroundZeroSearchMode massAcceptForNotch = new SinglePpmAroundZeroSearchMode(10);
             int i = 0;
             bool conditioner = true;
             while(conditioner)
@@ -577,15 +578,15 @@ namespace MetaDrawGUI
                     for (int j = 1; j < 20; j++)
                     {
                         //Decide envelopes are from same mass or not, need better algorithm
-                        //use tolenrence
-                        if (i + j < isotopicEnvelopes.Count 
-                            && massAccept.Accepts(isotopicEnvelopes[j + i].monoisotopicMass, isotopicEnvelopes[i].monoisotopicMass) == 0
-                            && !chargeDecon.Exists(p => p.charge == isotopicEnvelopes[j + i].charge))
+                        //if (i + j < isotopicEnvelopes.Count
+                        //    && massAccept.Accepts(isotopicEnvelopes[j + i].monoisotopicMass, isotopicEnvelopes[i].monoisotopicMass) == 0
+                        //    && !chargeDecon.Exists(p => p.charge == isotopicEnvelopes[j + i].charge))
+                        if (i + j < isotopicEnvelopes.Count && NotchTolerance(isotopicEnvelopes[i].monoisotopicMass, isotopicEnvelopes[j + i].monoisotopicMass,  massAcceptForNotch))
                         {
-                            chargeDecon.Add(isotopicEnvelopes[i + j]);
-                        }
-                        else if (chargeDecon.Exists(p => p.charge == isotopicEnvelopes[j + i].charge))
-                        {
+                            if (!chargeDecon.Exists(p => p.charge == isotopicEnvelopes[j + i].charge))
+                            {
+                                chargeDecon.Add(isotopicEnvelopes[i + j]);
+                            }                          
                         }
                         else
                         {
@@ -593,7 +594,6 @@ namespace MetaDrawGUI
                             break;
                         }
                     }
-                    i = i + 1;
                     //Decide the charge deconvolution distribution, need better algorithm
                     if (chargeDecon.Count >= 3)
                     {
@@ -608,83 +608,7 @@ namespace MetaDrawGUI
             return chargeDeconEnvelopes;
         }
 
-        //ChargeParsimony
-        private List<ChargeParsi> ChargeParsimony(List<ChargeDeconEnvelope> chargeEnvelopesList, SingleAbsoluteAroundZeroSearchMode massAccept, SingleAbsoluteAroundZeroSearchMode rtAccept)
-        {
-            List<ChargeParsi> chargeParsis = new List<ChargeParsi>();
-            for (int i = 0; i < chargeEnvelopesList.Count; i++)
-            {
-                if (chargeEnvelopesList[i] != null)
-                {
-                    ChargeParsi chargeParsi = new ChargeParsi();
-                    chargeParsi.chargeDeconEnvelopes.Add(chargeEnvelopesList[i]);
-
-                    ////200 here need to be optimized base on RT
-                    //for (int j = 1; j < 200; j++)
-                    //{
-                    //    if (i + j < chargeEnvelopesList.Count && chargeEnvelopesList[i + j] != null)
-                    //    {
-                    //        if (massAccept.Accepts(chargeEnvelopesList[i + j].isotopicMass, chargeEnvelopesList[i].isotopicMass) >= 0)
-                    //        {
-                    //            chargeParsi.chargeDeconEnvelopes.Add(chargeEnvelopesList[i + j]);
-                    //            chargeEnvelopesList[i + j] = null;
-                    //        }
-                    //    }
-                    //}
-
-                    bool decision = true;
-                    //Base on disappear in 3 scans.
-                    int limit = 1;
-                    int j = 1;
-                    while (decision)
-                    {
-                        if (limit <= 3 && i + j < chargeEnvelopesList.Count)
-                        {
-                            if (chargeEnvelopesList[i + j] != null)
-                            {
-                                if (massAccept.Accepts(chargeEnvelopesList[i + j].isotopicMass, chargeEnvelopesList[i].isotopicMass) >= 0)
-                                {
-                                    chargeParsi.chargeDeconEnvelopes.Add(chargeEnvelopesList[i + j]);
-                                    chargeEnvelopesList[i + j] = null;
-
-                                }
-                                else
-                                {
-                                    limit++;
-                                }
-                            }
-                            j++;
-                        }
-                        else { decision = false; }
-                    }
-
-                    ////Base on RT
-                    //while (decision)
-                    //{
-                    //    int j = 1;
-
-                    //    if (i + j < chargeEnvelopesList.Count && chargeEnvelopesList[i + j] != null)
-                    //    {
-                    //        if (rtAccept.Accepts(chargeEnvelopesList[i + j].RT, chargeEnvelopesList[i].RT) == 0 && massAccept.Accepts(chargeEnvelopesList[i + j].isotopicMass, chargeEnvelopesList[i].isotopicMass) == 0)
-                    //        {
-                    //            chargeParsi.chargeDeconEnvelopes.Add(chargeEnvelopesList[i + j]);
-                    //            chargeEnvelopesList[i + j] = null;
-                    //            j++;
-                    //        }
-                    //        else
-                    //        {
-                    //            decision = false;
-                    //        }
-                    //    }
-                    //}
-                    chargeParsis.Add(chargeParsi);
-                }
-            }
-            return chargeParsis;
-        }
-
-        //ChargeParsimony
-        private List<ChargeParsi> ChargeParsimonyByRT(List<ChargeDeconPerMS1Scan> chargeDeconPerMS1ScanList, SingleAbsoluteAroundZeroSearchMode massAccept, SingleAbsoluteAroundZeroSearchMode rtAccept)
+        private List<ChargeParsi> ChargeParsimony(List<ChargeDeconPerMS1Scan> chargeDeconPerMS1ScanList, SingleAbsoluteAroundZeroSearchMode massAccept, SingleAbsoluteAroundZeroSearchMode rtAccept)
         {
             List<ChargeParsi> chargeParsis = new List<ChargeParsi>();
             for (int i = 0; i < chargeDeconPerMS1ScanList.Count; i++)
@@ -733,7 +657,6 @@ namespace MetaDrawGUI
             return chargeParsis;
         }
 
-
         private void ChargeDeconWriteToTSV(List<ChargeDeconPerMS1Scan> chargeDeconPerMS1ScanList, string outputFolder, string fileName)
         {
             var writtenFile = Path.Combine(outputFolder, fileName + ".mytsv");
@@ -760,7 +683,7 @@ namespace MetaDrawGUI
             }
         }
 
-
+        //Test per scan deconvolution time
         private void BtnDeconTest_Click(object sender, RoutedEventArgs e)
         {
             var MS1Scans = msDataScans.Where(p => p.MsnOrder == 1).ToList();
@@ -804,6 +727,17 @@ namespace MetaDrawGUI
             }
 
         }   
+
+        private bool NotchTolerance(double theMass1, double theMass2, SinglePpmAroundZeroSearchMode massAccept)
+        {
+            if (massAccept.Accepts(theMass1, theMass2) ==0 || massAccept.Accepts(theMass1+1, theMass2) == 0 
+                || massAccept.Accepts(theMass1+2, theMass2) == 0 || massAccept.Accepts(theMass1+3, theMass2) == 0
+                || massAccept.Accepts(theMass1 + 4, theMass2) == 0)
+            {
+                return true;
+            }
+            return false;
+        }
     }
 
     public class WatchEvaluation

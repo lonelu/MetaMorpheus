@@ -52,6 +52,7 @@ namespace ViewModels
             var x = chargeDeconEnvelope.mzFit;
             var y = chargeDeconEnvelope.intensitiesFit;
             var z = chargeDeconEnvelope.intensitiesModel;
+            var charges = chargeDeconEnvelope.chargeStates;
             string scanNum = MsScanForDraw.OneBasedScanNumber.ToString();
 
             PlotModel model = new PlotModel { Title = "Spectrum anotation of Scan " + scanNum, DefaultFontSize = 15 };
@@ -79,6 +80,16 @@ namespace ViewModels
                 sPeaksModel[i].Points.Add(new DataPoint(x[i], 0));
                 sPeaksModel[i].Points.Add(new DataPoint(x[i], z[i]));
                 model.Series.Add(sPeaksModel[i]);
+
+                var peakAnno = new TextAnnotation();
+                peakAnno.TextRotation = 90;
+                peakAnno.Font = "Arial";
+                peakAnno.FontSize = 12;
+                peakAnno.TextColor = OxyColors.Red;
+                peakAnno.StrokeThickness = 0;
+                peakAnno.TextPosition = sPeaksModel[i].Points[1];
+                peakAnno.Text = charges[i].ToString();
+                model.Annotations.Add(peakAnno);
             }
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content

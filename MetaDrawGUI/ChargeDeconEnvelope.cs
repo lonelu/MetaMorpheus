@@ -97,7 +97,7 @@ namespace MetaDrawGUI
             Vector<double> dataY = new DenseVector(intensitiesFit);
             List<Vector<double>> iterations = new List<Vector<double>>();
             int pointCount = dataX.Count;
-            var solverOptions = new SolverOptions(true, 0.0001, 0.0001, 1000, new DenseVector(new[] { 0.5, 1.2 }));
+            var solverOptions = new SolverOptions(true, 0.0001, 0.0001, 1000, new DenseVector(new[] { 10.0, 10.0 }));
             NonlinearSolver nonlinearSolver = (solver as NonlinearSolver);
             nonlinearSolver.Estimate(model, solverOptions, pointCount, dataX, model.LogTransform(dataY), ref iterations);
             outIntensitiesModel = model.GetPowerETo1ValueVector(pointCount, dataX, iterations[iterations.Count - 1]).ToArray();

@@ -139,6 +139,7 @@
     <Compile Include="BasicClasses\PsmDraw.cs" />
     <Compile Include="DataGrids\RawDataForDataGrid.cs" />
     <Compile Include="DataGrids\SpectrumForDataGrid.cs" />
+    <Compile Include="MzSpectrumTD.cs" />
     <Compile Include="Regression\GaussianModel.cs" />
     <Compile Include="Regression\LevenbergMarquardtSolver.cs" />
     <Compile Include="Regression\Model.cs" />
