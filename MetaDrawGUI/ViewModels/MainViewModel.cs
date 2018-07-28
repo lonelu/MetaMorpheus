@@ -386,35 +386,35 @@ namespace ViewModels
             }
         }
 
-        public void UpdateDecon(PlotModel OriginalModel, IsotopicEnvelope isotopicEnvelope)
-        {
+        //public void UpdateDecon(PlotModel OriginalModel, IsotopicEnvelope isotopicEnvelope)
+        //{
 
-            var peaks = isotopicEnvelope.peaks;
+        //    var peaks = isotopicEnvelope.peaks;
 
-            LineSeries[] lsPeaks = new LineSeries[peaks.Count];
-            for (int i = 0; i < peaks.Count; i++)
-            {
-                lsPeaks[i] = new LineSeries();
-                lsPeaks[i].Color = OxyColors.Red;
-                lsPeaks[i].StrokeThickness = 1;
-                lsPeaks[i].Points.Add(new DataPoint(peaks[i].mz, 0));
-                lsPeaks[i].Points.Add(new DataPoint(peaks[i].mz, peaks[i].intensity));
-                OriginalModel.Series.Add(lsPeaks[i]);
-            }
-            var peakAnno = new TextAnnotation();
-            peakAnno.TextRotation = 90;
-            peakAnno.Font = "Arial";
-            peakAnno.FontSize = 12;
-            peakAnno.TextColor = OxyColors.Red;
-            peakAnno.StrokeThickness = 0;
-            peakAnno.TextPosition = lsPeaks[0].Points[1];
-            peakAnno.Text = isotopicEnvelope.monoisotopicMass.ToString("f1") + "@" + isotopicEnvelope.charge.ToString();
+        //    LineSeries[] lsPeaks = new LineSeries[peaks.Count];
+        //    for (int i = 0; i < peaks.Count; i++)
+        //    {
+        //        lsPeaks[i] = new LineSeries();
+        //        lsPeaks[i].Color = OxyColors.Red;
+        //        lsPeaks[i].StrokeThickness = 1;
+        //        lsPeaks[i].Points.Add(new DataPoint(peaks[i].mz, 0));
+        //        lsPeaks[i].Points.Add(new DataPoint(peaks[i].mz, peaks[i].intensity));
+        //        OriginalModel.Series.Add(lsPeaks[i]);
+        //    }
+        //    var peakAnno = new TextAnnotation();
+        //    peakAnno.TextRotation = 90;
+        //    peakAnno.Font = "Arial";
+        //    peakAnno.FontSize = 12;
+        //    peakAnno.TextColor = OxyColors.Red;
+        //    peakAnno.StrokeThickness = 0;
+        //    peakAnno.TextPosition = lsPeaks[0].Points[1];
+        //    peakAnno.Text = isotopicEnvelope.monoisotopicMass.ToString("f1") + "@" + isotopicEnvelope.charge.ToString();
 
-            OriginalModel.Annotations.Add(peakAnno);
+        //    OriginalModel.Annotations.Add(peakAnno);
 
-            // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            this.Model = OriginalModel;
-        }
+        //    // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
+        //    this.Model = OriginalModel;
+        //}
 
         public void ResetViewModel()
         {

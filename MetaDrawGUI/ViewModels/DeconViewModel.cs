@@ -7,6 +7,7 @@ using EngineLayer.CrosslinkSearch;
 using EngineLayer;
 using System.ComponentModel;
 using MassSpectrometry;
+using System.Collections.Generic;
 
 namespace ViewModels
 {
@@ -59,9 +60,7 @@ namespace ViewModels
 
             PlotModel model = new PlotModel { Title = "Spectrum Decon of Scan ", DefaultFontSize = 15 };
             model.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom, Title = "m/z", Minimum = peaks[0].mz - 2, Maximum = peaks.Last().mz + 2 });
-            model.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Title = "Intensity(counts)", Minimum = 0, Maximum = peaks.First().intensity * 1.5 });
-
-            
+            model.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Title = "Intensity(counts)", Minimum = 0, Maximum = peaks.First().intensity * 1.5 });           
             
             LineSeries[] lsPeaks = new LineSeries[peaks.Count];
             for (int i = 0; i < peaks.Count; i++)
@@ -86,6 +85,52 @@ namespace ViewModels
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
             this.DeconModel = model;
+        }
+
+        public void UpdateModelForDeconModel(MzSpectrumTD mzSpectrumTD, int ind)
+        {
+            PlotModel model = new PlotModel { Title = "Decon Model", DefaultFontSize = 15 };
+            model.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom, Title = "m/z", Minimum = 0, Maximum = mzSpectrumTD.AllMasses.Last().Last() });
+            model.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Title = "Intensity(counts)", Minimum = 0, Maximum = 1.5 });
+
+            List<LineSeries> lsPeaks = new List<LineSeries>();
+            for (int i = ind; i < ind+100; i++)
+            {
+                for (int j = 0; j < mzSpectrumTD.AllMasses[i].Length; j++)
+                {
+                    var line = new LineSeries();
+                    line.Color = OxyColors.Red;
+                    line.StrokeThickness = 1;
+                    line.Points.Add(new DataPoint(mzSpectrumTD.AllMasses[i][j], 0));
+                    line.Points.Add(new DataPoint(mzSpectrumTD.AllMasses[i][j], mzSpectrumTD.AllIntensities[i][j]));
+                    model.Series.Add(line);
+                }
+            }
+            this.DeconModel = model;
+
+        }
+
+        public void UpdateModelForDeconModel(MzSpectrumBU mzSpectrumTD, int ind)
+        {
+            PlotModel model = new PlotModel { Title = "Decon Model", DefaultFontSize = 15 };
+            model.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom, Title = "m/z", Minimum = 0, Maximum = mzSpectrumTD.AllMasses.Last().Last() });
+            model.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Title = "Intensity(counts)", Minimum = 0, Maximum = 1.5 });
+
+            List<LineSeries> lsPeaks = new List<LineSeries>();
+            for (int i = ind; i < ind + 100; i++)
+            {
+                for (int j = 0; j < mzSpectrumTD.AllMasses[i].Length; j++)
+                {
+                    var line = new LineSeries();
+                    line.Color = OxyColors.Red;
+                    line.StrokeThickness = 1;
+                    line.Points.Add(new DataPoint(mzSpectrumTD.AllMasses[i][j], 0));
+                    line.Points.Add(new DataPoint(mzSpectrumTD.AllMasses[i][j], mzSpectrumTD.AllIntensities[i][j]));
+                    model.Series.Add(line);
+                }
+            }
+            this.DeconModel = model;
+
         }
 
         public void ResetDeconModel()

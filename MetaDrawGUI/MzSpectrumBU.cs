@@ -25,6 +25,9 @@ namespace MassSpectrometry
         public double[] XArray { get; private set; }
         public double[] YArray { get; private set; }
 
+        public double[][] AllMasses { get { return allMasses; } }
+        public double[][] AllIntensities { get { return allIntensities; } }
+
         static MzSpectrumBU()
         {
             // AVERAGINE
@@ -51,8 +54,8 @@ namespace MassSpectrometry
                 {
                     var chemicalFormulaReg = chemicalFormula;
                     IsotopicDistribution ye = IsotopicDistribution.GetDistribution(chemicalFormulaReg, fineRes, minRes);
-                    var masses = ye.Masses.ToArray();
-                    var intensities = ye.Intensities.ToArray();
+                    var masses = MassConvertToNeuCode( ye.Masses.ToArray(), 0.034);
+                    var intensities = IntenConvertToNeuCode( ye.Intensities.ToArray(), 1);
                     Array.Sort(intensities, masses);
                     Array.Reverse(intensities);
                     Array.Reverse(masses);
@@ -284,7 +287,7 @@ namespace MassSpectrometry
 
                     IsotopicEnvelope test = new IsotopicEnvelope(listOfPeaks, monoisotopicMass, chargeState, totalIntensity, MathNet.Numerics.Statistics.Statistics.StandardDeviation(listOfRatios), massIndex);
 
-                    if (listOfPeaks.Count >= 2 && ScoreIsotopeEnvelope(test) > ScoreIsotopeEnvelope(bestIsotopeEnvelopeForThisPeak))
+                    if (listOfPeaks.Count >= 4 && ScoreIsotopeEnvelope(test) > ScoreIsotopeEnvelope(bestIsotopeEnvelopeForThisPeak))
                     {
                         //Console.WriteLine("Better charge state is " + test.charge);
                         //Console.WriteLine("peaks: " + string.Join(",", listOfPeaks.Select(b => b.Item1)));
@@ -292,7 +295,7 @@ namespace MassSpectrometry
                     }
                 }
 
-                if (bestIsotopeEnvelopeForThisPeak != null && bestIsotopeEnvelopeForThisPeak.peaks.Count >= 2)
+                if (bestIsotopeEnvelopeForThisPeak != null && bestIsotopeEnvelopeForThisPeak.peaks.Count >= 4)
                 {
                     isolatedMassesAndCharges.Add(bestIsotopeEnvelopeForThisPeak);
                 }
@@ -615,6 +618,28 @@ namespace MassSpectrometry
                 return true;
             }
             return false;
+        }
+
+        private static double[] MassConvertToNeuCode(double[] masses, double neuCodeDiff)
+        {
+            double[] massNeu = new double[masses.Length*2];
+            for (int i = 0; i < masses.Length; i++)
+            {
+                massNeu[2 * i] = masses[i];
+                massNeu[2 * i + 1] = masses[i] + neuCodeDiff;
+            }
+            return massNeu;
+        }
+
+        private static double[] IntenConvertToNeuCode(double[] intens, int fold)
+        {
+            double[] intenNeu = new double[intens.Length * 2];
+            for (int i = 0; i < intens.Length; i++)
+            {
+                intenNeu[2 * i] = intens[i];
+                intenNeu[2 * i + 1] = intens[i]*fold;
+            }
+            return intenNeu;
         }
     }
 }

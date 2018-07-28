@@ -25,6 +25,9 @@ namespace MassSpectrometry
         public double[] XArray { get; private set; }
         public double[] YArray { get; private set; }
 
+        public double[][] AllMasses { get { return allMasses; } }
+        public double[][] AllIntensities { get { return allIntensities; } }
+
         static MzSpectrumTD()
         {
             // AVERAGINE

@@ -21,7 +21,7 @@
             </Grid.ColumnDefinitions>
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="2*"/>
                     <RowDefinition Height="1*"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="2*"/>
@@ -30,8 +30,11 @@
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
-                            <RowDefinition Height="30"/>
-                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="25"/>
+                            <RowDefinition Height="25"/>
+                            <RowDefinition Height="25"/>
+                            <RowDefinition Height="25"/>
+                            <RowDefinition Height="25"/>
                         </Grid.RowDefinitions>
                         <DataGrid x:Name="dataGridMassSpectraFiles" ItemsSource="{Binding}" >
                             <DataGrid.Resources>
@@ -46,9 +49,22 @@
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="2">
                             <TextBox x:Name="txtDeconScanNum" Text="2076"  Width="50"/>
                             <Button x:Name="btnDecon" Content="Decon" Click="btnDecon_Click"/>
-                            <Button x:Name="btnResetDecon" Content="Reset" Click="btnResetDecon_Click"/>
                             <Button x:Name="btnDeconAll" Content="DeconAll" Click="btnDeconAll_Click"/>
-                            <Button x:Name="BtnDeconTest" Content="DeconTest" Click="BtnDeconTest_Click"/>
+                            <Button x:Name="BtnDeconTest" Content="DeconWatch" Click="BtnDeconTest_Click"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="3">
+                            <TextBox x:Name="TxtDeconModel" Text="0"  Width="30"/>
+                            <Button x:Name="BtnDeconModel" Content="DeconModel" Click="BtnDeconModel_Click"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="4">
+                            <TextBox x:Name="txtDeconScanNumNeu" Text="20113"  Width="50"/>
+                            <Button x:Name="btnDeconNeu" Content="DeconNeu" Click="btnDeconNeu_Click"/>
+                            <TextBox x:Name="TxtDeconModelNeu" Text="0"  Width="30"/>
+                            <Button x:Name="BtnDeconModelNeu" Content="DeconModelNeu" Click="BtnDeconModelNeu_Click"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="5">
+                            <Button x:Name="BtnPerScanTime" Content="Scan Time" Click="BtnPerScanTime_Click"/>
+                            <Button x:Name="btnResetDecon" Content="Reset" Click="btnResetDecon_Click"/>
                         </StackPanel>
                     </Grid>
                 </GroupBox>
