@@ -134,6 +134,7 @@
     <Compile Include="ChargeParsi.cs" />
     <Compile Include="DataGrids\ChargeEnvelopesForDataGrid.cs" />
     <Compile Include="DataGrids\EnvolopForDataGrid.cs" />
+    <Compile Include="Glycan.cs" />
     <Compile Include="LoadScans.cs" />
     <Compile Include="BasicClasses\PepWithSetModForCompactPep.cs" />
     <Compile Include="BasicClasses\PsmDraw.cs" />
@@ -185,6 +186,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="Data\pGlyco.gdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

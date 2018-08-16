@@ -41,6 +41,8 @@ namespace MetaDrawGUI
 
         private MsDataFileDecon msDataFileDecon = new MsDataFileDecon();
 
+        public static IEnumerable<Glycan> Glycans { get; set; }
+
         public MainWindow()
         {
 
@@ -635,6 +637,136 @@ namespace MetaDrawGUI
                 i++;
             }
             mainViewModel.UpdateScanModel(msDataScan);
+        }
+
+        private void BtnLoadGlycan_Click(object sender, RoutedEventArgs e)
+        {
+            var DataDir = AppDomain.CurrentDomain.BaseDirectory;
+            string GlycanLocation = Path.Combine(DataDir, @"Data", @"pGlyco.gdb");
+            Glycans = LoadGlycanDatabase(GlycanLocation);
+
+            //var writtenFile = Path.Combine(DataDir, "glycan.mytsv");
+            //using (StreamWriter output = new StreamWriter(writtenFile))
+            //{
+            //    foreach (var aGly in Glycans)
+            //    {
+            //        string ions="";
+            //        foreach (var aIon in aGly.Ions)
+            //        {
+            //            ions += aIon.IonMass.ToString() + "\t";
+            //        }
+            //        string kind = "";
+            //        foreach (var akind in aGly.Kind)
+            //        {
+            //            kind += akind.ToString() + "-";
+            //        }
+            //        output.WriteLine(
+            //            aGly.GlyId.ToString() +"\t" +
+            //            aGly.Mass.ToString() + "\t" +
+            //            kind + "\t" +
+            //            aGly.Struc.ToString() + "\t" +
+            //            ions
+            //            );
+            //    }
+            //}
+
+            var glycanBoxes = SortGlycanDatabase(Glycans);
+            var writtenFile2 = Path.Combine(DataDir, "glycanBoxes.mytsv");
+            using (StreamWriter output = new StreamWriter(writtenFile2))
+            {
+                foreach (var aBox in glycanBoxes)
+                {
+                    string keys = "";
+                    foreach (var aKeyValue in aBox.keyValuePairs)
+                    {
+                        keys += aKeyValue.Key.ToString() + "\t";
+                    }
+                    output.WriteLine(
+                        aBox.Mass.ToString() + "\t" +
+                        aBox.NumberOfGlycans.ToString() + "\t" +
+                        keys
+                        );
+                }
+            }
+        }
+
+        public static IEnumerable<Glycan> LoadGlycanDatabase(string pGlycoLocation)
+        {
+
+            using (StreamReader glycans = new StreamReader(pGlycoLocation))
+            {
+                List<string> theGlycanString = new List<string>();
+
+                while (glycans.Peek() != -1)
+                {
+                    string line = glycans.ReadLine();
+                    theGlycanString.Add(line);
+                    if (line.StartsWith("End"))
+                    {
+                        yield return ReadGlycan(theGlycanString);
+                        theGlycanString = new List<string>();
+                    }
+
+                }
+            }
+        }
+
+        private static Glycan ReadGlycan(List<string> theGlycanString)
+        {
+            int _id = Convert.ToInt32(theGlycanString[1].Split('\t')[1]);
+            int _type = Convert.ToInt32(theGlycanString[1].Split('\t')[3]); ;
+            string _struc = theGlycanString[2].Split('\t')[1];
+            double _mass = Convert.ToDouble(theGlycanString[3].Split('\t')[1]);
+            var test = theGlycanString[4].Split('\t').Skip(1);
+            int id;
+            int[] _kind = theGlycanString[4].Split('\t').SelectMany(s => int.TryParse(s, out id) ? new[] { id } : new int[0]).ToArray();
+            List<GlycanIon> glycanIons = new List<GlycanIon>();
+
+            for (int i = 0; i < theGlycanString.Count; i++)
+            {
+                if (theGlycanString[i].StartsWith("IonStruct"))
+                {
+                    double _ionMass = Convert.ToDouble(theGlycanString[i + 1].Split('\t')[1]);
+                    id = 0;
+                    int[] _ionKind = theGlycanString[i + 2].Split('\t').SelectMany(s => int.TryParse(s, out id) ? new[] { id } : new int[0]).ToArray();
+                    GlycanIon glycanIon = new GlycanIon(0, _ionMass, _ionKind);
+                    glycanIons.Add(glycanIon);
+                }
+            }
+            Glycan glycan = new Glycan(_id, _type, _struc, _mass, _kind, glycanIons);
+            return glycan;
+        }
+
+        public static List<GlycanBox> SortGlycanDatabase(IEnumerable<Glycan> glycans)
+        {
+            List<GlycanBox> glycanBoxes = new List<GlycanBox>();
+
+            var groupedGlycans = glycans.GroupBy(p => p.Mass).ToDictionary(p =>p.Key, p=>p.ToList());
+
+            foreach (var aGroupedGlycan in groupedGlycans)
+            {
+                GlycanBox glycanBox = new GlycanBox();
+                glycanBox.Mass = aGroupedGlycan.Key;
+                glycanBox.glycans = aGroupedGlycan.Value;
+                glycanBox.keyValuePairs = new Dictionary<double, List<int>>();
+                foreach (var aGlycan in aGroupedGlycan.Value)
+                {
+                    foreach (var aIon in aGlycan.Ions)
+                    {
+                        if (glycanBox.keyValuePairs.ContainsKey(aIon.IonMass))
+                        {
+                            glycanBox.keyValuePairs[aIon.IonMass].Add(aGlycan.GlyId);
+                        }
+                        else
+                        {
+                            glycanBox.keyValuePairs.Add(aIon.IonMass, new List<int> { aGlycan.GlyId });
+                        }
+                    }
+                }
+                glycanBoxes.Add(glycanBox);
+            }
+
+            return glycanBoxes;
         }
     }
 

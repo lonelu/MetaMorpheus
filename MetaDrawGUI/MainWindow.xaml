@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:MetaDrawGUI"
         mc:Ignorable="d"
         Title="MetaDraw" 
-        Drop="Window_Drop" AllowDrop="true" WindowStartupLocation="CenterScreen" MinHeight="400" MinWidth="800" Height="600" Width="1200">
+        Drop="Window_Drop" AllowDrop="true" WindowStartupLocation="CenterScreen" MinHeight="400" MinWidth="800" Height="800" Width="1200">
     <DockPanel>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -25,6 +25,7 @@
                     <RowDefinition Height="1*"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="2*"/>
+                    <RowDefinition Height="1*"/>
                 </Grid.RowDefinitions>
                 <GroupBox Header="Mass Spectra Files" Name="gbMassSpectraFiles" Grid.Row="0">
                     <Grid>
@@ -139,6 +140,9 @@
                             </Grid>
                         </GroupBox>
                     </Grid>
+                </GroupBox>
+                <GroupBox Header="Glyco" Name="GbGlyco" Grid.Row="4">
+                    <Button x:Name="BtnLoadGlycan" Content="Load Glycan" Click="BtnLoadGlycan_Click"></Button>
                 </GroupBox>
             </Grid>
             <GridSplitter Grid.Column="1" 
