@@ -150,6 +150,7 @@
     <Compile Include="Regression\NonlinearSolver.cs" />
     <Compile Include="Regression\Solver.cs" />
     <Compile Include="Regression\SolverOptions.cs" />
+    <Compile Include="Tree\Tree.cs" />
     <Compile Include="TsvResultReader.cs" />
     <Compile Include="ViewModels\ChargeEnve0ViewModel.cs" />
     <Compile Include="ViewModels\ChargeEnveViewModel.cs" />
@@ -186,6 +187,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="Data\glycanStruct.gdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Data\pGlyco.gdb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -645,12 +645,15 @@ namespace MetaDrawGUI
             string GlycanLocation = Path.Combine(DataDir, @"Data", @"pGlyco.gdb");
             Glycans = LoadGlycanDatabase(GlycanLocation);
 
+            string glycanStructLocation = Path.Combine(DataDir, @"Data", @"glycanStruct.gdb");
+            LoadGlycanStruct(glycanStructLocation);
+
             //var writtenFile = Path.Combine(DataDir, "glycan.mytsv");
             //using (StreamWriter output = new StreamWriter(writtenFile))
             //{
             //    foreach (var aGly in Glycans)
             //    {
-            //        string ions="";
+            //        string ions = "";
             //        foreach (var aIon in aGly.Ions)
             //        {
             //            ions += aIon.IonMass.ToString() + "\t";
@@ -661,7 +664,7 @@ namespace MetaDrawGUI
             //            kind += akind.ToString() + "-";
             //        }
             //        output.WriteLine(
-            //            aGly.GlyId.ToString() +"\t" +
+            //            aGly.GlyId.ToString() + "\t" +
             //            aGly.Mass.ToString() + "\t" +
             //            kind + "\t" +
             //            aGly.Struc.ToString() + "\t" +
@@ -670,22 +673,50 @@ namespace MetaDrawGUI
             //    }
             //}
 
-            var glycanBoxes = SortGlycanDatabase(Glycans);
-            var writtenFile2 = Path.Combine(DataDir, "glycanBoxes.mytsv");
-            using (StreamWriter output = new StreamWriter(writtenFile2))
-            {
-                foreach (var aBox in glycanBoxes)
+            //var writtenFilexxx = Path.Combine(DataDir, "glycanStruct.gdb");
+            //using (StreamWriter output = new StreamWriter(writtenFilexxx))
+            //{
+            //    foreach (var aGly in Glycans)
+            //    {
+
+            //        output.WriteLine(
+            //            aGly.Struc.ToString()
+            //            );
+            //    }
+            //}
+
+            //var glycanBoxes = SortGlycanDatabase(Glycans);
+            //var writtenFile2 = Path.Combine(DataDir, "glycanBoxes.mytsv");
+            //using (StreamWriter output = new StreamWriter(writtenFile2))
+            //{
+            //    foreach (var aBox in glycanBoxes)
+            //    {
+            //        string keys = "";
+            //        foreach (var aKeyValue in aBox.keyValuePairs)
+            //        {
+            //            keys += aKeyValue.Key.ToString() + "\t";
+            //        }
+            //        output.WriteLine(
+            //            aBox.Mass.ToString() + "\t" +
+            //            aBox.NumberOfGlycans.ToString() + "\t" +
+            //            keys
+            //            );
+            //    }
+            //}
+        }
+
+        public static void LoadGlycanStruct(string glycanStructLocation)
+        {
+            List<string> theGlycanString = new List<string>();
+            List<Tree> trees = new List<Tree>();
+            using (StreamReader glycans = new StreamReader(glycanStructLocation))
+            {              
+                while (glycans.Peek() != -1)
                 {
-                    string keys = "";
-                    foreach (var aKeyValue in aBox.keyValuePairs)
-                    {
-                        keys += aKeyValue.Key.ToString() + "\t";
-                    }
-                    output.WriteLine(
-                        aBox.Mass.ToString() + "\t" +
-                        aBox.NumberOfGlycans.ToString() + "\t" +
-                        keys
-                        );
+                    string line = glycans.ReadLine();
+                    theGlycanString.Add(line);
+                    var t = CalculateGlycan(line);
+                    trees.Add(t);
                 }
             }
         }
@@ -709,6 +740,44 @@ namespace MetaDrawGUI
 
                 }
             }
+        }
+
+        public static Tree CalculateGlycan(string theGlycanStruct)
+        {         
+            Node curr = new Node(theGlycanStruct[1]);
+            Tree t = new Tree(curr);
+            for (int i = 2; i < theGlycanStruct.Length-1; i++)
+            {
+                
+                if (theGlycanStruct[i]!=null)
+                {
+                    if (theGlycanStruct[i] == '(')
+                    {
+                        continue;
+                    }
+                    if (theGlycanStruct[i] == ')')
+                    {
+                        curr = curr.father;
+                    }
+                    else
+                    {
+                        if (curr.lChild==null)
+                        {
+                            curr.lChild = new Node( theGlycanStruct[i] );
+                            curr.lChild.father = curr;
+                            curr = curr.lChild;
+                        }
+                        else
+                        {
+                            curr.rChild = new Node( theGlycanStruct[i] );
+                            curr.rChild.father = curr;
+                            curr = curr.rChild;
+                        }
+                    }
+
+                }
+            }
+            return t;
         }
 
         private static Glycan ReadGlycan(List<string> theGlycanString)
