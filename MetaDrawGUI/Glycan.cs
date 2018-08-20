@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using MetaDrawGUI;
 
 namespace EngineLayer
 {
@@ -46,6 +47,44 @@ namespace EngineLayer
         public bool SameComponentGlycan(Glycan glycan)
         {
             return this.Kind == glycan.Kind;
+        }
+
+        public static Tree CalculateGlycan(string theGlycanStruct)
+        {
+            Node curr = new Node(theGlycanStruct[1]);
+            Tree t = new Tree(curr);
+            for (int i = 2; i < theGlycanStruct.Length - 1; i++)
+            {
+
+                if (theGlycanStruct[i] != null)
+                {
+                    if (theGlycanStruct[i] == '(')
+                    {
+                        continue;
+                    }
+                    if (theGlycanStruct[i] == ')')
+                    {
+                        curr = curr.father;
+                    }
+                    else
+                    {
+                        if (curr.lChild == null)
+                        {
+                            curr.lChild = new Node(theGlycanStruct[i]);
+                            curr.lChild.father = curr;
+                            curr = curr.lChild;
+                        }
+                        else
+                        {
+                            curr.rChild = new Node(theGlycanStruct[i]);
+                            curr.rChild.father = curr;
+                            curr = curr.rChild;
+                        }
+                    }
+
+                }
+            }
+            return t;
         }
     }
     public class GlycanIon
