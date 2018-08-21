@@ -6,16 +6,6 @@ using System.Threading.Tasks;
 
 namespace MetaDrawGUI
 {
-    public class Tree
-    {
-        
-
-        private Node root;
-        public Tree(Node node)
-        {
-            root = node;
-        }
-    }
 
     public class Node
     {

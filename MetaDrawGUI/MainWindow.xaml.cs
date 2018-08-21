@@ -643,10 +643,10 @@ namespace MetaDrawGUI
         {
             var DataDir = AppDomain.CurrentDomain.BaseDirectory;
             string GlycanLocation = Path.Combine(DataDir, @"Data", @"pGlyco.gdb");
-            Glycans = LoadGlycanDatabase(GlycanLocation);
+            Glycans = Glycan.LoadGlycanDatabase(GlycanLocation);
 
             string glycanStructLocation = Path.Combine(DataDir, @"Data", @"glycanStruct.gdb");
-            LoadGlycanStruct(glycanStructLocation);
+            Glycan.LoadGlycanStruct(glycanStructLocation);
 
             //var writtenFile = Path.Combine(DataDir, "glycan.mytsv");
             //using (StreamWriter output = new StreamWriter(writtenFile))
@@ -703,139 +703,6 @@ namespace MetaDrawGUI
             //            );
             //    }
             //}
-        }
-
-        public static void LoadGlycanStruct(string glycanStructLocation)
-        {
-            List<string> theGlycanString = new List<string>();
-            List<Tree> trees = new List<Tree>();
-            using (StreamReader glycans = new StreamReader(glycanStructLocation))
-            {              
-                while (glycans.Peek() != -1)
-                {
-                    string line = glycans.ReadLine();
-                    theGlycanString.Add(line);
-                    var t = CalculateGlycan(line);
-                    trees.Add(t);
-                }
-            }
-        }
-
-        public static IEnumerable<Glycan> LoadGlycanDatabase(string pGlycoLocation)
-        {
-
-            using (StreamReader glycans = new StreamReader(pGlycoLocation))
-            {
-                List<string> theGlycanString = new List<string>();
-
-                while (glycans.Peek() != -1)
-                {
-                    string line = glycans.ReadLine();
-                    theGlycanString.Add(line);
-                    if (line.StartsWith("End"))
-                    {
-                        yield return ReadGlycan(theGlycanString);
-                        theGlycanString = new List<string>();
-                    }
-
-                }
-            }
-        }
-
-        public static Tree CalculateGlycan(string theGlycanStruct)
-        {         
-            Node curr = new Node(theGlycanStruct[1]);
-            Tree t = new Tree(curr);
-            for (int i = 2; i < theGlycanStruct.Length-1; i++)
-            {
-                
-                if (theGlycanStruct[i]!=null)
-                {
-                    if (theGlycanStruct[i] == '(')
-                    {
-                        continue;
-                    }
-                    if (theGlycanStruct[i] == ')')
-                    {
-                        curr = curr.father;
-                    }
-                    else
-                    {
-                        if (curr.lChild==null)
-                        {
-                            curr.lChild = new Node( theGlycanStruct[i] );
-                            curr.lChild.father = curr;
-                            curr = curr.lChild;
-                        }
-                        else
-                        {
-                            curr.rChild = new Node( theGlycanStruct[i] );
-                            curr.rChild.father = curr;
-                            curr = curr.rChild;
-                        }
-                    }
-
-                }
-            }
-            return t;
-        }
-
-        private static Glycan ReadGlycan(List<string> theGlycanString)
-        {
-            int _id = Convert.ToInt32(theGlycanString[1].Split('\t')[1]);
-            int _type = Convert.ToInt32(theGlycanString[1].Split('\t')[3]); ;
-            string _struc = theGlycanString[2].Split('\t')[1];
-            double _mass = Convert.ToDouble(theGlycanString[3].Split('\t')[1]);
-            var test = theGlycanString[4].Split('\t').Skip(1);
-            int id;
-            int[] _kind = theGlycanString[4].Split('\t').SelectMany(s => int.TryParse(s, out id) ? new[] { id } : new int[0]).ToArray();
-            List<GlycanIon> glycanIons = new List<GlycanIon>();
-
-            for (int i = 0; i < theGlycanString.Count; i++)
-            {
-                if (theGlycanString[i].StartsWith("IonStruct"))
-                {
-                    double _ionMass = Convert.ToDouble(theGlycanString[i + 1].Split('\t')[1]);
-                    id = 0;
-                    int[] _ionKind = theGlycanString[i + 2].Split('\t').SelectMany(s => int.TryParse(s, out id) ? new[] { id } : new int[0]).ToArray();
-                    GlycanIon glycanIon = new GlycanIon(0, _ionMass, _ionKind);
-                    glycanIons.Add(glycanIon);
-                }
-            }
-            Glycan glycan = new Glycan(_id, _type, _struc, _mass, _kind, glycanIons);
-            return glycan;
-        }
-
-        public static List<GlycanBox> SortGlycanDatabase(IEnumerable<Glycan> glycans)
-        {
-            List<GlycanBox> glycanBoxes = new List<GlycanBox>();
-
-            var groupedGlycans = glycans.GroupBy(p => p.Mass).ToDictionary(p =>p.Key, p=>p.ToList());
-
-            foreach (var aGroupedGlycan in groupedGlycans)
-            {
-                GlycanBox glycanBox = new GlycanBox();
-                glycanBox.Mass = aGroupedGlycan.Key;
-                glycanBox.glycans = aGroupedGlycan.Value;
-                glycanBox.keyValuePairs = new Dictionary<double, List<int>>();
-                foreach (var aGlycan in aGroupedGlycan.Value)
-                {
-                    foreach (var aIon in aGlycan.Ions)
-                    {
-                        if (glycanBox.keyValuePairs.ContainsKey(aIon.IonMass))
-                        {
-                            glycanBox.keyValuePairs[aIon.IonMass].Add(aGlycan.GlyId);
-                        }
-                        else
-                        {
-                            glycanBox.keyValuePairs.Add(aIon.IonMass, new List<int> { aGlycan.GlyId });
-                        }
-                    }
-                }
-                glycanBoxes.Add(glycanBox);
-            }
-
-            return glycanBoxes;
         }
     }
 

@@ -150,7 +150,7 @@
     <Compile Include="Regression\NonlinearSolver.cs" />
     <Compile Include="Regression\Solver.cs" />
     <Compile Include="Regression\SolverOptions.cs" />
-    <Compile Include="Tree\Tree.cs" />
+    <Compile Include="Node\Node.cs" />
     <Compile Include="TsvResultReader.cs" />
     <Compile Include="ViewModels\ChargeEnve0ViewModel.cs" />
     <Compile Include="ViewModels\ChargeEnveViewModel.cs" />
