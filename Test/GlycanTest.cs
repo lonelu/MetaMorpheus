@@ -14,6 +14,7 @@ using Nett;
 using System;
 using System.IO;
 using MetaDrawGUI;
+using QuickGraph;
 
 namespace Test
 {
@@ -60,6 +61,13 @@ namespace Test
         {
             var t2 = Glycan.ReadGlycan("(N(F)(N(H(H))))");
             var x = Glycan.GetAllChildrenMass(t2);
+        }
+
+        [Test]
+        public static void GlycanTest_Node2Edge()
+        {
+            var t2 = Glycan.ReadGlycan("(N(F)(N(H(H))))");
+            var x = Glycan.Node2Edge(t2);
         }
     }
 }

@@ -3,7 +3,7 @@ using MetaDrawGUI;
 using System.IO;
 using System.Linq;
 using System;
-using System.Text.RegularExpressions;
+using QuickGraph;
 
 namespace EngineLayer
 {
@@ -277,6 +277,28 @@ namespace EngineLayer
             }
 
             return glycanBoxes;
+        }
+
+        public static List<Edge<object>> Node2Edge(Node node)
+        {
+            List<Edge<object>> edges = new List<Edge<object>>();
+
+            var curr = node;
+            if (curr.father != null)
+            {
+                edges.Add(new Edge<object>(curr.father, curr));
+            }
+            if(curr.lChild!=null)
+            {
+                List<Edge<object>> l = Node2Edge(curr.lChild);
+                edges.AddRange(l);
+                if (curr.rChild != null)
+                {
+                    List<Edge<object>> r = Node2Edge(curr.rChild);
+                    edges.AddRange(r);
+                }
+            }
+            return edges;
         }
     }
 

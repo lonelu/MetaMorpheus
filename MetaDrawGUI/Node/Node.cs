@@ -27,5 +27,10 @@ namespace MetaDrawGUI
             lChild = null;
             rChild = null;
         }
+
+        public override string ToString()
+        {
+            return value.ToString();
+        }
     }
 }

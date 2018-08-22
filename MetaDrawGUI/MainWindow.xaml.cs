@@ -12,13 +12,15 @@ using MzLibUtil;
 using System.Text.RegularExpressions;
 using MassSpectrometry;
 using System.Globalization;
+using QuickGraph;
+using System.ComponentModel;
 
 namespace MetaDrawGUI
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
         private readonly ObservableCollection<RawDataForDataGrid> spectraFilesObservableCollection = new ObservableCollection<RawDataForDataGrid>();
         private readonly ObservableCollection<RawDataForDataGrid> resultFilesObservableCollection = new ObservableCollection<RawDataForDataGrid>();
@@ -42,6 +44,32 @@ namespace MetaDrawGUI
         private MsDataFileDecon msDataFileDecon = new MsDataFileDecon();
 
         public static IEnumerable<Glycan> Glycans { get; set; }
+
+        private IBidirectionalGraph<object, IEdge<object>> _graphToVisualize;
+
+        public IBidirectionalGraph<object, IEdge<object>> GraphToVisualize
+        {
+            get { return _graphToVisualize; }
+            set
+            {
+                if (!Equals(value, this._graphToVisualize))
+                {
+                    this._graphToVisualize = value;
+                    this.RaisePropChanged("GraphToVisualize");
+                }
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public void RaisePropChanged(string name)
+        {
+            var eh = this.PropertyChanged;
+            if (eh != null)
+            {
+                eh(this, new PropertyChangedEventArgs(name));
+            }
+        }
 
         public MainWindow()
         {
@@ -703,6 +731,50 @@ namespace MetaDrawGUI
             //            );
             //    }
             //}
+        }
+
+        private void Glycan2Visualize(Node node)
+        {
+            var g = new BidirectionalGraph<object, IEdge<object>>();
+            var x = Glycan.Node2Edge(node);
+
+            foreach (var aEdge in x)
+            {
+                g.AddVertex(aEdge.Source);
+                g.AddVertex(aEdge.Target);
+            }
+            foreach (var aEdge in x)
+            {
+                g.AddEdge(aEdge);
+            }
+            GraphToVisualize = g;
+        }
+
+        private void BtnDrawGlycan_Click(object sender, RoutedEventArgs e)
+        {
+            //CreateGraphToVisualize();
+            var glycan = Glycan.ReadGlycan(TbxGlycanStructure.Text);
+            Glycan2Visualize(glycan);
+        }
+
+        private void CreateGraphToVisualize()
+        {
+            var g = new BidirectionalGraph<object, IEdge<object>>();
+
+            //add the vertices to the graph
+            string[] vertices = new string[5];
+            for (int i = 0; i < 5; i++)
+            {
+                vertices[i] = i.ToString();
+                g.AddVertex(vertices[i]);
+            }
+
+            //add some edges to the graph
+            g.AddEdge(new Edge<object>(vertices[0], vertices[1]));
+            g.AddEdge(new Edge<object>(vertices[1], vertices[2]));
+            g.AddEdge(new Edge<object>(vertices[2], vertices[3]));
+
+            GraphToVisualize = g;
         }
     }
 

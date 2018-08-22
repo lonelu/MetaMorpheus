@@ -5,9 +5,12 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MetaDrawGUI"
+        xmlns:graphsharp="clr-namespace:GraphSharp.Controls;assembly=GraphSharp.Controls"
+        xmlns:zoom="clr-namespace:WPFExtensions.Controls;assembly=WPFExtensions"
+        x:Name="root"
         mc:Ignorable="d"
         Title="MetaDraw" 
-        Drop="Window_Drop" AllowDrop="true" WindowStartupLocation="CenterScreen" MinHeight="400" MinWidth="800" Height="800" Width="1200">
+        Drop="Window_Drop" AllowDrop="true" WindowStartupLocation="CenterScreen" MinHeight="400" MinWidth="800" Height="800" Width="1600">
     <DockPanel>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -18,6 +21,8 @@
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
             <Grid>
                 <Grid.RowDefinitions>
@@ -142,7 +147,11 @@
                     </Grid>
                 </GroupBox>
                 <GroupBox Header="Glyco" Name="GbGlyco" Grid.Row="4">
-                    <Button x:Name="BtnLoadGlycan" Content="Load Glycan" Click="BtnLoadGlycan_Click"></Button>
+                    <StackPanel>
+                        <Button x:Name="BtnLoadGlycan" Content="Load Glycan" Click="BtnLoadGlycan_Click"></Button>
+                        <TextBox x:Name="TbxGlycanStructure" Text="(N(F)(N(H(H))))"></TextBox>
+                        <Button x:Name="BtnDrawGlycan" Content="Draw Glycan" Click="BtnDrawGlycan_Click"></Button>
+                    </StackPanel>
                 </GroupBox>
             </Grid>
             <GridSplitter Grid.Column="1" 
@@ -203,6 +212,28 @@
                         </DataGrid.Resources>
                     </DataGrid>
                 </GroupBox>
+            </Grid>
+            <GridSplitter Grid.Column="7" 
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Stretch"
+                          Background="Silver"
+                          Width="5"/>
+            <Grid Grid.Column="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <Grid>
+                        <zoom:ZoomControl>
+                        <graphsharp:GraphLayout x:Name="graphLayout"
+                                    Graph="{Binding ElementName=root,Path=GraphToVisualize}"
+                                    LayoutAlgorithmType="FR"
+                                    OverlapRemovalAlgorithmType="FSA"
+                                    HighlightAlgorithmType="Simple" />
+                        </zoom:ZoomControl>
+                    </Grid>
+                </Grid>
             </Grid>
         </Grid>
     </DockPanel>
