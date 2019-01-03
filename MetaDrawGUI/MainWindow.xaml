@@ -146,13 +146,6 @@
                         </GroupBox>
                     </Grid>
                 </GroupBox>
-                <GroupBox Header="Glyco" Name="GbGlyco" Grid.Row="4">
-                    <StackPanel>
-                        <Button x:Name="BtnLoadGlycan" Content="Load Glycan" Click="BtnLoadGlycan_Click"></Button>
-                        <TextBox x:Name="TbxGlycanStructure" Text="(N(F)(N(H(H))))"></TextBox>
-                        <Button x:Name="BtnDrawGlycan" Content="Draw Glycan" Click="BtnDrawGlycan_Click"></Button>
-                    </StackPanel>
-                </GroupBox>
             </Grid>
             <GridSplitter Grid.Column="1" 
                           HorizontalAlignment="Center"
@@ -224,15 +217,6 @@
                         <RowDefinition Height="1*"/>
                         <RowDefinition Height="1*"/>
                     </Grid.RowDefinitions>
-                    <Grid>
-                        <zoom:ZoomControl>
-                        <graphsharp:GraphLayout x:Name="graphLayout"
-                                    Graph="{Binding ElementName=root,Path=GraphToVisualize}"
-                                    LayoutAlgorithmType="FR"
-                                    OverlapRemovalAlgorithmType="FSA"
-                                    HighlightAlgorithmType="Simple" />
-                        </zoom:ZoomControl>
-                    </Grid>
                 </Grid>
             </Grid>
         </Grid>

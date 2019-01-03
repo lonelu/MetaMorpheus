@@ -155,7 +155,6 @@
     <Compile Include="ChargeParsi.cs" />
     <Compile Include="DataGrids\ChargeEnvelopesForDataGrid.cs" />
     <Compile Include="DataGrids\EnvolopForDataGrid.cs" />
-    <Compile Include="Glycan.cs" />
     <Compile Include="LoadScans.cs" />
     <Compile Include="BasicClasses\PepWithSetModForCompactPep.cs" />
     <Compile Include="BasicClasses\PsmDraw.cs" />
@@ -171,7 +170,6 @@
     <Compile Include="Regression\NonlinearSolver.cs" />
     <Compile Include="Regression\Solver.cs" />
     <Compile Include="Regression\SolverOptions.cs" />
-    <Compile Include="Node\Node.cs" />
     <Compile Include="TsvResultReader.cs" />
     <Compile Include="ViewModels\ChargeEnve0ViewModel.cs" />
     <Compile Include="ViewModels\ChargeEnveViewModel.cs" />
@@ -208,12 +206,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="Data\glycanStruct.gdb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Data\pGlyco.gdb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

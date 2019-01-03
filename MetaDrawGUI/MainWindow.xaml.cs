@@ -12,7 +12,6 @@ using MzLibUtil;
 using System.Text.RegularExpressions;
 using MassSpectrometry;
 using System.Globalization;
-using QuickGraph;
 using System.ComponentModel;
 
 namespace MetaDrawGUI
@@ -42,23 +41,6 @@ namespace MetaDrawGUI
         public ChargeEnve0ViewModel ChargeDecon0ViewModel { get; set; }
 
         private MsDataFileDecon msDataFileDecon = new MsDataFileDecon();
-
-        public static IEnumerable<Glycan> Glycans { get; set; }
-
-        private IBidirectionalGraph<object, IEdge<object>> _graphToVisualize;
-
-        public IBidirectionalGraph<object, IEdge<object>> GraphToVisualize
-        {
-            get { return _graphToVisualize; }
-            set
-            {
-                if (!Equals(value, this._graphToVisualize))
-                {
-                    this._graphToVisualize = value;
-                    this.RaisePropChanged("GraphToVisualize");
-                }
-            }
-        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -667,115 +649,6 @@ namespace MetaDrawGUI
             mainViewModel.UpdateScanModel(msDataScan);
         }
 
-        private void BtnLoadGlycan_Click(object sender, RoutedEventArgs e)
-        {
-            var DataDir = AppDomain.CurrentDomain.BaseDirectory;
-            string GlycanLocation = Path.Combine(DataDir, @"Data", @"pGlyco.gdb");
-            Glycans = Glycan.LoadGlycanDatabase(GlycanLocation);
-
-            string glycanStructLocation = Path.Combine(DataDir, @"Data", @"glycanStruct.gdb");
-            Glycan.LoadGlycanStruct(glycanStructLocation);
-
-            //var writtenFile = Path.Combine(DataDir, "glycan.mytsv");
-            //using (StreamWriter output = new StreamWriter(writtenFile))
-            //{
-            //    foreach (var aGly in Glycans)
-            //    {
-            //        string ions = "";
-            //        foreach (var aIon in aGly.Ions)
-            //        {
-            //            ions += aIon.IonMass.ToString() + "\t";
-            //        }
-            //        string kind = "";
-            //        foreach (var akind in aGly.Kind)
-            //        {
-            //            kind += akind.ToString() + "-";
-            //        }
-            //        output.WriteLine(
-            //            aGly.GlyId.ToString() + "\t" +
-            //            aGly.Mass.ToString() + "\t" +
-            //            kind + "\t" +
-            //            aGly.Struc.ToString() + "\t" +
-            //            ions
-            //            );
-            //    }
-            //}
-
-            //var writtenFilexxx = Path.Combine(DataDir, "glycanStruct.gdb");
-            //using (StreamWriter output = new StreamWriter(writtenFilexxx))
-            //{
-            //    foreach (var aGly in Glycans)
-            //    {
-
-            //        output.WriteLine(
-            //            aGly.Struc.ToString()
-            //            );
-            //    }
-            //}
-
-            //var glycanBoxes = SortGlycanDatabase(Glycans);
-            //var writtenFile2 = Path.Combine(DataDir, "glycanBoxes.mytsv");
-            //using (StreamWriter output = new StreamWriter(writtenFile2))
-            //{
-            //    foreach (var aBox in glycanBoxes)
-            //    {
-            //        string keys = "";
-            //        foreach (var aKeyValue in aBox.keyValuePairs)
-            //        {
-            //            keys += aKeyValue.Key.ToString() + "\t";
-            //        }
-            //        output.WriteLine(
-            //            aBox.Mass.ToString() + "\t" +
-            //            aBox.NumberOfGlycans.ToString() + "\t" +
-            //            keys
-            //            );
-            //    }
-            //}
-        }
-
-        private void Glycan2Visualize(Node node)
-        {
-            var g = new BidirectionalGraph<object, IEdge<object>>();
-            var x = Glycan.Node2Edge(node);
-
-            foreach (var aEdge in x)
-            {
-                g.AddVertex(aEdge.Source);
-                g.AddVertex(aEdge.Target);
-            }
-            foreach (var aEdge in x)
-            {
-                g.AddEdge(aEdge);
-            }
-            GraphToVisualize = g;
-        }
-
-        private void BtnDrawGlycan_Click(object sender, RoutedEventArgs e)
-        {
-            //CreateGraphToVisualize();
-            var glycan = Glycan.ReadGlycan(TbxGlycanStructure.Text);
-            Glycan2Visualize(glycan);
-        }
-
-        private void CreateGraphToVisualize()
-        {
-            var g = new BidirectionalGraph<object, IEdge<object>>();
-
-            //add the vertices to the graph
-            string[] vertices = new string[5];
-            for (int i = 0; i < 5; i++)
-            {
-                vertices[i] = i.ToString();
-                g.AddVertex(vertices[i]);
-            }
-
-            //add some edges to the graph
-            g.AddEdge(new Edge<object>(vertices[0], vertices[1]));
-            g.AddEdge(new Edge<object>(vertices[1], vertices[2]));
-            g.AddEdge(new Edge<object>(vertices[2], vertices[3]));
-
-            GraphToVisualize = g;
-        }
     }
 
     public class WatchEvaluation
