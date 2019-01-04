@@ -74,12 +74,6 @@
     <Reference Include="ESAPI-1.1">
       <HintPath>Dependencies\ESAPI-1.1.dll</HintPath>
     </Reference>
-    <Reference Include="FlashLFQ, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\mzLib.1.0.318\lib\net471\FlashLFQ.dll</HintPath>
-    </Reference>
-    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
-    </Reference>
     <Reference Include="ManagedThermoHelperLayer, Version=1.0.318.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\mzLib.1.0.318\lib\net471\ManagedThermoHelperLayer.dll</HintPath>
     </Reference>
@@ -100,9 +94,6 @@
     </Reference>
     <Reference Include="MzML, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\mzLib.1.0.318\lib\net471\MzML.dll</HintPath>
-    </Reference>
-    <Reference Include="pepXML, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\mzLib.1.0.318\lib\net471\pepXML.dll</HintPath>
     </Reference>
     <Reference Include="Proteomics, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\mzLib.1.0.318\lib\net471\Proteomics.dll</HintPath>
@@ -126,9 +117,6 @@
     <Reference Include="Thermo, Version=1.0.318.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\mzLib.1.0.318\lib\net471\Thermo.dll</HintPath>
     </Reference>
-    <Reference Include="UsefulProteomicsDatabases, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\mzLib.1.0.318\lib\net471\UsefulProteomicsDatabases.dll</HintPath>
-    </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -138,25 +126,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="DatabaseParameterWindow.xaml.cs">
-      <DependentUpon>DatabaseParameterWindow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="LogWatcher.cs" />
-    <Compile Include="MemoryAppenderWithEvents.cs" />
-    <Compile Include="ModForTreeView.cs" />
-    <Compile Include="ModTypeForGrid.cs" />
-    <Compile Include="ModTypeForLoc.cs" />
-    <Compile Include="ModTypeForTreeView.cs" />
     <Compile Include="NotificationEventArgs.cs" />
     <Compile Include="Notifications.cs" />
-    <Compile Include="ProteinDbForDataGrid.cs" />
-    <Compile Include="RealTimeSearch.cs" />
     <Compile Include="RTParameters.cs" />
-    <Compile Include="TextBoxAppender.cs" />
-    <Page Include="DatabaseParameterWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

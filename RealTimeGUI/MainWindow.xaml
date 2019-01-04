@@ -5,7 +5,6 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RealTimeGUI"
         mc:Ignorable="d"
-        Drop="Window_Drop" AllowDrop="true"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <Grid.RowDefinitions>
@@ -41,37 +40,6 @@
                         VerticalAlignment="Stretch"
                         Background="Silver"
                         Width="5" />
-            <GroupBox Header="Database preparation" Grid.Row="0" Grid.Column="2">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="2*"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="36"/>
-                        <RowDefinition Height="1*"/>
-                    </Grid.RowDefinitions>
-                    <DataGrid x:Name="dataGridProteinDatabases" ItemsSource="{Binding }" CanUserSortColumns="False" CanUserResizeColumns="False" CanUserReorderColumns="False">
-                        <DataGrid.Resources>
-                            <Style TargetType="DataGridCell">
-
-                            </Style>
-                        </DataGrid.Resources>
-                    </DataGrid>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
-                        <Button x:Name="BtnAddXML" Content="Add" Click="BtnAddXML_Click" />
-                        <Button x:Name="BtnClearXML" Content="Clear" Click="BtnClearXML_Click" />
-                    </StackPanel>
-                    <DockPanel Margin="5" Grid.Row="2" LastChildFill="True">
-                        <Button x:Name="BtnOpenOutputFolder" Content="Open" Width="40" DockPanel.Dock="Right" Click="BtnOpenOutputFolder_Click"/>
-                        <Label Content="Output Folder:" />
-                        <TextBox x:Name="TbOutputFolder" Text="C:\RealTime" ToolTip="Ion index files" />
-                    </DockPanel>
-
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Grid.Row="5">
-                        <Button x:Name="BtnDataBaseParameter" Content="Set Database Parameter" Click="BtnDataBaseParameter_Click"/>
-                        <Button x:Name="BtnDatabasePrepare" Content="Bottom-up Database Preparation" Click="BtnDatabasePrepare_Click"/>
-                    </StackPanel>
-                </Grid>
-            </GroupBox>
         </Grid>
         <GridSplitter Grid.Row="1"
                         VerticalAlignment="Center"

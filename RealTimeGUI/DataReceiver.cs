@@ -17,8 +17,6 @@ namespace RealTimeGUI
 	/// </summary>
 	public class DataReceiver
 	{
-        private static readonly log4net.ILog logD = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
         internal DataReceiver()
         {
             RTParameters = new RTParameters();
@@ -118,7 +116,7 @@ namespace RealTimeGUI
                         string descr = source.ToString();
                         descr = descr.Substring(0, Math.Min(11, descr.Length));
                         //Console.WriteLine("   {0,-11} {1,-35} = {2}", descr, key, value);
-                        logD.Debug(descr);
+        
                     }
                 }
                 catch { /* up to and including 2.8SP1 there is a bug displaying items which are null and if Foundation 3.1SP4 is used with CommonCore */ }
@@ -141,10 +139,6 @@ namespace RealTimeGUI
             }
         }
 
-        public void TestLog()
-        {
-            logD.Debug("Test log in DataReceiver");
-        }
 
 
 	}
