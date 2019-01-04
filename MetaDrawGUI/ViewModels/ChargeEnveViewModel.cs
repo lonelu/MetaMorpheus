@@ -91,7 +91,7 @@ namespace ViewModels
                 peakAnno.Text = charges[i].ToString();
                 model.Annotations.Add(peakAnno);
             }
-
+            model.Axes[0].AxisChanged += XAxisChanged;
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
             this.ChargeEnveModel = model;
         }
@@ -103,6 +103,29 @@ namespace ViewModels
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
             this.ChargeEnveModel = tmp;
+        }
+
+        private void XAxisChanged(object sender, AxisChangedEventArgs e)
+        {
+            double fold = (this.chargeEnveModel.Axes[0].ActualMaximum - this.chargeEnveModel.Axes[0].ActualMinimum) / (this.chargeEnveModel.Axes[0].AbsoluteMaximum - this.chargeEnveModel.Axes[0].AbsoluteMinimum);
+            this.chargeEnveModel.Axes[1].Minimum = 0;
+            this.chargeEnveModel.Axes[1].Maximum = this.chargeEnveModel.Axes[1].AbsoluteMaximum * 0.6 * fold;
+
+            foreach (var series in this.chargeEnveModel.Series)
+            {
+                if (series is LineSeries)
+                {
+                    var x = (LineSeries)series;
+                    if (x.Points[1].X >= this.chargeEnveModel.Axes[0].ActualMinimum && x.Points[1].X <= this.chargeEnveModel.Axes[0].ActualMaximum)
+                    {
+                        if (x.Points[1].Y > this.chargeEnveModel.Axes[1].Maximum)
+                        {
+                            this.chargeEnveModel.Axes[1].Maximum = x.Points[1].Y * 1.2;
+                        }
+                    }
+
+                }
+            }
         }
     }
 }

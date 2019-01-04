@@ -73,7 +73,7 @@ namespace ViewModels
                 }
                 
             }
-
+            model.Axes[0].AxisChanged += XAxisChanged;
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
             this.ChargeEnveModel0 = model;
         }
@@ -85,6 +85,29 @@ namespace ViewModels
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
             this.ChargeEnveModel0 = tmp;
+        }
+
+        private void XAxisChanged(object sender, AxisChangedEventArgs e)
+        {
+            double fold = (this.chargeEnveModel0.Axes[0].ActualMaximum - this.chargeEnveModel0.Axes[0].ActualMinimum) / (this.chargeEnveModel0.Axes[0].AbsoluteMaximum - this.chargeEnveModel0.Axes[0].AbsoluteMinimum);
+            this.chargeEnveModel0.Axes[1].Minimum = 0;
+            this.chargeEnveModel0.Axes[1].Maximum = this.chargeEnveModel0.Axes[1].AbsoluteMaximum * 0.6 * fold;
+
+            foreach (var series in this.chargeEnveModel0.Series)
+            {
+                if (series is LineSeries)
+                {
+                    var x = (LineSeries)series;
+                    if (x.Points[1].X >= this.chargeEnveModel0.Axes[0].ActualMinimum && x.Points[1].X <= this.chargeEnveModel0.Axes[0].ActualMaximum)
+                    {
+                        if (x.Points[1].Y > this.chargeEnveModel0.Axes[1].Maximum)
+                        {
+                            this.chargeEnveModel0.Axes[1].Maximum = x.Points[1].Y * 1.2;
+                        }
+                    }
+
+                }
+            }
         }
     }
 }

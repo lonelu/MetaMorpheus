@@ -77,7 +77,7 @@ namespace ViewModels
                 s0[i].Points.Add(new DataPoint(x[i], y[i]));
                 model.Series.Add(s0[i]);
             }
-
+            model.Axes[0].AxisChanged += XAxisChanged;
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
             this.Model = model;
 
@@ -149,7 +149,7 @@ namespace ViewModels
                 }
 
             }
-
+            model.Axes[0].AxisChanged += XAxisChanged;
             // Axes are created automatically if they are not defined
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
@@ -264,6 +264,7 @@ namespace ViewModels
                 }
             }
 
+            model.Axes[0].AxisChanged += XAxisChanged;
             // Axes are created automatically if they are not defined
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
@@ -386,36 +387,6 @@ namespace ViewModels
             }
         }
 
-        //public void UpdateDecon(PlotModel OriginalModel, IsotopicEnvelope isotopicEnvelope)
-        //{
-
-        //    var peaks = isotopicEnvelope.peaks;
-
-        //    LineSeries[] lsPeaks = new LineSeries[peaks.Count];
-        //    for (int i = 0; i < peaks.Count; i++)
-        //    {
-        //        lsPeaks[i] = new LineSeries();
-        //        lsPeaks[i].Color = OxyColors.Red;
-        //        lsPeaks[i].StrokeThickness = 1;
-        //        lsPeaks[i].Points.Add(new DataPoint(peaks[i].mz, 0));
-        //        lsPeaks[i].Points.Add(new DataPoint(peaks[i].mz, peaks[i].intensity));
-        //        OriginalModel.Series.Add(lsPeaks[i]);
-        //    }
-        //    var peakAnno = new TextAnnotation();
-        //    peakAnno.TextRotation = 90;
-        //    peakAnno.Font = "Arial";
-        //    peakAnno.FontSize = 12;
-        //    peakAnno.TextColor = OxyColors.Red;
-        //    peakAnno.StrokeThickness = 0;
-        //    peakAnno.TextPosition = lsPeaks[0].Points[1];
-        //    peakAnno.Text = isotopicEnvelope.monoisotopicMass.ToString("f1") + "@" + isotopicEnvelope.charge.ToString();
-
-        //    OriginalModel.Annotations.Add(peakAnno);
-
-        //    // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-        //    this.Model = OriginalModel;
-        //}
-
         public void ResetViewModel()
         {
             // Create the plot model
@@ -423,6 +394,29 @@ namespace ViewModels
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
             this.Model = tmp;
+        }
+
+        private void XAxisChanged(object sender, AxisChangedEventArgs e)
+        {
+            double fold = (this.Model.Axes[0].ActualMaximum - this.Model.Axes[0].ActualMinimum) / (this.Model.Axes[0].AbsoluteMaximum - this.Model.Axes[0].AbsoluteMinimum);
+            this.Model.Axes[1].Minimum = 0;
+            this.Model.Axes[1].Maximum = this.Model.Axes[1].AbsoluteMaximum * 0.6 * fold;
+
+            foreach (var series in this.Model.Series)
+            {
+                if (series is LineSeries)
+                {
+                    var x = (LineSeries)series;
+                    if (x.Points[1].X >= this.Model.Axes[0].ActualMinimum && x.Points[1].X <= this.Model.Axes[0].ActualMaximum)
+                    {
+                        if (x.Points[1].Y > this.Model.Axes[1].Maximum)
+                        {
+                            this.Model.Axes[1].Maximum = x.Points[1].Y * 1.2;
+                        }
+                    }
+
+                }
+            }
         }
     }
 }

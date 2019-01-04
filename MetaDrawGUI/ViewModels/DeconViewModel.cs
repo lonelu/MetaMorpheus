@@ -59,8 +59,20 @@ namespace ViewModels
             var peaks = isotopicEnvelope.peaks;
 
             PlotModel model = new PlotModel { Title = "Spectrum Decon of Scan ", DefaultFontSize = 15 };
-            model.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom, Title = "m/z", Minimum = peaks[0].mz - 2, Maximum = peaks.Last().mz + 2 });
-            model.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Title = "Intensity(counts)", Minimum = 0, Maximum = peaks.First().intensity * 1.5 });           
+            model.Axes.Add(new LinearAxis {
+                Position = AxisPosition.Bottom,
+                Title = "m/z",
+                Minimum = peaks[0].mz - 2,
+                Maximum = peaks.Last().mz + 2
+            });
+            model.Axes.Add(new LinearAxis {
+                Position = AxisPosition.Left,
+                Title = "Intensity(counts)",
+                Minimum = 0,
+                Maximum = peaks * 1.3,
+                AbsoluteMinimum = 0,
+                AbsoluteMaximum = MsScanForDraw.YArray.Max() * 1.3
+            });           
             
             LineSeries[] lsPeaks = new LineSeries[peaks.Count];
             for (int i = 0; i < peaks.Count; i++)
@@ -82,7 +94,7 @@ namespace ViewModels
             peakAnno.Text = isotopicEnvelope.monoisotopicMass.ToString("f1") + "@" + isotopicEnvelope.charge.ToString();
 
             model.Annotations.Add(peakAnno);
-
+            model.Axes[0].AxisChanged += XAxisChanged;
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
             this.DeconModel = model;
         }
@@ -90,8 +102,20 @@ namespace ViewModels
         public void UpdateModelForDeconModel(MzSpectrumTD mzSpectrumTD, int ind)
         {
             PlotModel model = new PlotModel { Title = "Decon Model", DefaultFontSize = 15 };
-            model.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom, Title = "m/z", Minimum = 0, Maximum = mzSpectrumTD.AllMasses.Last().Last() });
-            model.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Title = "Intensity(counts)", Minimum = 0, Maximum = 1.5 });
+            model.Axes.Add(new LinearAxis {
+                Position = AxisPosition.Bottom,
+                Title = "m/z",
+                Minimum = 0,
+                Maximum = mzSpectrumTD.AllMasses.Last().Last()
+            });
+            model.Axes.Add(new LinearAxis {
+                Position = AxisPosition.Left,
+                Title = "Intensity(counts)",
+                Minimum = 0,
+                Maximum = mzSpectrumTD.YArray.Max() * 1.3,
+                AbsoluteMinimum = 0,
+                AbsoluteMaximum = mzSpectrumTD.YArray.Max() * 1.3
+            });
 
             List<LineSeries> lsPeaks = new List<LineSeries>();
             for (int i = ind; i < ind+100; i++)
@@ -106,6 +130,7 @@ namespace ViewModels
                     model.Series.Add(line);
                 }
             }
+            model.Axes[0].AxisChanged += XAxisChanged;
             this.DeconModel = model;
 
         }
@@ -113,8 +138,20 @@ namespace ViewModels
         public void UpdateModelForDeconModel(MzSpectrumBU mzSpectrumTD, int ind)
         {
             PlotModel model = new PlotModel { Title = "Decon Model", DefaultFontSize = 15 };
-            model.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom, Title = "m/z", Minimum = 0, Maximum = mzSpectrumTD.AllMasses.Last().Last() });
-            model.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Title = "Intensity(counts)", Minimum = 0, Maximum = 1.5 });
+            model.Axes.Add(new LinearAxis {
+                Position = AxisPosition.Bottom,
+                Title = "m/z",
+                Minimum = 0,
+                Maximum = mzSpectrumTD.AllMasses.Last().Last()
+            });
+            model.Axes.Add(new LinearAxis {
+                Position = AxisPosition.Left,
+                Title = "Intensity(counts)",
+                Minimum = 0,
+                Maximum = mzSpectrumTD.YArray.Max() * 1.3,
+                AbsoluteMinimum = 0,
+                AbsoluteMaximum = mzSpectrumTD.YArray.Max() * 1.3
+            });
 
             List<LineSeries> lsPeaks = new List<LineSeries>();
             for (int i = ind; i < ind + 100; i++)
@@ -129,6 +166,7 @@ namespace ViewModels
                     model.Series.Add(line);
                 }
             }
+            model.Axes[0].AxisChanged += XAxisChanged;
             this.DeconModel = model;
 
         }
@@ -140,6 +178,29 @@ namespace ViewModels
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
             this.DeconModel = tmp;
+        }
+
+        private void XAxisChanged(object sender, AxisChangedEventArgs e)
+        {
+            double fold = (this.DeconModel.Axes[0].ActualMaximum - this.DeconModel.Axes[0].ActualMinimum) / (this.DeconModel.Axes[0].AbsoluteMaximum - this.DeconModel.Axes[0].AbsoluteMinimum);
+            this.DeconModel.Axes[1].Minimum = 0;
+            this.DeconModel.Axes[1].Maximum = this.DeconModel.Axes[1].AbsoluteMaximum * 0.6 * fold;
+
+            foreach (var series in this.DeconModel.Series)
+            {
+                if (series is LineSeries)
+                {
+                    var x = (LineSeries)series;
+                    if (x.Points[1].X >= this.DeconModel.Axes[0].ActualMinimum && x.Points[1].X <= this.DeconModel.Axes[0].ActualMaximum)
+                    {
+                        if (x.Points[1].Y > this.DeconModel.Axes[1].Maximum)
+                        {
+                            this.DeconModel.Axes[1].Maximum = x.Points[1].Y * 1.2;
+                        }
+                    }
+
+                }
+            }
         }
     }
 }

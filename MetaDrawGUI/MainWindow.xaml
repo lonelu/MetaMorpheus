@@ -21,8 +21,6 @@
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
             <Grid>
                 <Grid.RowDefinitions>
@@ -30,7 +28,6 @@
                     <RowDefinition Height="1*"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="2*"/>
-                    <RowDefinition Height="1*"/>
                 </Grid.RowDefinitions>
                 <GroupBox Header="Mass Spectra Files" Name="gbMassSpectraFiles" Grid.Row="0">
                     <Grid>
@@ -205,19 +202,6 @@
                         </DataGrid.Resources>
                     </DataGrid>
                 </GroupBox>
-            </Grid>
-            <GridSplitter Grid.Column="7" 
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Stretch"
-                          Background="Silver"
-                          Width="5"/>
-            <Grid Grid.Column="8">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
-                    </Grid.RowDefinitions>
-                </Grid>
             </Grid>
         </Grid>
     </DockPanel>
