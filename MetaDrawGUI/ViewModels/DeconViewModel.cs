@@ -69,9 +69,9 @@ namespace ViewModels
                 Position = AxisPosition.Left,
                 Title = "Intensity(counts)",
                 Minimum = 0,
-                Maximum = peaks * 1.3,
+                Maximum = peaks.First().intensity * 1.3,
                 AbsoluteMinimum = 0,
-                AbsoluteMaximum = MsScanForDraw.YArray.Max() * 1.3
+                AbsoluteMaximum = peaks.First().intensity * 1.3
             });           
             
             LineSeries[] lsPeaks = new LineSeries[peaks.Count];
