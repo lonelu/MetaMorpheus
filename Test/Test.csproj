@@ -6,11 +6,11 @@
 
   <ItemGroup>
     <PackageReference Include="FluentCommandLineParser" Version="1.4.3" />
-    <PackageReference Include="GraphSharp" Version="1.1.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.6.0" />
-    <PackageReference Include="mzLib" Version="1.0.318" />
-    <PackageReference Include="NUnit" Version="3.9.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.9.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
+    <PackageReference Include="mzLib" Version="1.0.387" />
+    <PackageReference Include="NUnit" Version="3.11.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.11.2" />
+    <PackageReference Include="OxyPlot.Core" Version="1.0.0" />
     <PackageReference Include="SharpLearning.Common.Interfaces" Version="0.26.9" />
     <PackageReference Include="SharpLearning.Containers" Version="0.26.9" />
     <PackageReference Include="SharpLearning.CrossValidation" Version="0.26.9" />
@@ -24,7 +24,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EngineLayer\EngineLayer.csproj" />
-    <ProjectReference Include="..\MetaDrawGUI\MetaDrawGUI.csproj" />
     <ProjectReference Include="..\TaskLayer\TaskLayer.csproj" />
   </ItemGroup>
 
@@ -42,6 +41,21 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="SlicedSearchTaskConfig.toml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\customBCZ.toml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\customBY.toml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\customCZ.toml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\DoubleProtease.tsv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\frameshift.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TestData\gapdh.fa.gz">
@@ -62,8 +76,29 @@
     <None Update="TestData\okk.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="TestData\semiTest.fasta">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\SmallCalibratible_Yeast.mzML">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\smalldb.fasta">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TopDownTestData\slicedTDYeast.mzML">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\tinySemi.mgf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="XlTestData\25170.mgf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="XlTestData\BSA.fasta">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="XlTestData\BSA_DSSO_ETchD6010.mgf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="XlTestData\BSA_DSS_23747.mzML">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -80,8 +115,5 @@
     <None Update="testFileSpecfic.toml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="XlTestData\" />
   </ItemGroup>
 </Project>

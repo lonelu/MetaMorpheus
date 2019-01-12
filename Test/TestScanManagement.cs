@@ -1,20 +1,16 @@
 ﻿using EngineLayer;
 using MassSpectrometry;
 using MzLibUtil;
+using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
 using TaskLayer;
-
-
 
 namespace Test
 {
     [TestFixture]
-    class TestScanManagement
+    internal class TestScanManagement
     {
-        #region Public Method
-
         //[Test]
         public static void TestGetCombinedMs2Scans()
         {
@@ -26,7 +22,7 @@ namespace Test
             int DeconvolutionMaxAssumedChargeState = 10;
             Tolerance DeconvolutionMassTolerance = new PpmTolerance(5);
 
-            var listOfSortedms2Scans = MetaMorpheusTask.GetMs2Scans(myMsDataFile, null, DoPrecursorDeconvolution, UseProvidedPrecursorInfo, DeconvolutionIntensityRatio, DeconvolutionMaxAssumedChargeState, DeconvolutionMassTolerance).OrderBy(b => b.PrecursorMass).ToArray();
+            var listOfSortedms2Scans = MetaMorpheusTask.GetMs2Scans(myMsDataFile, null, new CommonParameters()).OrderBy(b => b.PrecursorMass).ToArray();
 
             //Write prime code to combine MS2MS3
             Dictionary<int, double> listOfScanPrecusor = new Dictionary<int, double>();
@@ -52,13 +48,11 @@ namespace Test
                                 var x = myMsDataFile.GetOneBasedScan(ms2scan.OneBasedScanNumber + i);
                                 //var x = myMsDataFile.OfType<IMsDataScanWithPrecursor<IMzSpectrum<IMzPeak>>>().ElementAt(i);
 
-
                                 if (x.MsnOrder == 2 && x.SelectedIonMZ == ms2scan.SelectedIonMZ)
                                 {
                                     currentScanMS2OneBasedScanNumber.Add(x.OneBasedScanNumber);
                                     mz2.AddRange(x.MassSpectrum.XArray.ToList());
                                     intensities2.AddRange(x.MassSpectrum.YArray.ToList());
-
                                 }
                                 if (x.MsnOrder == 3 && currentScanMS2OneBasedScanNumber.Contains(x.OneBasedPrecursorScanNumber.Value))
                                 {
@@ -75,7 +69,7 @@ namespace Test
             }
             foreach (var ms2scan in ListOfSortedMsScans.Where(x => x.MsnOrder != 1))
             {
-                test.Add(new Ms2ScanWithSpecificMass(ms2scan, ms2scan.SelectedIonMonoisotopicGuessMz.Value, ms2scan.SelectedIonChargeStateGuess.Value, ""));
+                test.Add(new Ms2ScanWithSpecificMass(ms2scan, ms2scan.SelectedIonMonoisotopicGuessMz.Value, ms2scan.SelectedIonChargeStateGuess.Value, "", new CommonParameters()));
             }
             var testToArray = test.OrderBy(b => b.PrecursorMass).ToArray();
 
@@ -85,7 +79,5 @@ namespace Test
             //Assert.AreEqual(5, myMsDataFile.NumSpectra);
             //Assert.AreEqual(1, listOfSortedms2Scans2.Count());
         }
-
-        #endregion 
     }
 }
