@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 using MassSpectrometry;
 using System.Globalization;
 using System.ComponentModel;
+using Proteomics;
 
 namespace MetaDrawGUI
 {
@@ -25,7 +26,7 @@ namespace MetaDrawGUI
         private readonly ObservableCollection<RawDataForDataGrid> resultFilesObservableCollection = new ObservableCollection<RawDataForDataGrid>();
         private MainViewModel mainViewModel;
         private MsDataFile MsDataFile = null;   
-        private List<PsmDraw> PSMs = null;
+        private List<PsmFromTsv> PSMs = null;
         private readonly ObservableCollection<SpectrumForDataGrid> spectrumNumsObservableCollection = new ObservableCollection<SpectrumForDataGrid>();
         private CommonParameters CommonParameters;
 
@@ -84,9 +85,9 @@ namespace MetaDrawGUI
 
             dataGridChargeEnves.DataContext = chargeEnvelopesObservableCollection;
 
-            Title = "MetaDraw: version " + GlobalVariables.MetaMorpheusVersion;
+            Title = "MetaDraw";
 
-            CommonParameters = new CommonParameters();
+            //CommonParameters = new CommonParameters();
             productMassToleranceComboBox.Items.Add("Da");
             productMassToleranceComboBox.Items.Add("ppm");
             UpdateFieldsFromPanel();
@@ -234,35 +235,35 @@ namespace MetaDrawGUI
 
         private void btnReadResultFile_Click(object sender, RoutedEventArgs e)
         {
-            btnReset.IsEnabled = true;
+            //btnReset.IsEnabled = true;
 
-            if (!spectraFilesObservableCollection.Any())
-            {
-                return;
-            }
+            //if (!spectraFilesObservableCollection.Any())
+            //{
+            //    return;
+            //}
             
-            LoadScans loadScans = new LoadScans(spectraFilesObservableCollection.Where(b => b.Use).First().FilePath,null);
+            ////LoadScans loadScans = new LoadScans(spectraFilesObservableCollection.Where(b => b.Use).First().FilePath,null);
 
-            MsDataFile = loadScans.Run();
+            //MsDataFile = loadScans.Run();
             
-            btnReadResultFile.IsEnabled = true;
+            //btnReadResultFile.IsEnabled = true;
 
-            if (resultFilesObservableCollection.Count == 0)
-            {
-                MessageBox.Show("Please add result files.");
-                return;
-            }
-            var resultFilePath = resultFilesObservableCollection.Where(b => b.Use).First().FilePath;
-            PSMs = TsvResultReader.ReadTsv(resultFilePath);
-            foreach (var item in PSMs)
-            {
-                spectrumNumsObservableCollection.Add(new SpectrumForDataGrid(item.ScanNumber, item.FullSequence));
-            }
-            dataGridScanNums.Items.Refresh();
+            //if (resultFilesObservableCollection.Count == 0)
+            //{
+            //    MessageBox.Show("Please add result files.");
+            //    return;
+            //}
+            //var resultFilePath = resultFilesObservableCollection.Where(b => b.Use).First().FilePath;
+            ////PSMs = TsvResultReader.ReadTsv(resultFilePath);
+            //foreach (var item in PSMs)
+            //{
+            //    spectrumNumsObservableCollection.Add(new SpectrumForDataGrid(item.ScanNumber, item.FullSequence));
+            //}
+            //dataGridScanNums.Items.Refresh();
             
 
-            btnReadResultFile.IsEnabled = false;
-            btnDraw.IsEnabled = true;
+            //btnReadResultFile.IsEnabled = false;
+            //btnDraw.IsEnabled = true;
         }
 
         private void Row_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -286,43 +287,43 @@ namespace MetaDrawGUI
 
         private void UpdateModel(int x)
         {
-            if (MsDataFile == null)
-            {
-                MessageBox.Show("Please check the MS data loaded.");
-                return;
-            }
+            //if (MsDataFile == null)
+            //{
+            //    MessageBox.Show("Please check the MS data loaded.");
+            //    return;
+            //}
 
-            var msScanForDraw = MsDataFile.GetAllScansList().Where(p => p.OneBasedScanNumber == x).First();
+            //var msScanForDraw = MsDataFile.GetAllScansList().Where(p => p.OneBasedScanNumber == x).First();
 
-            PsmDraw psmDraw = PSMs.Where(p => p.ScanNumber == x).First();
+            //PsmDraw psmDraw = PSMs.Where(p => p.ScanNumber == x).First();
 
-            var lp = new List<ProductType>();
-            if (CommonParameters.BIons)
-            {
-                lp.Add(ProductType.BnoB1ions);
-            }
-            if (CommonParameters.YIons)
-            {
-                lp.Add(ProductType.Y);
-            }
-            if (CommonParameters.CIons)
-            {
-                lp.Add(ProductType.C);
-            }
-            if (CommonParameters.ZdotIons)
-            {
-                lp.Add(ProductType.Zdot);
-            }
+            //var lp = new List<ProductType>();
+            //if (CommonParameters.BIons)
+            //{
+            //    lp.Add(ProductType.BnoB1ions);
+            //}
+            //if (CommonParameters.YIons)
+            //{
+            //    lp.Add(ProductType.Y);
+            //}
+            //if (CommonParameters.CIons)
+            //{
+            //    lp.Add(ProductType.C);
+            //}
+            //if (CommonParameters.ZdotIons)
+            //{
+            //    lp.Add(ProductType.Zdot);
+            //}
 
-            var pmm = PsmDraw.XlCalculateTotalProductMassesForSingle(psmDraw, lp, false);
+            //var pmm = PsmDraw.XlCalculateTotalProductMassesForSingle(psmDraw, lp, false);
 
-            var matchedIonMassesListPositiveIsMatch = new MatchedIonInfo(pmm.ProductMz.Length);
+            //var matchedIonMassesListPositiveIsMatch = new MatchedIonInfo(pmm.ProductMz.Length);
 
-            double pmmScore = PsmCross.XlMatchIons(msScanForDraw, CommonParameters.ProductMassTolerance, pmm.ProductMz, pmm.ProductName, matchedIonMassesListPositiveIsMatch);
+            //double pmmScore = PsmCross.XlMatchIons(msScanForDraw, CommonParameters.ProductMassTolerance, pmm.ProductMz, pmm.ProductName, matchedIonMassesListPositiveIsMatch);
 
-            psmDraw.MatchedIonInfo = matchedIonMassesListPositiveIsMatch;
+            //psmDraw.MatchedIonInfo = matchedIonMassesListPositiveIsMatch;
 
-            mainViewModel.UpdateForSingle(msScanForDraw, psmDraw);
+            //mainViewModel.UpdateForSingle(msScanForDraw, psmDraw);
 
         }
 
@@ -355,26 +356,6 @@ namespace MetaDrawGUI
                 tb.Text = "Scan Number";
         }
 
-        private void bCheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            CommonParameters.BIons = true;
-        }
-
-        private void yCheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            CommonParameters.YIons = true;
-        }
-
-        private void cCheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            CommonParameters.CIons = true;
-        }
-
-        private void zdotCheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            CommonParameters.ZdotIons = true;
-        }
-
         private void productMassToleranceTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (productMassToleranceComboBox.SelectedIndex == 0)
@@ -389,25 +370,21 @@ namespace MetaDrawGUI
 
         private void UpdateFieldsFromPanel()
         {
-            bCheckBox.IsChecked = CommonParameters.BIons;
-            yCheckBox.IsChecked = CommonParameters.YIons;
-            cCheckBox.IsChecked = CommonParameters.CIons;
-            zdotCheckBox.IsChecked = CommonParameters.ZdotIons;
-            productMassToleranceTextBox.Text = CommonParameters.ProductMassTolerance.Value.ToString(CultureInfo.InvariantCulture);
-            productMassToleranceComboBox.SelectedIndex = CommonParameters.ProductMassTolerance is AbsoluteTolerance ? 0 : 1;
+            //productMassToleranceTextBox.Text = CommonParameters.ProductMassTolerance.Value.ToString(CultureInfo.InvariantCulture);
+            //productMassToleranceComboBox.SelectedIndex = CommonParameters.ProductMassTolerance is AbsoluteTolerance ? 0 : 1;
         }
 
         private void btnLoadData_Click(object sender, RoutedEventArgs e)
         {
-            if (!spectraFilesObservableCollection.Any())
-            {
-                return;
-            }
+            //if (!spectraFilesObservableCollection.Any())
+            //{
+            //    return;
+            //}
 
-            LoadScans loadScans = new LoadScans(spectraFilesObservableCollection.Where(b => b.Use).First().FilePath, null);
+            //LoadScans loadScans = new LoadScans(spectraFilesObservableCollection.Where(b => b.Use).First().FilePath, null);
 
-            MsDataFile = loadScans.Run();
-            msDataScans = MsDataFile.GetAllScansList();
+            //MsDataFile = loadScans.Run();
+            //msDataScans = MsDataFile.GetAllScansList();
         }
 
         private void btnDecon_Click(object sender, RoutedEventArgs e)
