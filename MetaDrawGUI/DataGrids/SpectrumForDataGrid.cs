@@ -1,5 +1,4 @@
-﻿using System.IO;
-
+﻿
 namespace MetaDrawGUI
 {
     class SpectrumForDataGrid

@@ -6,14 +6,14 @@ using System.Collections.ObjectModel;
 using System.IO;
 using ViewModels;
 using EngineLayer;
-using EngineLayer.CrosslinkSearch;
 using System.Collections.Generic;
 using MzLibUtil;
 using System.Text.RegularExpressions;
 using MassSpectrometry;
 using System.Globalization;
 using System.ComponentModel;
-using Proteomics;
+using TaskLayer;
+using System.Threading.Tasks;
 
 namespace MetaDrawGUI
 {
@@ -27,10 +27,16 @@ namespace MetaDrawGUI
         private MainViewModel mainViewModel;
         private MsDataFile MsDataFile = null;   
         private List<PsmFromTsv> PSMs = null;
-        private readonly ObservableCollection<SpectrumForDataGrid> spectrumNumsObservableCollection = new ObservableCollection<SpectrumForDataGrid>();
-        private CommonParameters CommonParameters;
 
-       
+        private readonly ObservableCollection<AllScansForDataGrid> allScansObservableCollection = new ObservableCollection<AllScansForDataGrid>();
+
+
+
+        private readonly ObservableCollection<SpectrumForDataGrid> spectrumNumsObservableCollection = new ObservableCollection<SpectrumForDataGrid>();
+        private CommonParameters CommonParameters = new CommonParameters();
+        private string spectraFilePath;
+        private MyFileManager spectraFileManager = new MyFileManager(true);
+
         private readonly ObservableCollection<EnvolopForDataGrid> envolopObservableCollection = new ObservableCollection<EnvolopForDataGrid>();
         public List<IsotopicEnvelope> IsotopicEnvelopes { get; set; } = new List<IsotopicEnvelope>();
         public DeconViewModel DeconViewModel { get; set; }
@@ -84,6 +90,8 @@ namespace MetaDrawGUI
             dataGridDeconNums.DataContext = envolopObservableCollection;
 
             dataGridChargeEnves.DataContext = chargeEnvelopesObservableCollection;
+
+            dataGridAllScanNums.DataContext = allScansObservableCollection;
 
             Title = "MetaDraw";
 
@@ -376,15 +384,24 @@ namespace MetaDrawGUI
 
         private void btnLoadData_Click(object sender, RoutedEventArgs e)
         {
-            //if (!spectraFilesObservableCollection.Any())
-            //{
-            //    return;
-            //}
+            spectraFilePath = spectraFilesObservableCollection.First().FilePath;
+            if (spectraFilePath == null)
+            {
+                MessageBox.Show("Please add a spectra file.");
+                return;
+            }
 
-            //LoadScans loadScans = new LoadScans(spectraFilesObservableCollection.Where(b => b.Use).First().FilePath, null);
+            // load the spectra file
+            (sender as Button).IsEnabled = false;
+            btnAddFiles.IsEnabled = false;
+            btnClearFiles.IsEnabled = false;
+            MsDataFile = spectraFileManager.LoadFile(spectraFilePath, null, null, false, false, new CommonParameters());
+            msDataScans = MsDataFile.GetAllScansList();
 
-            //MsDataFile = loadScans.Run();
-            //msDataScans = MsDataFile.GetAllScansList();
+            foreach (var iScan in msDataScans)
+            {
+                allScansObservableCollection.Add(new AllScansForDataGrid(iScan.OneBasedScanNumber, iScan.OneBasedPrecursorScanNumber, iScan.MsnOrder, iScan.IsolationMz));
+            }
         }
 
         private void btnDecon_Click(object sender, RoutedEventArgs e)
@@ -392,8 +409,8 @@ namespace MetaDrawGUI
             int x = Convert.ToInt32(txtDeconScanNum.Text);
             var msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == x).First();
             //IsotopicEnvelopes = msDataScan.MassSpectrum.Deconvolute(msDataScan.ScanWindowRange, 3, 60, 5.0, 3).OrderBy(p => p.monoisotopicMass).ToList();
-            MzSpectrumTD mzSpectrumTD = new MzSpectrumTD(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
-            IsotopicEnvelopes = mzSpectrumTD.DeconvoluteTD(msDataScan.ScanWindowRange, 3, 60, 5.0, 3).OrderBy(p => p.monoisotopicMass).ToList();
+            MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
+            IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, 3, 60, 5.0, 3).OrderBy(p => p.monoisotopicMass).ToList();
             int i=1;
             foreach (var item in IsotopicEnvelopes)
             {
@@ -402,7 +419,7 @@ namespace MetaDrawGUI
             }
             mainViewModel.UpdateScanModel(msDataScan);
 
-            ScanChargeEnvelopes = mzSpectrumTD.ChargeDeconvolution(x, msDataScan.RetentionTime, IsotopicEnvelopes, msDataScans.Where(p => p.OneBasedPrecursorScanNumber == x).Select(p=>p.SelectedIonMZ).ToList());
+            ScanChargeEnvelopes = mzSpectrumBU.ChargeDeconvolution(x, msDataScan.RetentionTime, IsotopicEnvelopes, msDataScans.Where(p => p.OneBasedPrecursorScanNumber == x).Select(p=>p.SelectedIonMZ).ToList());
             int ind = 1;
             foreach (var theScanChargeEvelope in ScanChargeEnvelopes)
             {
@@ -473,11 +490,10 @@ namespace MetaDrawGUI
             ChargeDecon0ViewModel.ResetDeconModel();
         }
 
+        //Deconvolute all scans and process Charge Parsimony
         private void btnDeconAll_Click(object sender, RoutedEventArgs e)
         {
             var chargeDeconPerMS1Scans = msDataFileDecon.ChargeDeconvolutionFile(msDataScans, CommonParameters);
-
-            //List<ChargeParsi> chargeParsis = ChargeParsimony(chargeEnvelopesList, new SingleAbsoluteAroundZeroSearchMode(2), new SingleAbsoluteAroundZeroSearchMode(5));
             List<ChargeParsi> chargeParsis = msDataFileDecon.ChargeParsimony(chargeDeconPerMS1Scans, new SingleAbsoluteAroundZeroSearchMode(2.2), new SingleAbsoluteAroundZeroSearchMode(5));
 
             var total = msDataScans.Where(p => p.MsnOrder == 2).Count();
@@ -507,7 +523,7 @@ namespace MetaDrawGUI
             msDataFileDecon.ChargeDeconWriteToTSV(chargeDeconPerMS1Scans, Path.GetDirectoryName(spectraFilesObservableCollection.First().FilePath), "ChargeDecon");
         }
 
-        private void BtnDeconTest_Click(object sender, RoutedEventArgs e)
+        private void BtnDeconWatch_Click(object sender, RoutedEventArgs e)
         {
             var MS1Scans = msDataScans.Where(p => p.MsnOrder == 1).ToList();
             List<WatchEvaluation> evalution = new List<WatchEvaluation>();
@@ -516,17 +532,17 @@ namespace MetaDrawGUI
             {
                 var theScanNum = MS1Scans[i].OneBasedScanNumber;
                 var theRT = MS1Scans[i].RetentionTime;
-                MzSpectrumTD mzSpectrumTD = new MzSpectrumTD(MS1Scans[i].MassSpectrum.XArray, MS1Scans[i].MassSpectrum.YArray, true);
+                MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(MS1Scans[i].MassSpectrum.XArray, MS1Scans[i].MassSpectrum.YArray, true);
 
                 var watch = System.Diagnostics.Stopwatch.StartNew();
 
                 //var isotopicEnvelopes = MS1Scans[i].MassSpectrum.Deconvolute(MS1Scans[i].ScanWindowRange, 3, 60, 5.0, 3).OrderBy(p => p.monoisotopicMass).ToList();
-                var isotopicEnvelopes = mzSpectrumTD.DeconvoluteTD(MS1Scans[i].ScanWindowRange, 3, 60, 5.0, 3).OrderBy(p => p.monoisotopicMass).ToList();
+                var isotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(MS1Scans[i].ScanWindowRange, 3, 60, 5.0, 3).OrderBy(p => p.monoisotopicMass).ToList();
                 watch.Stop();
 
                 var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
-                var chargeDecon = mzSpectrumTD.ChargeDeconvolution(MS1Scans[i].OneBasedScanNumber, MS1Scans[i].RetentionTime, isotopicEnvelopes, new List<double?>());
+                var chargeDecon = mzSpectrumBU.ChargeDeconvolution(MS1Scans[i].OneBasedScanNumber, MS1Scans[i].RetentionTime, isotopicEnvelopes, new List<double?>());
 
                 watch1.Stop();
 
@@ -598,34 +614,9 @@ namespace MetaDrawGUI
         {
             int x = Convert.ToInt32(txtDeconScanNum.Text);
             var msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == x).First();          
-            MzSpectrumTD mzSpectrumTD = new MzSpectrumTD(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
+            MzSpectrumBU mzSpectrumTD = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
             DeconViewModel.UpdateModelForDeconModel(mzSpectrumTD, Convert.ToInt32(TxtDeconModel.Text));
         }
-
-        private void BtnDeconModelNeu_Click(object sender, RoutedEventArgs e)
-        {
-            int x = Convert.ToInt32(txtDeconScanNum.Text);
-            var msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == x).First();
-            MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
-            DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, Convert.ToInt32(TxtDeconModel.Text));
-        }
-
-        private void btnDeconNeu_Click(object sender, RoutedEventArgs e)
-        {
-            int x = Convert.ToInt32(txtDeconScanNumNeu.Text);
-            var msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == x).First();
-            //IsotopicEnvelopes = msDataScan.MassSpectrum.Deconvolute(msDataScan.ScanWindowRange, 3, 60, 5.0, 3).OrderBy(p => p.monoisotopicMass).ToList();
-            MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
-            IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, 2, 10, 5.0, 3).OrderBy(p => p.massIndex).ToList();
-            int i = 1;
-            foreach (var item in IsotopicEnvelopes)
-            {
-                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
-                i++;
-            }
-            mainViewModel.UpdateScanModel(msDataScan);
-        }
-
     }
 
     public class WatchEvaluation

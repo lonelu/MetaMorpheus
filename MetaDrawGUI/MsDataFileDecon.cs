@@ -22,7 +22,7 @@ namespace MetaDrawGUI
                 for (int i = range.Item1; i < range.Item2; i++)
                 {
                     var msDataScan = msDataScanList[i];
-                    MzSpectrumTD mzSpectrumTD = new MzSpectrumTD(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
+                    MzSpectrumBU mzSpectrumTD = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
                     if (msDataScan.MsnOrder == 1)
                     {
                         var isotopicEnvelopes = msDataScan.MassSpectrum.Deconvolute(msDataScan.ScanWindowRange, 3, 60, 5.0, 3).OrderBy(p => p.monoisotopicMass).ToList();

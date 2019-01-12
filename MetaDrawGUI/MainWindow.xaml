@@ -28,7 +28,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="1*"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1.5*"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="1*"/>
                     <RowDefinition Height="Auto"/>
@@ -58,34 +58,46 @@
                         Height="3" />
                 <GroupBox Header="Deconvolution Control" Grid.Row="2">
                     <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="25"/>
-                        <RowDefinition Height="25"/>
-                        <RowDefinition Height="25"/>
-                        <RowDefinition Height="25"/>
-                        <RowDefinition Height="25"/>
-                    </Grid.RowDefinitions>
-
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="0">
-                        <TextBox x:Name="txtDeconScanNum" Text="2076"  Width="50"/>
-                        <Button x:Name="btnDecon" Content="Decon" Click="btnDecon_Click"/>
-                        <Button x:Name="btnDeconAll" Content="DeconAll" Click="btnDeconAll_Click"/>
-                        <Button x:Name="BtnDeconTest" Content="DeconWatch" Click="BtnDeconTest_Click"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
-                        <TextBox x:Name="TxtDeconModel" Text="0"  Width="30"/>
-                        <Button x:Name="BtnDeconModel" Content="DeconModel" Click="BtnDeconModel_Click"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="2">
-                        <TextBox x:Name="txtDeconScanNumNeu" Text="20113"  Width="50"/>
-                        <Button x:Name="btnDeconNeu" Content="DeconNeu" Click="btnDeconNeu_Click"/>
-                        <TextBox x:Name="TxtDeconModelNeu" Text="0"  Width="30"/>
-                        <Button x:Name="BtnDeconModelNeu" Content="DeconModelNeu" Click="BtnDeconModelNeu_Click"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="3">
-                        <Button x:Name="BtnPerScanTime" Content="Scan Time" Click="BtnPerScanTime_Click"/>
-                        <Button x:Name="btnResetDecon" Content="Reset" Click="btnResetDecon_Click"/>
-                    </StackPanel>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="25"/>
+                            <RowDefinition Height="25"/>
+                            <RowDefinition Height="25"/>
+                            <RowDefinition Height="25"/>
+                            <RowDefinition Height="25"/>
+                            <RowDefinition Height="25"/>
+                            <RowDefinition Height="25"/>
+                            <RowDefinition Height="25"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Grid.Row="0">
+                            <Label Content="MinAssumedChargeState"/>
+                            <TextBox x:Name="txtMinAssumedChargeState" Text="2"  Width="50"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Grid.Row="1">
+                            <Label Content="MaxAssumedChargeState"/>
+                            <TextBox x:Name="txtMaxAssumedChargeState" Text="8"  Width="50"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Grid.Row="2">
+                            <Label Content="Deconvolution Tolerance"/>
+                            <TextBox x:Name="txtDeconvolutionToleranc" Text="5"  Width="50"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Grid.Row="3">
+                            <Label Content="IntensityRatioLimit"/>
+                            <TextBox x:Name="txtIntensityRatioLimit" Text="3"  Width="50"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="5">
+                            <TextBox x:Name="txtDeconScanNum" Text="2076"  Width="50"/>
+                            <Button x:Name="btnDecon" Content="Decon" Click="btnDecon_Click"/>
+                            <TextBox x:Name="TxtDeconModel" Text="0"  Width="30"/>
+                            <Button x:Name="BtnDeconModel" Content="DeconModel" Click="BtnDeconModel_Click"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="6">
+                            <Button x:Name="btnDeconAll" Content="DeconAllChargeParsi" Click="btnDeconAll_Click"/>
+                            <Button x:Name="BtnDeconTest" Content="DeconWatch" Click="BtnDeconWatch_Click"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="7">
+                            <Button x:Name="BtnPerScanTime" Content="Scan Time" Click="BtnPerScanTime_Click"/>
+                            <Button x:Name="btnResetDecon" Content="Reset" Click="btnResetDecon_Click"/>
+                        </StackPanel>
                     </Grid>
                 </GroupBox>
                 <GridSplitter Grid.Row="3"
@@ -119,12 +131,20 @@
                 <GroupBox Header="Spectra" Name="gbSpectra" Grid.Row="6">
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="1*"/>
                             <RowDefinition Height="3*"/>
+                            <RowDefinition Height="1*"/>
                             <RowDefinition Height="1*"/>
                             <RowDefinition Height="3*"/>
                         </Grid.RowDefinitions>
-                        <Grid Grid.Row="0">
+                        
+                        <DataGrid x:Name="dataGridScanNums" VerticalAlignment="Stretch" ItemsSource="{Binding}" IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="0" Margin="0,0,0,0">
+                            <DataGrid.Resources>
+                                <Style TargetType="DataGridCell">
+                                    <EventSetter Event="MouseDoubleClick" Handler="Row_DoubleClick"/>
+                                </Style>
+                            </DataGrid.Resources>
+                        </DataGrid>
+                        <Grid Grid.Row="1">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="1*"></ColumnDefinition>
                                 <ColumnDefinition Width="1*"></ColumnDefinition>
@@ -132,13 +152,6 @@
                             <Button x:Name="btnReadResultFile" Margin="2,5,2,5" Grid.Column="0" Content="Begin" IsEnabled="True" Click="btnReadResultFile_Click"/>
                             <Button x:Name="btnReset" Margin="2,5,2,5" Grid.Column="1" IsEnabled="False" Content="Reset" Click="btnReset_Click" />
                         </Grid>
-                        <DataGrid x:Name="dataGridScanNums" VerticalAlignment="Stretch" ItemsSource="{Binding}" IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0">
-                            <DataGrid.Resources>
-                                <Style TargetType="DataGridCell">
-                                    <EventSetter Event="MouseDoubleClick" Handler="Row_DoubleClick"/>
-                                </Style>
-                            </DataGrid.Resources>
-                        </DataGrid>
                         <Grid Grid.Row="2" HorizontalAlignment="Stretch">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="6*"></ColumnDefinition>

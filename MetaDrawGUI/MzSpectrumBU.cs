@@ -17,6 +17,7 @@ namespace MassSpectrometry
         private static readonly double[][] allIntensities = new double[numAveraginesToGenerate][];
         private static readonly double[] mostIntenseMasses = new double[numAveraginesToGenerate];
         private static readonly double[] diffToMonoisotopic = new double[numAveraginesToGenerate];
+        public static bool UseNeuCodeModel;
 
         private MzPeak[] peakList;
         private int? indexOfpeakWithHighestY;
@@ -54,8 +55,8 @@ namespace MassSpectrometry
                 {
                     var chemicalFormulaReg = chemicalFormula;
                     IsotopicDistribution ye = IsotopicDistribution.GetDistribution(chemicalFormulaReg, fineRes, minRes);
-                    var masses = MassConvertToNeuCode( ye.Masses.ToArray(), 0.034);
-                    var intensities = IntenConvertToNeuCode( ye.Intensities.ToArray(), 1);
+                    var masses = MassConvertToNeuCode( ye.Masses.ToArray(), 0.034, UseNeuCodeModel);
+                    var intensities = IntenConvertToNeuCode( ye.Intensities.ToArray(), 1, UseNeuCodeModel);
                     Array.Sort(intensities, masses);
                     Array.Reverse(intensities);
                     Array.Reverse(masses);
@@ -231,7 +232,22 @@ namespace MassSpectrometry
                 //Console.WriteLine("candidateForMostIntensePeakMz: " + candidateForMostIntensePeakMz);
                 var candidateForMostIntensePeakIntensity = YArray[candidateForMostIntensePeak];
 
-                for (int chargeState = minAssumedChargeState; chargeState <= maxAssumedChargeState; chargeState++)
+                //TO DO: Find possible chargeState
+                List<int> allPossibleChargeState = new List<int>();
+                for (int i = candidateForMostIntensePeak + 1; i < XArray.Length; i++)
+                {
+                    if (XArray[i] - candidateForMostIntensePeakMz < 0.8)
+                    {
+                        var chargeDouble = 1 / (XArray[i] - candidateForMostIntensePeakMz);
+                        int charge = Convert.ToInt32(chargeDouble);
+                        if (Math.Abs(chargeDouble - charge) <= 0.2)
+                        {
+                            allPossibleChargeState.Add(charge);
+                        }
+                    }
+                }
+
+                foreach (var chargeState in allPossibleChargeState)
                 {
                     //Console.WriteLine(" chargeState: " + chargeState);
                     var testMostIntenseMass = candidateForMostIntensePeakMz.ToMass(chargeState);
@@ -620,8 +636,12 @@ namespace MassSpectrometry
             return false;
         }
 
-        private static double[] MassConvertToNeuCode(double[] masses, double neuCodeDiff)
+        private static double[] MassConvertToNeuCode(double[] masses, double neuCodeDiff, bool doNeucode)
         {
+            if (!doNeucode)
+            {
+                return masses;
+            }
             double[] massNeu = new double[masses.Length*2];
             for (int i = 0; i < masses.Length; i++)
             {
@@ -631,8 +651,12 @@ namespace MassSpectrometry
             return massNeu;
         }
 
-        private static double[] IntenConvertToNeuCode(double[] intens, int fold)
+        private static double[] IntenConvertToNeuCode(double[] intens, int fold, bool doNeucode)
         {
+            if (!doNeucode)
+            {
+                return intens;
+            }
             double[] intenNeu = new double[intens.Length * 2];
             for (int i = 0; i < intens.Length; i++)
             {
