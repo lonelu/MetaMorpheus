@@ -55,6 +55,8 @@ namespace ViewModels
             var charges = chargeDeconEnvelope.chargeStates;
             string scanNum = MsScanForDraw.OneBasedScanNumber.ToString();
 
+            var isoEnves = chargeDeconEnvelope.isotopicEnvelopes;
+
             PlotModel model = new PlotModel { Title = "Spectrum anotation of Scan " + scanNum, DefaultFontSize = 15 };
             model.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom, Title = "m/z", Minimum = 0, Maximum = MsScanForDraw.MassSpectrum.XArray.Max() * 1.02 });
             model.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Title = "Intensity(counts)", Minimum = 0, Maximum = chargeDeconEnvelope.intensitiesFit.Max() * 1.2 });
@@ -70,6 +72,26 @@ namespace ViewModels
                 sPeaks[i].Points.Add(new DataPoint(x[i], 0));
                 sPeaks[i].Points.Add(new DataPoint(x[i], y[i]));
                 model.Series.Add(sPeaks[i]);
+            }
+
+
+            //Original peaks
+            for (int i = 0; i < isoEnves.Count; i++)
+            {
+                foreach (var isoEnve in isoEnves)
+                {
+                    foreach (var peak in isoEnve.peaks)
+                    {
+                        var sPeak = new LineSeries();
+                        sPeak.Color = OxyColors.Black;
+                        sPeak.StrokeThickness = 1.5;
+                        sPeak.Points.Add(new DataPoint(peak.mz, 0));
+                        sPeak.Points.Add(new DataPoint(peak.mz, peak.intensity));
+                        model.Series.Add(sPeak);
+                    }
+
+                }
+
             }
 
             for (int i = 0; i < x.Length; i++)

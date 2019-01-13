@@ -77,10 +77,6 @@ namespace MetaDrawGUI
 
             plotViewChargeEnve.DataContext = ChargeDeconViewModel;
 
-            ChargeDecon0ViewModel = new ChargeEnve0ViewModel();
-
-            plotViewChargeEnve0.DataContext = ChargeDecon0ViewModel;
-
             dataGridMassSpectraFiles.DataContext = spectraFilesObservableCollection;
 
             dataGridResultFiles.DataContext = resultFilesObservableCollection;
@@ -614,8 +610,8 @@ namespace MetaDrawGUI
         {
             int x = Convert.ToInt32(txtDeconScanNum.Text);
             var msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == x).First();          
-            MzSpectrumBU mzSpectrumTD = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
-            DeconViewModel.UpdateModelForDeconModel(mzSpectrumTD, Convert.ToInt32(TxtDeconModel.Text));
+            MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
+            DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, Convert.ToInt32(TxtDeconModel.Text));
         }
     }
 

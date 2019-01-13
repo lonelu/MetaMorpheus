@@ -106,19 +106,18 @@ namespace ViewModels
                 Position = AxisPosition.Bottom,
                 Title = "m/z",
                 Minimum = 0,
-                Maximum = mzSpectrumBU.AllMasses.Last().Last()
+                Maximum = mzSpectrumBU.AllMasses.Last().Last(),
             });
             model.Axes.Add(new LinearAxis {
                 Position = AxisPosition.Left,
                 Title = "Intensity(counts)",
                 Minimum = 0,
-                Maximum = mzSpectrumBU.YArray.Max() * 1.3,
-                AbsoluteMinimum = 0,
-                AbsoluteMaximum = mzSpectrumBU.YArray.Max() * 1.3
+                Maximum = 1.3,
+
             });
 
             List<LineSeries> lsPeaks = new List<LineSeries>();
-            for (int i = ind; i < ind+100; i++)
+            for (int i = ind; i < ind+50; i++)
             {
                 for (int j = 0; j < mzSpectrumBU.AllMasses[i].Length; j++)
                 {
@@ -130,46 +129,8 @@ namespace ViewModels
                     model.Series.Add(line);
                 }
             }
-            model.Axes[0].AxisChanged += XAxisChanged;
             this.DeconModel = model;
-
         }
-
-        //public void UpdateModelForDeconModel(MzSpectrumBU mzSpectrumTD, int ind)
-        //{
-        //    PlotModel model = new PlotModel { Title = "Decon Model", DefaultFontSize = 15 };
-        //    model.Axes.Add(new LinearAxis {
-        //        Position = AxisPosition.Bottom,
-        //        Title = "m/z",
-        //        Minimum = 0,
-        //        Maximum = mzSpectrumTD.AllMasses.Last().Last()
-        //    });
-        //    model.Axes.Add(new LinearAxis {
-        //        Position = AxisPosition.Left,
-        //        Title = "Intensity(counts)",
-        //        Minimum = 0,
-        //        Maximum = mzSpectrumTD.YArray.Max() * 1.3,
-        //        AbsoluteMinimum = 0,
-        //        AbsoluteMaximum = mzSpectrumTD.YArray.Max() * 1.3
-        //    });
-
-        //    List<LineSeries> lsPeaks = new List<LineSeries>();
-        //    for (int i = ind; i < ind + 100; i++)
-        //    {
-        //        for (int j = 0; j < mzSpectrumTD.AllMasses[i].Length; j++)
-        //        {
-        //            var line = new LineSeries();
-        //            line.Color = OxyColors.Red;
-        //            line.StrokeThickness = 1;
-        //            line.Points.Add(new DataPoint(mzSpectrumTD.AllMasses[i][j], 0));
-        //            line.Points.Add(new DataPoint(mzSpectrumTD.AllMasses[i][j], mzSpectrumTD.AllIntensities[i][j]));
-        //            model.Series.Add(line);
-        //        }
-        //    }
-        //    model.Axes[0].AxisChanged += XAxisChanged;
-        //    this.DeconModel = model;
-
-        //}
 
         public void ResetDeconModel()
         {
