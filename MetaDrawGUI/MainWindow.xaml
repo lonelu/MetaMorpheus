@@ -70,35 +70,39 @@
                         </Grid.RowDefinitions>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Grid.Row="0">
                             <Label Content="MinAssumedChargeState"/>
-                            <TextBox x:Name="txtMinAssumedChargeState" Text="2"  Width="50"/>
+                            <TextBox x:Name="txtMinAssumedChargeState"  Width="50" DataContextChanged="TxtMinAssumedChargeState_DataContextChanged"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Grid.Row="1">
                             <Label Content="MaxAssumedChargeState"/>
-                            <TextBox x:Name="txtMaxAssumedChargeState" Text="8"  Width="50"/>
+                            <TextBox x:Name="txtMaxAssumedChargeState" Width="50" DataContextChanged="TxtMaxAssumedChargeState_DataContextChanged"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Grid.Row="2">
                             <Label Content="Deconvolution Tolerance"/>
-                            <TextBox x:Name="txtDeconvolutionToleranc" Text="5"  Width="50"/>
+                            <TextBox x:Name="txtDeconvolutionToleranc" Width="50" DataContextChanged="TxtDeconvolutionToleranc_DataContextChanged"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Grid.Row="3">
                             <Label Content="IntensityRatioLimit"/>
-                            <TextBox x:Name="txtIntensityRatioLimit" Text="3"  Width="50"/>
+                            <TextBox x:Name="txtIntensityRatioLimit" Width="50" DataContextChanged="TxtIntensityRatioLimit_DataContextChanged"/>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="4">
-                            <TextBox x:Name="txtDeconScanNum" Text="2076"  Width="50"/>
-                            <Button x:Name="btnDecon" Content="Decon" Click="btnDecon_Click"/>
-
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Grid.Row="4">
+                            <!--<CheckBox x:Name="CbIsNeuCode" Content="Is NeuCode" IsChecked="False" Checked="CbIsNeuCode_Checked" Unchecked="CbIsNeuCode_Unchecked"/>-->
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="5">
+                            <Label Content="Scan number:"/>
+                            <TextBox x:Name="txtDeconScanNum" Text="2076"  Width="50"/>
+                            <Button x:Name="btnDecon" Content="Decon" Click="btnDecon_Click"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="6">
+                            <Label Content="Model Number from:"/>
                             <TextBox x:Name="TxtDeconModel" Text="0"  Width="30"/>
                             <Button x:Name="BtnDeconModel" Content="DeconvolutionModel" Click="BtnDeconModel_Click"/>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="6">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="7">
                             <Button x:Name="btnDeconAll" Content="DeconAllChargeParsimony" Click="btnDeconAll_Click"/>
                             <Button x:Name="BtnDeconTest" Content="DeconWatch" Click="BtnDeconWatch_Click"/>
                             <Button x:Name="BtnPerScanTime" Content="Scan Time" Click="BtnPerScanTime_Click"/>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="7">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="8">
                             <Button x:Name="btnResetDecon" Content="Reset" Click="btnResetDecon_Click"/>
                         </StackPanel>
                     </Grid>
@@ -196,11 +200,11 @@
                     <GroupBox Header="PSM" Name="gbPSM" Grid.Row="0">
                         <oxy:PlotView x:Name="plotView" Model="{Binding Model}" FontSize="16" FontStretch="Expanded"/>
                     </GroupBox>
-                    <GroupBox Header="Charge Envelopes with Normal" Name="gbChargeEnve" Grid.Row="1">
-                        <oxy:PlotView x:Name="plotViewChargeEnve" Model="{Binding ChargeEnveModel}" FontSize="16" FontStretch="Expanded"/>
-                    </GroupBox>
-                    <GroupBox Header="Decon" Name="gbPSMDecon" Grid.Row="2">
+                    <GroupBox Header="Decon" Name="gbPSMDecon" Grid.Row="1">
                         <oxy:PlotView x:Name="plotViewDecon" Model="{Binding DeconModel}" FontSize="16" FontStretch="Expanded"/>
+                    </GroupBox>
+                    <GroupBox Header="Charge Envelopes with Normal" Name="gbChargeEnve" Grid.Row="2">
+                        <oxy:PlotView x:Name="plotViewChargeEnve" Model="{Binding ChargeEnveModel}" FontSize="16" FontStretch="Expanded"/>
                     </GroupBox>
                 </Grid>
             </Grid>
@@ -211,12 +215,15 @@
                           Width="5"/>
             <Grid Grid.Column="4">
                 <GroupBox Header="Scan Numbers">
-                    <DataGrid x:Name="dataGridAllScanNums" VerticalAlignment="Stretch" ItemsSource="{Binding}" IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0">
-                        <DataGrid.Resources>
-                            <Style TargetType="DataGridCell">
-                                <EventSetter Event="MouseDoubleClick" Handler="Decon_MouseDoubleClick"/>
-                            </Style>
-                        </DataGrid.Resources>
+                    <DataGrid x:Name="dataGridAllScanNums" VerticalAlignment="Stretch" ItemsSource="{Binding}" 
+                              IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0"
+                              SelectedCellsChanged="DataGridAllScanNums_SelectedCellsChanged" CanUserDeleteRows="false" CanUserAddRows="false">
+                        <!--<DataGrid.Columns>
+                            <DataGridTextColumn Header="Scan#" Binding="{Binding ScanNum}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Pre Scan#" Binding="{Binding PrecursorScanNum}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="MsOrder" Binding="{Binding MsOrder}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="IsolationMass" Binding="{Binding IsolationMass}"></DataGridTextColumn>
+                        </DataGrid.Columns>-->
                     </DataGrid>
                 </GroupBox>
             </Grid>
@@ -227,12 +234,16 @@
                           Width="5"/>
             <Grid Grid.Column="6">
                 <GroupBox Header="Decon Numbers">
-                    <DataGrid x:Name="dataGridDeconNums" VerticalAlignment="Stretch" ItemsSource="{Binding}" IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0">
-                        <DataGrid.Resources>
-                            <Style TargetType="DataGridCell">
-                                <EventSetter Event="MouseDoubleClick" Handler="Decon_MouseDoubleClick"/>
-                            </Style>
-                        </DataGrid.Resources>
+                    <DataGrid x:Name="dataGridDeconNums" VerticalAlignment="Stretch" ItemsSource="{Binding}" 
+                              IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0"
+                              SelectedCellsChanged ="DataGridDeconNums_SelectedCellsChanged" CanUserDeleteRows="false" CanUserAddRows="false">
+                        <!--<DataGrid.Columns>
+                            <DataGridTextColumn Header="Ind" Binding="{Binding Ind}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Mz" Binding="{Binding Mz}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Charge" Binding="{Binding Charge}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="DeconMass" Binding="{Binding DeconMass}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Intensity" Binding="{Binding Intensity}"></DataGridTextColumn>
+                        </DataGrid.Columns>-->
                     </DataGrid>
                 </GroupBox>
             </Grid>
@@ -243,12 +254,14 @@
                           Width="5"/>
             <Grid Grid.Column="8">
                 <GroupBox Header="ChargeEnve Numbers" >
-                    <DataGrid x:Name="dataGridChargeEnves" VerticalAlignment="Stretch" ItemsSource="{Binding}" IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0">
-                        <DataGrid.Resources>
-                            <Style TargetType="DataGridCell">
-                                <EventSetter Event="MouseDoubleClick" Handler="ChargeEnves_MouseDoubleClick"/>
-                            </Style>
-                        </DataGrid.Resources>
+                    <DataGrid x:Name="dataGridChargeEnves" VerticalAlignment="Stretch" ItemsSource="{Binding}" 
+                              IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0"
+                              SelectedCellsChanged ="DataGridChargeEnves_SelectedCellsChanged" CanUserDeleteRows="false" CanUserAddRows="false">
+                        <!--<DataGrid.Columns>
+                            <DataGridTextColumn Header="Ind" Binding="{Binding Ind}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="DeconMass" Binding="{Binding DeconMass}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="MSE" Binding="{Binding MSE}"></DataGridTextColumn>
+                        </DataGrid.Columns>-->
                     </DataGrid>
                 </GroupBox>
             </Grid>

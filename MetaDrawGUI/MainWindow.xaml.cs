@@ -22,32 +22,38 @@ namespace MetaDrawGUI
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        //Data file and Result file Data Gid
         private readonly ObservableCollection<RawDataForDataGrid> spectraFilesObservableCollection = new ObservableCollection<RawDataForDataGrid>();
         private readonly ObservableCollection<RawDataForDataGrid> resultFilesObservableCollection = new ObservableCollection<RawDataForDataGrid>();
-        private MainViewModel mainViewModel;
-        private MsDataFile MsDataFile = null;   
-        private List<PsmFromTsv> PSMs = null;
 
+        //All Scan Data Grid
         private readonly ObservableCollection<AllScansForDataGrid> allScansObservableCollection = new ObservableCollection<AllScansForDataGrid>();
-
-
-
         private readonly ObservableCollection<SpectrumForDataGrid> spectrumNumsObservableCollection = new ObservableCollection<SpectrumForDataGrid>();
-        private CommonParameters CommonParameters = new CommonParameters();
+
+        //Deconvolution envolop Data Grid
+        private readonly ObservableCollection<EnvolopForDataGrid> envolopObservableCollection = new ObservableCollection<EnvolopForDataGrid>();       
+
+        //Charge Deconvolution envolop Data Grid
+        private readonly ObservableCollection<ChargeEnvelopesForDataGrid> chargeEnvelopesObservableCollection = new ObservableCollection<ChargeEnvelopesForDataGrid>();
+
+        //File path and file manage
         private string spectraFilePath;
         private MyFileManager spectraFileManager = new MyFileManager(true);
+        private MsDataFile MsDataFile = null;
+        
+        private MsDataFileDecon msDataFileDecon = new MsDataFileDecon(); //For charge decovolution
+        private CommonParameters CommonParameters = new CommonParameters();
+        private DeconvolutionParameter DeconvolutionParameter = new DeconvolutionParameter();
 
-        private readonly ObservableCollection<EnvolopForDataGrid> envolopObservableCollection = new ObservableCollection<EnvolopForDataGrid>();
-        public List<IsotopicEnvelope> IsotopicEnvelopes { get; set; } = new List<IsotopicEnvelope>();
-        public DeconViewModel DeconViewModel { get; set; }
         public List<MsDataScan> msDataScans { get; set; } = null;
-
-        private readonly ObservableCollection<ChargeEnvelopesForDataGrid> chargeEnvelopesObservableCollection = new ObservableCollection<ChargeEnvelopesForDataGrid>();
-        public ChargeEnveViewModel ChargeDeconViewModel { get; set; }
+        public MsDataScan msDataScan { get; set; }
         public List<ChargeDeconEnvelope> ScanChargeEnvelopes { get; set; } = new List<ChargeDeconEnvelope>();
-        public ChargeEnve0ViewModel ChargeDecon0ViewModel { get; set; }
+        public List<IsotopicEnvelope> IsotopicEnvelopes { get; set; } = new List<IsotopicEnvelope>();
 
-        private MsDataFileDecon msDataFileDecon = new MsDataFileDecon();
+        //View model
+        private MainViewModel mainViewModel;
+        public DeconViewModel DeconViewModel { get; set; }
+        public ChargeEnveViewModel ChargeDeconViewModel { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -62,7 +68,6 @@ namespace MetaDrawGUI
 
         public MainWindow()
         {
-
             InitializeComponent();
 
             mainViewModel = new MainViewModel();
@@ -270,6 +275,7 @@ namespace MetaDrawGUI
             //btnDraw.IsEnabled = true;
         }
 
+        //For Results Data Grid, generate PSM annotation.
         private void Row_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
 
@@ -289,6 +295,7 @@ namespace MetaDrawGUI
             }
         }
 
+        //For main Model, PSM annotation.
         private void UpdateModel(int x)
         {
             //if (MsDataFile == null)
@@ -356,7 +363,7 @@ namespace MetaDrawGUI
         private void restoreText(object sender, RoutedEventArgs e)
         {
             TextBox tb = (TextBox)sender;
-            if(tb.Text.Equals(string.Empty))
+            if (tb.Text.Equals(string.Empty))
                 tb.Text = "Scan Number";
         }
 
@@ -376,8 +383,12 @@ namespace MetaDrawGUI
         {
             //productMassToleranceTextBox.Text = CommonParameters.ProductMassTolerance.Value.ToString(CultureInfo.InvariantCulture);
             //productMassToleranceComboBox.SelectedIndex = CommonParameters.ProductMassTolerance is AbsoluteTolerance ? 0 : 1;
+            txtMinAssumedChargeState.Text = DeconvolutionParameter.DeconvolutionMinAssumedChargeState.ToString();
+            txtMaxAssumedChargeState.Text = DeconvolutionParameter.DeconvolutionMaxAssumedChargeState.ToString();
+            txtDeconvolutionToleranc.Text = DeconvolutionParameter.DeconvolutionMassTolerance.Value.ToString();
+            txtIntensityRatioLimit.Text = DeconvolutionParameter.DeconvolutionIntensityRatio.ToString();
         }
-
+    
         private void btnLoadData_Click(object sender, RoutedEventArgs e)
         {
             spectraFilePath = spectraFilesObservableCollection.First().FilePath;
@@ -402,11 +413,15 @@ namespace MetaDrawGUI
 
         private void btnDecon_Click(object sender, RoutedEventArgs e)
         {
+            ResetDataGridAndModel();
             int x = Convert.ToInt32(txtDeconScanNum.Text);
-            var msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == x).First();
-            //IsotopicEnvelopes = msDataScan.MassSpectrum.Deconvolute(msDataScan.ScanWindowRange, 3, 60, 5.0, 3).OrderBy(p => p.monoisotopicMass).ToList();
+            msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == x).First();
             MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
-            IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, 3, 60, 5.0, 3).OrderBy(p => p.monoisotopicMass).ToList();
+
+            IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter.DeconvolutionMinAssumedChargeState,
+                DeconvolutionParameter.DeconvolutionMaxAssumedChargeState, DeconvolutionParameter.DeconvolutionMassTolerance.Value,
+                DeconvolutionParameter.DeconvolutionIntensityRatio).OrderBy(p => p.monoisotopicMass).ToList();
+
             int i=1;
             foreach (var item in IsotopicEnvelopes)
             {
@@ -422,68 +437,6 @@ namespace MetaDrawGUI
                 chargeEnvelopesObservableCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
                 ind++;
             }        
-        }
-
-        private void UpdateDeconModel(int x, MsDataScan msDataScan)
-        {
-            var envo = IsotopicEnvelopes[x-1];
-            DeconViewModel.UpdataModelForDecon(msDataScan, envo);
-            //mainViewModel.UpdateDecon(mainViewModel.Model, envo);
-        }
-
-        private void Decon_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            if (sender != null)
-            {
-                try
-                {
-                    Regex regex = new Regex(@"\d+");
-                    int x = Convert.ToInt32(regex.Match(sender.ToString()).Value);
-                    var msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == Convert.ToInt32(txtDeconScanNum.Text)).First();
-                    UpdateDeconModel(x, msDataScan);
-
-                }
-                catch (Exception)
-                {
-                    MessageBox.Show("Please check the data loaded.");
-                }
-            }
-        }
-
-        private void UpdateChargeDeconModel(int ind, MsDataScan msDataScan)
-        {
-            var envo = ScanChargeEnvelopes[ind - 1];
-            ChargeDeconViewModel.UpdataModelForChargeEnve(msDataScan, envo);
-            ChargeDecon0ViewModel.UpdataModelForChargeEnve0(msDataScan, envo);
-        }
-
-        private void ChargeEnves_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            if (sender != null)
-            {
-                try
-                {
-                    Regex regex = new Regex(@"\d+");
-                    int x = Convert.ToInt32(regex.Match(sender.ToString()).Value);
-                    var msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == Convert.ToInt32(txtDeconScanNum.Text)).First();
-                    UpdateChargeDeconModel(x, msDataScan);
-
-                }
-                catch (Exception)
-                {
-                    MessageBox.Show("Please check the data loaded.");
-                }
-            }
-        }
-
-        private void btnResetDecon_Click(object sender, RoutedEventArgs e)
-        {         
-            envolopObservableCollection.Clear();
-            DeconViewModel.ResetDeconModel();
-            mainViewModel.ResetViewModel();
-            chargeEnvelopesObservableCollection.Clear();
-            ChargeDeconViewModel.ResetDeconModel();
-            ChargeDecon0ViewModel.ResetDeconModel();
         }
 
         //Deconvolute all scans and process Charge Parsimony
@@ -519,6 +472,7 @@ namespace MetaDrawGUI
             msDataFileDecon.ChargeDeconWriteToTSV(chargeDeconPerMS1Scans, Path.GetDirectoryName(spectraFilesObservableCollection.First().FilePath), "ChargeDecon");
         }
 
+        //Calculate Deconvolution time of each scan of all scans
         private void BtnDeconWatch_Click(object sender, RoutedEventArgs e)
         {
             var MS1Scans = msDataScans.Where(p => p.MsnOrder == 1).ToList();
@@ -564,6 +518,7 @@ namespace MetaDrawGUI
 
         }
 
+        //Calculate instrument scan time of all scans
         private void BtnPerScanTime_Click(object sender, RoutedEventArgs e)
         {
             double[] scanTimes = new double[msDataScans.Count];
@@ -606,20 +561,150 @@ namespace MetaDrawGUI
             }
         }
 
+        //Generate deconvolution model
         private void BtnDeconModel_Click(object sender, RoutedEventArgs e)
         {
-            int x = Convert.ToInt32(txtDeconScanNum.Text);
-            var msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == x).First();          
-            MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
-            DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, Convert.ToInt32(TxtDeconModel.Text));
+            if (msDataScan != null)
+            {
+                MzSpectrumBU.UseNeuCodeModel = DeconvolutionParameter.IsNeuCode;
+                MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
+                DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, Convert.ToInt32(TxtDeconModel.Text));
+            }
+            else
+            {
+                UsefulProteomicsDatabases.Loaders.LoadElements(); //TO DO: track back to global task.
+                MzSpectrumBU.UseNeuCodeModel = DeconvolutionParameter.IsNeuCode;
+                var mzSpectrumBU = new MzSpectrumBU(new double[] { 1 }, new double[] { 1 }, true);
+                DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, Convert.ToInt32(TxtDeconModel.Text));
+            }
         }
-    }
 
-    public class WatchEvaluation
-    {
-           public int TheScanNumber { get; set; }
-           public double TheRT { get; set; }
-           public double WatchIsoDecon { get; set; }
-           public  double WatchChaDecon { get; set; }
+        private void btnResetDecon_Click(object sender, RoutedEventArgs e)
+        {
+            ResetDataGridAndModel();
+        }
+
+        private void ResetDataGridAndModel()
+        {
+            envolopObservableCollection.Clear();
+            DeconViewModel.ResetDeconModel();
+            mainViewModel.ResetViewModel();
+            chargeEnvelopesObservableCollection.Clear();
+            ChargeDeconViewModel.ResetDeconModel();
+        }
+
+        private void DataGridAllScanNums_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+        {
+            if (dataGridAllScanNums.SelectedItem == null)
+            {
+                return;
+            }
+
+            ResetDataGridAndModel();
+
+            var sele = (AllScansForDataGrid)dataGridAllScanNums.SelectedItem;
+            
+            if (sele.MsOrder == 2)
+            {
+                var ms2DataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
+                mainViewModel.UpdateScanModel(ms2DataScan);
+                msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.PrecursorScanNum).First();
+            }
+            else
+            {
+                msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
+                mainViewModel.UpdateScanModel(msDataScan);
+            }
+            
+            MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
+            IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter.DeconvolutionMinAssumedChargeState, 
+                DeconvolutionParameter.DeconvolutionMaxAssumedChargeState, DeconvolutionParameter.DeconvolutionMassTolerance.Value, 
+                DeconvolutionParameter.DeconvolutionIntensityRatio).OrderBy(p => p.monoisotopicMass).ToList();
+
+            int i = 1;
+            foreach (var item in IsotopicEnvelopes)
+            {
+                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
+                i++;
+            }           
+
+            int ind = 1;
+            foreach (var theScanChargeEvelope in ScanChargeEnvelopes)
+            {
+                chargeEnvelopesObservableCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
+                ind++;
+            }
+        }
+
+        private void DataGridDeconNums_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+        {
+            if (dataGridDeconNums.SelectedItem == null)
+            {
+                return;
+            }
+            var sele = (EnvolopForDataGrid)dataGridDeconNums.SelectedItem;
+
+            UpdateDeconModel(sele.Ind, msDataScan);
+        }
+
+        private void DataGridChargeEnves_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+        {
+            if (dataGridChargeEnves.SelectedItem == null)
+            {
+                return;
+            }
+            var sele = (ChargeEnvelopesForDataGrid)dataGridChargeEnves.SelectedItem;
+            UpdateChargeDeconModel(sele.Ind, msDataScan);
+        }
+
+        private void UpdateDeconModel(int x, MsDataScan msDataScan)
+        {
+            var envo = IsotopicEnvelopes[x - 1];
+            DeconViewModel.UpdataModelForDecon(msDataScan, envo);
+            //mainViewModel.UpdateDecon(mainViewModel.Model, envo);
+        }
+
+        private void UpdateChargeDeconModel(int ind, MsDataScan msDataScan)
+        {
+            var envo = ScanChargeEnvelopes[ind - 1];
+            ChargeDeconViewModel.UpdataModelForChargeEnve(msDataScan, envo);
+        }
+
+        //Control Deconvolution Parameters
+        private void TxtMinAssumedChargeState_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            this.DeconvolutionParameter.DeconvolutionMinAssumedChargeState = Int32.Parse(txtMinAssumedChargeState.Text);
+        }
+
+        private void TxtMaxAssumedChargeState_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            this.DeconvolutionParameter.DeconvolutionMaxAssumedChargeState = Int32.Parse(txtMaxAssumedChargeState.Text);
+        }
+
+        private void TxtDeconvolutionToleranc_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            this.DeconvolutionParameter.DeconvolutionMassTolerance = new PpmTolerance(double.Parse(txtDeconvolutionToleranc.Text));
+        }
+
+        private void TxtIntensityRatioLimit_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            this.DeconvolutionParameter.DeconvolutionIntensityRatio = double.Parse(txtIntensityRatioLimit.Text);
+        }
+
+        //private void CbIsNeuCode_Checked(object sender, RoutedEventArgs e)
+        //{
+        //    //this.DeconvolutionParameter.IsNeuCode = CbIsNeuCode.IsChecked.Value;
+        //    UsefulProteomicsDatabases.Loaders.LoadElements(); //TO DO: track back to global task.
+        //    MzSpectrumBU.UseNeuCodeModel = DeconvolutionParameter.IsNeuCode;
+        //    var mzSpectrumBU = new MzSpectrumBU(new double[] { 1 }, new double[] { 1 }, true);
+        //}
+
+        //private void CbIsNeuCode_Unchecked(object sender, RoutedEventArgs e)
+        //{
+        //    //this.DeconvolutionParameter.IsNeuCode = CbIsNeuCode.IsChecked.Value;
+        //    UsefulProteomicsDatabases.Loaders.LoadElements(); //TO DO: track back to global task.
+        //    MzSpectrumBU.UseNeuCodeModel = DeconvolutionParameter.IsNeuCode;
+        //    var mzSpectrumBU = new MzSpectrumBU(new double[] { 1 }, new double[] { 1 }, true);
+        //}
     }
 }

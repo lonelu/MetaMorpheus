@@ -58,12 +58,25 @@ namespace ViewModels
             var isoEnves = chargeDeconEnvelope.isotopicEnvelopes;
 
             PlotModel model = new PlotModel { Title = "Spectrum anotation of Scan " + scanNum, DefaultFontSize = 15 };
-            model.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom, Title = "m/z", Minimum = 0, Maximum = MsScanForDraw.MassSpectrum.XArray.Max() * 1.02 });
-            model.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Title = "Intensity(counts)", Minimum = 0, Maximum = chargeDeconEnvelope.intensitiesFit.Max() * 1.2 });
+            model.Axes.Add(new LinearAxis {
+                Position = AxisPosition.Bottom,
+                Title = "m/z",
+                Minimum = 0,
+                Maximum = MsScanForDraw.MassSpectrum.XArray.Max() * 1.02,
+                AbsoluteMinimum = 0,
+                AbsoluteMaximum = MsScanForDraw.MassSpectrum.XArray.Max() * 1.2
+            });
+
+            model.Axes.Add(new LinearAxis {
+                Position = AxisPosition.Left,
+                Title = "Intensity(counts)",
+                Minimum = 0,
+                Maximum = chargeDeconEnvelope.intensitiesFit.Max() * 1.2,
+                AbsoluteMinimum = 0,
+                AbsoluteMaximum = chargeDeconEnvelope.intensitiesFit.Max() * 1.3
+            });
 
             LineSeries[] sPeaks = new LineSeries[chargeDeconEnvelope.mzFit.Length];
-            LineSeries[] sPeaksModel = new LineSeries[chargeDeconEnvelope.mzFit.Length];
-
             for (int i = 0; i < x.Length; i++)
             {
                 sPeaks[i] = new LineSeries();
@@ -73,7 +86,6 @@ namespace ViewModels
                 sPeaks[i].Points.Add(new DataPoint(x[i], y[i]));
                 model.Series.Add(sPeaks[i]);
             }
-
 
             //Original peaks
             for (int i = 0; i < isoEnves.Count; i++)
@@ -89,16 +101,15 @@ namespace ViewModels
                         sPeak.Points.Add(new DataPoint(peak.mz, peak.intensity));
                         model.Series.Add(sPeak);
                     }
-
                 }
-
             }
 
+            LineSeries[] sPeaksModel = new LineSeries[chargeDeconEnvelope.mzFit.Length];
             for (int i = 0; i < x.Length; i++)
             {
                 sPeaksModel[i] = new LineSeries();
                 sPeaksModel[i].Color = OxyColors.Red;
-                sPeaksModel[i].StrokeThickness = 0.75;
+                sPeaksModel[i].StrokeThickness = 1;
                 sPeaksModel[i].Points.Add(new DataPoint(x[i], 0));
                 sPeaksModel[i].Points.Add(new DataPoint(x[i], z[i]));
                 model.Series.Add(sPeaksModel[i]);
@@ -129,20 +140,20 @@ namespace ViewModels
 
         private void XAxisChanged(object sender, AxisChangedEventArgs e)
         {
-            double fold = (this.chargeEnveModel.Axes[0].ActualMaximum - this.chargeEnveModel.Axes[0].ActualMinimum) / (this.chargeEnveModel.Axes[0].AbsoluteMaximum - this.chargeEnveModel.Axes[0].AbsoluteMinimum);
-            this.chargeEnveModel.Axes[1].Minimum = 0;
-            this.chargeEnveModel.Axes[1].Maximum = this.chargeEnveModel.Axes[1].AbsoluteMaximum * 0.6 * fold;
+            double fold = (this.ChargeEnveModel.Axes[0].ActualMaximum - this.ChargeEnveModel.Axes[0].ActualMinimum) / (this.ChargeEnveModel.Axes[0].AbsoluteMaximum - this.ChargeEnveModel.Axes[0].AbsoluteMinimum);
+            this.ChargeEnveModel.Axes[1].Minimum = 0;
+            this.ChargeEnveModel.Axes[1].Maximum = this.ChargeEnveModel.Axes[1].AbsoluteMaximum * 0.6 * fold;
 
-            foreach (var series in this.chargeEnveModel.Series)
+            foreach (var series in this.ChargeEnveModel.Series)
             {
                 if (series is LineSeries)
                 {
                     var x = (LineSeries)series;
-                    if (x.Points[1].X >= this.chargeEnveModel.Axes[0].ActualMinimum && x.Points[1].X <= this.chargeEnveModel.Axes[0].ActualMaximum)
+                    if (x.Points[1].X >= this.ChargeEnveModel.Axes[0].ActualMinimum && x.Points[1].X <= this.ChargeEnveModel.Axes[0].ActualMaximum)
                     {
-                        if (x.Points[1].Y > this.chargeEnveModel.Axes[1].Maximum)
+                        if (x.Points[1].Y > this.ChargeEnveModel.Axes[1].Maximum)
                         {
-                            this.chargeEnveModel.Axes[1].Maximum = x.Points[1].Y * 1.2;
+                            this.ChargeEnveModel.Axes[1].Maximum = x.Points[1].Y * 1.2;
                         }
                     }
 

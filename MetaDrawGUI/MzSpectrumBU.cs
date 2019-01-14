@@ -17,7 +17,7 @@ namespace MassSpectrometry
         private static readonly double[][] allIntensities = new double[numAveraginesToGenerate][];
         private static readonly double[] mostIntenseMasses = new double[numAveraginesToGenerate];
         private static readonly double[] diffToMonoisotopic = new double[numAveraginesToGenerate];
-        public static bool UseNeuCodeModel;
+        public static bool UseNeuCodeModel = true;
 
         private MzPeak[] peakList;
         private int? indexOfpeakWithHighestY;
@@ -55,7 +55,7 @@ namespace MassSpectrometry
                 {
                     var chemicalFormulaReg = chemicalFormula;
                     IsotopicDistribution ye = IsotopicDistribution.GetDistribution(chemicalFormulaReg, fineRes, minRes);
-                    var masses = MassConvertToNeuCode( ye.Masses.ToArray(), 0.034, UseNeuCodeModel);
+                    var masses = MassConvertToNeuCode( ye.Masses.ToArray(), 0.068, UseNeuCodeModel);
                     var intensities = IntenConvertToNeuCode( ye.Intensities.ToArray(), 1, UseNeuCodeModel);
                     Array.Sort(intensities, masses);
                     Array.Reverse(intensities);
@@ -240,7 +240,7 @@ namespace MassSpectrometry
                     {
                         var chargeDouble = 1 / (XArray[i] - candidateForMostIntensePeakMz);
                         int charge = Convert.ToInt32(chargeDouble);
-                        if (Math.Abs(chargeDouble - charge) <= 0.2)
+                        if (Math.Abs(chargeDouble - charge) <= 0.2 && charge >= minAssumedChargeState && charge <= maxAssumedChargeState)
                         {
                             allPossibleChargeState.Add(charge);
                         }
