@@ -40,6 +40,7 @@ namespace MetaDrawGUI
         private string spectraFilePath;
         private MyFileManager spectraFileManager = new MyFileManager(true);
         private MsDataFile MsDataFile = null;
+        private string resultsFilePath;
         
         private MsDataFileDecon msDataFileDecon = new MsDataFileDecon(); //For charge decovolution
         private CommonParameters CommonParameters = new CommonParameters();
@@ -49,6 +50,7 @@ namespace MetaDrawGUI
         public MsDataScan msDataScan { get; set; }
         public List<ChargeDeconEnvelope> ScanChargeEnvelopes { get; set; } = new List<ChargeDeconEnvelope>();
         public List<IsotopicEnvelope> IsotopicEnvelopes { get; set; } = new List<IsotopicEnvelope>();
+        private List<PsmFromTsv> psms = new List<PsmFromTsv>();
 
         //View model
         private MainViewModel mainViewModel;
@@ -86,7 +88,7 @@ namespace MetaDrawGUI
 
             dataGridResultFiles.DataContext = resultFilesObservableCollection;
 
-            dataGridScanNums.DataContext = spectrumNumsObservableCollection;
+            dataGridPsms.DataContext = spectrumNumsObservableCollection;
 
             dataGridDeconNums.DataContext = envolopObservableCollection;
 
@@ -94,7 +96,7 @@ namespace MetaDrawGUI
 
             dataGridAllScanNums.DataContext = allScansObservableCollection;
 
-            Title = "MetaDraw";
+            Title = "MetaDraw" + GlobalVariables.MetaMorpheusVersion;
 
             //CommonParameters = new CommonParameters();
             productMassToleranceComboBox.Items.Add("Da");
@@ -137,12 +139,10 @@ namespace MetaDrawGUI
                 resultFilesObservableCollection.Clear();
             else
                 spectraFilesObservableCollection.Clear();
-
         }
 
         private void btnAddFiles_Click(object sender, RoutedEventArgs e)
         {
-            btnReset.IsEnabled = true;
             Microsoft.Win32.OpenFileDialog openFileDialog1 = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "Spectra Files(*.raw;*.mzML)|*.raw;*.mzML",
@@ -159,7 +159,6 @@ namespace MetaDrawGUI
         }
         private void btnAddResults_Click(object sender, RoutedEventArgs e)
         {
-            btnReset.IsEnabled = true;
             Microsoft.Win32.OpenFileDialog openFileDialog1 = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "Result Files(*.csv;*..psmtsv)|*.csv;*.psmtsv",
@@ -212,159 +211,15 @@ namespace MetaDrawGUI
             return false;
         }
 
-        /*private void UpdateOutputFolderTextbox()
-        {
-            if (spectraFilesObservableCollection.Any())
-            {
-                // if current output folder is blank and there is a spectra file, use the spectra file's path as the output path
-                if (string.IsNullOrWhiteSpace(txtBoxOutputFolder.Text))
-                {
-                    var pathOfFirstSpectraFile = Path.GetDirectoryName(spectraFilesObservableCollection.Where(p => p.Use).First().FilePath);
-                    txtBoxOutputFolder.Text = Path.Combine(pathOfFirstSpectraFile, @"$DATETIME");
-                }
-                // else do nothing (do not override if there is a path already there; might clear user-defined path)
-            }
-            else
-            {
-                // no spectra files; clear the output folder from the GUI
-                txtBoxOutputFolder.Clear();
-            }
-        }*/
-
-        private void btnDraw_Click(object sender, RoutedEventArgs e)
-        {
-
-            mainViewModel.Model.InvalidatePlot(true);
-
-            int x = Convert.ToInt32(txtScanNum.Text);
-
-            UpdateModel(x);
-
-        }
-
-        private void btnReadResultFile_Click(object sender, RoutedEventArgs e)
-        {
-            //btnReset.IsEnabled = true;
-
-            //if (!spectraFilesObservableCollection.Any())
-            //{
-            //    return;
-            //}
-            
-            ////LoadScans loadScans = new LoadScans(spectraFilesObservableCollection.Where(b => b.Use).First().FilePath,null);
-
-            //MsDataFile = loadScans.Run();
-            
-            //btnReadResultFile.IsEnabled = true;
-
-            //if (resultFilesObservableCollection.Count == 0)
-            //{
-            //    MessageBox.Show("Please add result files.");
-            //    return;
-            //}
-            //var resultFilePath = resultFilesObservableCollection.Where(b => b.Use).First().FilePath;
-            ////PSMs = TsvResultReader.ReadTsv(resultFilePath);
-            //foreach (var item in PSMs)
-            //{
-            //    spectrumNumsObservableCollection.Add(new SpectrumForDataGrid(item.ScanNumber, item.FullSequence));
-            //}
-            //dataGridScanNums.Items.Refresh();
-            
-
-            //btnReadResultFile.IsEnabled = false;
-            //btnDraw.IsEnabled = true;
-        }
-
-        //For Results Data Grid, generate PSM annotation.
-        private void Row_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-
-            if (sender != null)
-            {
-                try
-                {
-                    Regex regex = new Regex(@"\d+");
-                    int x = Convert.ToInt32(regex.Match(sender.ToString()).Value);
-                    UpdateModel(x);
-
-                }
-                catch (Exception)
-                {
-                    MessageBox.Show("Please check the data loaded.");
-                }
-            }
-        }
-
-        //For main Model, PSM annotation.
-        private void UpdateModel(int x)
-        {
-            //if (MsDataFile == null)
-            //{
-            //    MessageBox.Show("Please check the MS data loaded.");
-            //    return;
-            //}
-
-            //var msScanForDraw = MsDataFile.GetAllScansList().Where(p => p.OneBasedScanNumber == x).First();
-
-            //PsmDraw psmDraw = PSMs.Where(p => p.ScanNumber == x).First();
-
-            //var lp = new List<ProductType>();
-            //if (CommonParameters.BIons)
-            //{
-            //    lp.Add(ProductType.BnoB1ions);
-            //}
-            //if (CommonParameters.YIons)
-            //{
-            //    lp.Add(ProductType.Y);
-            //}
-            //if (CommonParameters.CIons)
-            //{
-            //    lp.Add(ProductType.C);
-            //}
-            //if (CommonParameters.ZdotIons)
-            //{
-            //    lp.Add(ProductType.Zdot);
-            //}
-
-            //var pmm = PsmDraw.XlCalculateTotalProductMassesForSingle(psmDraw, lp, false);
-
-            //var matchedIonMassesListPositiveIsMatch = new MatchedIonInfo(pmm.ProductMz.Length);
-
-            //double pmmScore = PsmCross.XlMatchIons(msScanForDraw, CommonParameters.ProductMassTolerance, pmm.ProductMz, pmm.ProductName, matchedIonMassesListPositiveIsMatch);
-
-            //psmDraw.MatchedIonInfo = matchedIonMassesListPositiveIsMatch;
-
-            //mainViewModel.UpdateForSingle(msScanForDraw, psmDraw);
-
-        }
-
         private void btnReset_Click(object sender, RoutedEventArgs e)
         {
-            btnReset.IsEnabled = false;
-
             resultFilesObservableCollection.Clear();
 
             spectraFilesObservableCollection.Clear();
 
             spectrumNumsObservableCollection.Clear();
 
-            btnReadResultFile.IsEnabled = true;
-
             mainViewModel = new MainViewModel();
-        }
-
-        private void clearText(object sender, RoutedEventArgs e)
-        {
-            TextBox tb = (TextBox)sender;
-            if (tb.Text.Equals("Scan Number"))
-                tb.Text = string.Empty;
-        }
-
-        private void restoreText(object sender, RoutedEventArgs e)
-        {
-            TextBox tb = (TextBox)sender;
-            if (tb.Text.Equals(string.Empty))
-                tb.Text = "Scan Number";
         }
 
         private void productMassToleranceTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -408,6 +263,53 @@ namespace MetaDrawGUI
             foreach (var iScan in msDataScans)
             {
                 allScansObservableCollection.Add(new AllScansForDataGrid(iScan.OneBasedScanNumber, iScan.OneBasedPrecursorScanNumber, iScan.MsnOrder, iScan.IsolationMz));
+            }
+        }
+
+        private void BtnLoadResults_Click(object sender, RoutedEventArgs e)
+        {
+            resultsFilePath = resultFilesObservableCollection.First().FilePath;
+            if (resultsFilePath == null)
+            {
+                MessageBox.Show("Please add a result file.");
+                return;
+            }
+
+            // load the spectra file
+            (sender as Button).IsEnabled = false;
+            btnAddResultFiles.IsEnabled = false;
+            btnClearResultFiles.IsEnabled = false;
+
+            // load the PSMs
+            //TO DO: There is a bug with LoadPsms
+            //LoadPsms(resultsFilePath);
+            List<string> warnings;
+            psms = PsmTsvReader.ReadTsv(resultsFilePath, out warnings);
+            foreach (var psm in psms)
+            {
+                spectrumNumsObservableCollection.Add(new SpectrumForDataGrid(psm.Ms2ScanNumber, psm.PrecursorScanNum, psm.PrecursorMz, psm.OrganismName));
+            }
+        }
+
+        private void LoadPsms(string filename)
+        {
+            string fileNameWithExtension = Path.GetFileName(resultsFilePath);
+            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(resultsFilePath);
+
+            try
+            {
+                List<string> warnings; 
+                foreach (var psm in PsmTsvReader.ReadTsv(filename, out warnings))
+                {
+                    if (psm.Filename == fileNameWithExtension || psm.Filename == fileNameWithoutExtension || psm.Filename.Contains(fileNameWithoutExtension))
+                    {
+                        psms.Add(psm);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Could not open PSM file:\n" + e.Message);
             }
         }
 
@@ -572,7 +474,7 @@ namespace MetaDrawGUI
             }
             else
             {
-                UsefulProteomicsDatabases.Loaders.LoadElements(); //TO DO: track back to global task.
+                //UsefulProteomicsDatabases.Loaders.LoadElements(); //TO DO: track back to global task.
                 MzSpectrumBU.UseNeuCodeModel = DeconvolutionParameter.IsNeuCode;
                 var mzSpectrumBU = new MzSpectrumBU(new double[] { 1 }, new double[] { 1 }, true);
                 DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, Convert.ToInt32(TxtDeconModel.Text));
@@ -657,6 +559,42 @@ namespace MetaDrawGUI
             UpdateChargeDeconModel(sele.Ind, msDataScan);
         }
 
+        private void DataGridScanNums_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+        {
+            if (dataGridPsms.SelectedItem == null)
+            {
+                return;
+            }
+
+            ResetDataGridAndModel();
+
+            var sele = (SpectrumForDataGrid)dataGridPsms.SelectedItem;
+
+            var ms2DataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
+            var psm = psms.Where(p => p.Ms2ScanNumber == sele.ScanNum).First();
+            mainViewModel.DrawPeptideSpectralMatch(ms2DataScan, psm);
+            msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.PrecursorScanNum).First();
+
+            MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
+            IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter.DeconvolutionMinAssumedChargeState,
+                DeconvolutionParameter.DeconvolutionMaxAssumedChargeState, DeconvolutionParameter.DeconvolutionMassTolerance.Value,
+                DeconvolutionParameter.DeconvolutionIntensityRatio).OrderBy(p => p.monoisotopicMass).ToList();
+
+            int i = 1;
+            foreach (var item in IsotopicEnvelopes)
+            {
+                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
+                i++;
+            }
+
+            int ind = 1;
+            foreach (var theScanChargeEvelope in ScanChargeEnvelopes)
+            {
+                chargeEnvelopesObservableCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
+                ind++;
+            }
+        }
+
         private void UpdateDeconModel(int x, MsDataScan msDataScan)
         {
             var envo = IsotopicEnvelopes[x - 1];
@@ -691,20 +629,5 @@ namespace MetaDrawGUI
             this.DeconvolutionParameter.DeconvolutionIntensityRatio = double.Parse(txtIntensityRatioLimit.Text);
         }
 
-        //private void CbIsNeuCode_Checked(object sender, RoutedEventArgs e)
-        //{
-        //    //this.DeconvolutionParameter.IsNeuCode = CbIsNeuCode.IsChecked.Value;
-        //    UsefulProteomicsDatabases.Loaders.LoadElements(); //TO DO: track back to global task.
-        //    MzSpectrumBU.UseNeuCodeModel = DeconvolutionParameter.IsNeuCode;
-        //    var mzSpectrumBU = new MzSpectrumBU(new double[] { 1 }, new double[] { 1 }, true);
-        //}
-
-        //private void CbIsNeuCode_Unchecked(object sender, RoutedEventArgs e)
-        //{
-        //    //this.DeconvolutionParameter.IsNeuCode = CbIsNeuCode.IsChecked.Value;
-        //    UsefulProteomicsDatabases.Loaders.LoadElements(); //TO DO: track back to global task.
-        //    MzSpectrumBU.UseNeuCodeModel = DeconvolutionParameter.IsNeuCode;
-        //    var mzSpectrumBU = new MzSpectrumBU(new double[] { 1 }, new double[] { 1 }, true);
-        //}
     }
 }
