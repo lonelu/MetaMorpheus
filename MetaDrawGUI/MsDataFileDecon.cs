@@ -14,7 +14,7 @@ namespace MetaDrawGUI
     {
         //public List<ChargeDeconEnvelope> chargeEnvelopesList { get; set; } = new List<ChargeDeconEnvelope>();
 
-        public List<ChargeDeconPerMS1Scan> ChargeDeconvolutionFile(List<MsDataScan> msDataScanList, CommonParameters commonParameters)
+        public List<ChargeDeconPerMS1Scan> ChargeDeconvolutionFile(List<MsDataScan> msDataScanList, CommonParameters commonParameters, DeconvolutionParameter deconvolutionParameter)
         {
             var chargeDeconPerMS1Scans = new List<ChargeDeconPerMS1Scan>();
             Parallel.ForEach(Partitioner.Create(0, msDataScanList.Count), new ParallelOptions { MaxDegreeOfParallelism = commonParameters.MaxThreadsToUsePerFile }, range =>
@@ -25,7 +25,7 @@ namespace MetaDrawGUI
                     MzSpectrumBU mzSpectrumTD = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
                     if (msDataScan.MsnOrder == 1)
                     {
-                        var isotopicEnvelopes = msDataScan.MassSpectrum.Deconvolute(msDataScan.ScanWindowRange, 3, 60, 5.0, 3).OrderBy(p => p.monoisotopicMass).ToList();
+                        var isotopicEnvelopes = mzSpectrumTD.DeconvoluteBU(msDataScan.ScanWindowRange, deconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
 
                         var selectedMS2 = msDataScanList.Where(p => p.OneBasedPrecursorScanNumber == msDataScan.OneBasedScanNumber).Select(p => p.SelectedIonMZ).ToList();
 

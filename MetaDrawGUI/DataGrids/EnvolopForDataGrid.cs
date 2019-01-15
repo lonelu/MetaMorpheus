@@ -2,9 +2,10 @@
 {
     public class EnvolopForDataGrid
     {
-        public EnvolopForDataGrid(int ind, double mz, int charge, double deconMass, double intensity)
+        public EnvolopForDataGrid(int ind, bool isNeuCode, double mz, int charge, double deconMass, double intensity)
         {
             Ind = ind;
+            IsNeuCode = isNeuCode;
             Mz = mz;
             Charge = charge;
             DeconMass = deconMass;         
@@ -13,6 +14,8 @@
         }
 
         public int Ind { get; set; }
+
+        public bool IsNeuCode { get; set; }
 
         public double Mz { get; set; }
 

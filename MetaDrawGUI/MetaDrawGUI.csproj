@@ -167,6 +167,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="BasicClasses\DeconvolutionParameter.cs" />
+    <Compile Include="BasicClasses\NeuCodeIsotopicEnvelop.cs" />
     <Compile Include="BasicClasses\WatchEvaluation.cs" />
     <Compile Include="ChargeDeconEnvelope.cs" />
     <Compile Include="ChargeDeconPerMS1Scan.cs" />

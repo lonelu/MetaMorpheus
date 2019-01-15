@@ -49,7 +49,7 @@ namespace MetaDrawGUI
         public List<MsDataScan> msDataScans { get; set; } = null;
         public MsDataScan msDataScan { get; set; }
         public List<ChargeDeconEnvelope> ScanChargeEnvelopes { get; set; } = new List<ChargeDeconEnvelope>();
-        public List<IsotopicEnvelope> IsotopicEnvelopes { get; set; } = new List<IsotopicEnvelope>();
+        public List<NeuCodeIsotopicEnvelop> IsotopicEnvelopes { get; set; } = new List<NeuCodeIsotopicEnvelop>();
         private List<PsmFromTsv> psms = new List<PsmFromTsv>();
 
         //View model
@@ -242,6 +242,9 @@ namespace MetaDrawGUI
             txtMaxAssumedChargeState.Text = DeconvolutionParameter.DeconvolutionMaxAssumedChargeState.ToString();
             txtDeconvolutionToleranc.Text = DeconvolutionParameter.DeconvolutionMassTolerance.Value.ToString();
             txtIntensityRatioLimit.Text = DeconvolutionParameter.DeconvolutionIntensityRatio.ToString();
+            CbCheckNeuCode.IsChecked = DeconvolutionParameter.CheckNeuCode;
+            TxtNeuCodeMassDefect.Text = DeconvolutionParameter.NeuCodeMassDefect.ToString();
+            TxtNeuCodeMaxNum.Text = DeconvolutionParameter.MaxmiumNeuCodeNumber.ToString();
         }
     
         private void btnLoadData_Click(object sender, RoutedEventArgs e)
@@ -257,7 +260,7 @@ namespace MetaDrawGUI
             (sender as Button).IsEnabled = false;
             btnAddFiles.IsEnabled = false;
             btnClearFiles.IsEnabled = false;
-            MsDataFile = spectraFileManager.LoadFile(spectraFilePath, null, null, false, false, new CommonParameters());
+            MsDataFile = spectraFileManager.LoadFile(spectraFilePath, null, 0.001, true, true, new CommonParameters());
             msDataScans = MsDataFile.GetAllScansList();
 
             foreach (var iScan in msDataScans)
@@ -320,14 +323,12 @@ namespace MetaDrawGUI
             msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == x).First();
             MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
 
-            IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter.DeconvolutionMinAssumedChargeState,
-                DeconvolutionParameter.DeconvolutionMaxAssumedChargeState, DeconvolutionParameter.DeconvolutionMassTolerance.Value,
-                DeconvolutionParameter.DeconvolutionIntensityRatio).OrderBy(p => p.monoisotopicMass).ToList();
+            IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
 
             int i=1;
             foreach (var item in IsotopicEnvelopes)
             {
-                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
+                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
                 i++;
             }
             mainViewModel.UpdateScanModel(msDataScan);
@@ -344,7 +345,7 @@ namespace MetaDrawGUI
         //Deconvolute all scans and process Charge Parsimony
         private void btnDeconAll_Click(object sender, RoutedEventArgs e)
         {
-            var chargeDeconPerMS1Scans = msDataFileDecon.ChargeDeconvolutionFile(msDataScans, CommonParameters);
+            var chargeDeconPerMS1Scans = msDataFileDecon.ChargeDeconvolutionFile(msDataScans, CommonParameters, DeconvolutionParameter);
             List<ChargeParsi> chargeParsis = msDataFileDecon.ChargeParsimony(chargeDeconPerMS1Scans, new SingleAbsoluteAroundZeroSearchMode(2.2), new SingleAbsoluteAroundZeroSearchMode(5));
 
             var total = msDataScans.Where(p => p.MsnOrder == 2).Count();
@@ -389,7 +390,7 @@ namespace MetaDrawGUI
                 var watch = System.Diagnostics.Stopwatch.StartNew();
 
                 //var isotopicEnvelopes = MS1Scans[i].MassSpectrum.Deconvolute(MS1Scans[i].ScanWindowRange, 3, 60, 5.0, 3).OrderBy(p => p.monoisotopicMass).ToList();
-                var isotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(MS1Scans[i].ScanWindowRange, 3, 60, 5.0, 3).OrderBy(p => p.monoisotopicMass).ToList();
+                var isotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(MS1Scans[i].ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
                 watch.Stop();
 
                 var watch1 = System.Diagnostics.Stopwatch.StartNew();
@@ -468,14 +469,12 @@ namespace MetaDrawGUI
         {
             if (msDataScan != null)
             {
-                MzSpectrumBU.UseNeuCodeModel = DeconvolutionParameter.IsNeuCode;
                 MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
                 DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, Convert.ToInt32(TxtDeconModel.Text));
             }
             else
             {
-                //UsefulProteomicsDatabases.Loaders.LoadElements(); //TO DO: track back to global task.
-                MzSpectrumBU.UseNeuCodeModel = DeconvolutionParameter.IsNeuCode;
+
                 var mzSpectrumBU = new MzSpectrumBU(new double[] { 1 }, new double[] { 1 }, true);
                 DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, Convert.ToInt32(TxtDeconModel.Text));
             }
@@ -519,14 +518,12 @@ namespace MetaDrawGUI
             }
             
             MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
-            IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter.DeconvolutionMinAssumedChargeState, 
-                DeconvolutionParameter.DeconvolutionMaxAssumedChargeState, DeconvolutionParameter.DeconvolutionMassTolerance.Value, 
-                DeconvolutionParameter.DeconvolutionIntensityRatio).OrderBy(p => p.monoisotopicMass).ToList();
+            IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
 
             int i = 1;
             foreach (var item in IsotopicEnvelopes)
             {
-                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
+                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
                 i++;
             }           
 
@@ -576,14 +573,12 @@ namespace MetaDrawGUI
             msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.PrecursorScanNum).First();
 
             MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
-            IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter.DeconvolutionMinAssumedChargeState,
-                DeconvolutionParameter.DeconvolutionMaxAssumedChargeState, DeconvolutionParameter.DeconvolutionMassTolerance.Value,
-                DeconvolutionParameter.DeconvolutionIntensityRatio).OrderBy(p => p.monoisotopicMass).ToList();
+            IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
 
             int i = 1;
             foreach (var item in IsotopicEnvelopes)
             {
-                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
+                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
                 i++;
             }
 
@@ -609,25 +604,44 @@ namespace MetaDrawGUI
         }
 
         //Control Deconvolution Parameters
-        private void TxtMinAssumedChargeState_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        private void TxtMinAssumedChargeState_TextChanged(object sender, TextChangedEventArgs e)
         {
-            this.DeconvolutionParameter.DeconvolutionMinAssumedChargeState = Int32.Parse(txtMinAssumedChargeState.Text);
+            this.DeconvolutionParameter.DeconvolutionMinAssumedChargeState = int.Parse(txtMinAssumedChargeState.Text);
         }
 
-        private void TxtMaxAssumedChargeState_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        private void TxtMaxAssumedChargeState_TextChanged(object sender, TextChangedEventArgs e)
         {
-            this.DeconvolutionParameter.DeconvolutionMaxAssumedChargeState = Int32.Parse(txtMaxAssumedChargeState.Text);
+            this.DeconvolutionParameter.DeconvolutionMaxAssumedChargeState = int.Parse(txtMaxAssumedChargeState.Text);
         }
 
-        private void TxtDeconvolutionToleranc_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        private void TxtDeconvolutionToleranc_TextChanged(object sender, TextChangedEventArgs e)
         {
             this.DeconvolutionParameter.DeconvolutionMassTolerance = new PpmTolerance(double.Parse(txtDeconvolutionToleranc.Text));
         }
 
-        private void TxtIntensityRatioLimit_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        private void TxtIntensityRatioLimit_TextChanged(object sender, TextChangedEventArgs e)
         {
             this.DeconvolutionParameter.DeconvolutionIntensityRatio = double.Parse(txtIntensityRatioLimit.Text);
         }
 
+        private void CbCheckNeuCode_Checked(object sender, RoutedEventArgs e)
+        {
+            this.DeconvolutionParameter.CheckNeuCode = true;
+        }
+
+        private void CbCheckNeuCode_Unchecked(object sender, RoutedEventArgs e)
+        {
+            this.DeconvolutionParameter.CheckNeuCode = false;
+        }
+
+        private void TxtNeuCodeMassDefect_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            this.DeconvolutionParameter.NeuCodeMassDefect = double.Parse(TxtNeuCodeMassDefect.Text);
+        }
+
+        private void TxtNeuCodeMaxNum_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            this.DeconvolutionParameter.MaxmiumNeuCodeNumber = int.Parse(TxtNeuCodeMaxNum.Text);
+        }
     }
 }

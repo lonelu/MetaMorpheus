@@ -26,11 +26,11 @@
             </Grid.ColumnDefinitions>
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="0.7*"/>
+                    <RowDefinition Height="0.6*"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="1.5*"/>
+                    <RowDefinition Height="2*"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="0.7*"/>
+                    <RowDefinition Height="0.6*"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="1.5*"/>
                 </Grid.RowDefinitions>
@@ -59,51 +59,57 @@
                 <GroupBox Header="Deconvolution Control" Grid.Row="2">
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="25"/>
-                            <RowDefinition Height="25"/>
-                            <RowDefinition Height="25"/>
-                            <RowDefinition Height="25"/>
-                            <RowDefinition Height="25"/>
+                            <RowDefinition Height="175"/>
                             <RowDefinition Height="25"/>
                             <RowDefinition Height="25"/>
                             <RowDefinition Height="25"/>
                             <RowDefinition Height="25"/>
                         </Grid.RowDefinitions>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Grid.Row="0">
-                            <Label Content="MinAssumedChargeState"/>
-                            <TextBox x:Name="txtMinAssumedChargeState"  Width="50" DataContextChanged="TxtMinAssumedChargeState_DataContextChanged"/>
+                        <StackPanel Orientation="Vertical">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                <Label Content="MinAssumedChargeState"/>
+                                <TextBox x:Name="txtMinAssumedChargeState"  Width="50" TextChanged="TxtMinAssumedChargeState_TextChanged"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                <Label Content="MaxAssumedChargeState"/>
+                                <TextBox x:Name="txtMaxAssumedChargeState" Width="50" TextChanged="TxtMaxAssumedChargeState_TextChanged"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                <Label Content="Deconvolution Tolerance"/>
+                                <TextBox x:Name="txtDeconvolutionToleranc" Width="50" TextChanged="TxtDeconvolutionToleranc_TextChanged"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                <Label Content="IntensityRatioLimit"/>
+                                <TextBox x:Name="txtIntensityRatioLimit" Width="50" TextChanged="TxtIntensityRatioLimit_TextChanged"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                <CheckBox x:Name="CbCheckNeuCode" Content="Check NeuCode" Checked="CbCheckNeuCode_Checked" Unchecked="CbCheckNeuCode_Unchecked"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                <Label Content="NeuCode Mass Defect"/>
+                                <TextBox x:Name="TxtNeuCodeMassDefect" Width="50" TextChanged="TxtNeuCodeMassDefect_TextChanged"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                <Label Content="NeuCode Max Num"/>
+                                <TextBox x:Name="TxtNeuCodeMaxNum" Width="50" TextChanged="TxtNeuCodeMaxNum_TextChanged"/>
+                            </StackPanel>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Grid.Row="1">
-                            <Label Content="MaxAssumedChargeState"/>
-                            <TextBox x:Name="txtMaxAssumedChargeState" Width="50" DataContextChanged="TxtMaxAssumedChargeState_DataContextChanged"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Grid.Row="2">
-                            <Label Content="Deconvolution Tolerance"/>
-                            <TextBox x:Name="txtDeconvolutionToleranc" Width="50" DataContextChanged="TxtDeconvolutionToleranc_DataContextChanged"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Grid.Row="3">
-                            <Label Content="IntensityRatioLimit"/>
-                            <TextBox x:Name="txtIntensityRatioLimit" Width="50" DataContextChanged="TxtIntensityRatioLimit_DataContextChanged"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Grid.Row="4">
-                            
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="5">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
                             <Label Content="Scan number:"/>
                             <TextBox x:Name="txtDeconScanNum" Text="2076"  Width="50"/>
                             <Button x:Name="btnDecon" Content="Decon" Click="btnDecon_Click"/>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="6">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="2">
                             <Label Content="Model Number from:"/>
                             <TextBox x:Name="TxtDeconModel" Text="0"  Width="30"/>
                             <Button x:Name="BtnDeconModel" Content="DeconvolutionModel" Click="BtnDeconModel_Click"/>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="7">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="3">
                             <Button x:Name="btnDeconAll" Content="DeconAllChargeParsimony" Click="btnDeconAll_Click"/>
                             <Button x:Name="BtnDeconTest" Content="DeconWatch" Click="BtnDeconWatch_Click"/>
                             <Button x:Name="BtnPerScanTime" Content="Scan Time" Click="BtnPerScanTime_Click"/>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="8">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="4">
                             <Button x:Name="btnResetDecon" Content="Reset" Click="btnResetDecon_Click"/>
                         </StackPanel>
                     </Grid>

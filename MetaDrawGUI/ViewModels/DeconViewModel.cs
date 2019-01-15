@@ -73,7 +73,8 @@ namespace ViewModels
                 Minimum = 0,
                 Maximum = isotopicEnvelope.peaks.First().intensity * 1.3,
                 AbsoluteMinimum = 0,
-                AbsoluteMaximum = isotopicEnvelope.peaks.First().intensity * 2
+                // AbsoluteMaximum = isotopicEnvelope.peaks.First().intensity * 2
+                AbsoluteMaximum = y.Max() * 1.2
             });
 
             foreach (var peak in isotopicEnvelope.peaks)
