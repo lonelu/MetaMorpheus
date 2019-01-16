@@ -317,16 +317,25 @@ namespace MassSpectrometry
 
                 if (bestIsotopeEnvelopeForThisPeak != null && bestIsotopeEnvelopeForThisPeak.peaks.Count >= 2)
                 {
-                    if (!NeuCodeReverseCheck(bestIsotopeEnvelopeForThisPeak, deconvolutionParameter.NeuCodeMassDefect, deconvolutionParameter.MaxmiumNeuCodeNumber))
-                    {
-                        if (deconvolutionParameter.CheckNeuCode && NeuCodeCheck(bestIsotopeEnvelopeForThisPeak, deconvolutionParameter.NeuCodeMassDefect, deconvolutionParameter.MaxmiumNeuCodeNumber))
-                        {
-                            bestIsotopeEnvelopeForThisPeak.IsNeuCode = true;
+                    //if (!NeuCodeReverseCheck(bestIsotopeEnvelopeForThisPeak, deconvolutionParameter.NeuCodeMassDefect, deconvolutionParameter.MaxmiumNeuCodeNumber))
+                    //{
+                    //    if (deconvolutionParameter.CheckNeuCode && NeuCodeCheck(bestIsotopeEnvelopeForThisPeak, deconvolutionParameter.NeuCodeMassDefect, deconvolutionParameter.MaxmiumNeuCodeNumber))
+                    //    {
+                    //        bestIsotopeEnvelopeForThisPeak.IsNeuCode = true;
 
-                        }
-                        isolatedMassesAndCharges.Add(bestIsotopeEnvelopeForThisPeak);
-                    }
+                    //    }
+                    //    isolatedMassesAndCharges.Add(bestIsotopeEnvelopeForThisPeak);
+                    //}
+                    isolatedMassesAndCharges.Add(bestIsotopeEnvelopeForThisPeak);
                 }
+            }
+
+            //TO DO: Not working perfect
+            isolatedMassesAndCharges = isolatedMassesAndCharges.OrderBy(b => b.monoisotopicMass).ToList();
+            for (int i = 0; i < isolatedMassesAndCharges.Count-1; i++)
+            {
+                int j = i + 1;
+                CheckNeuCode(isolatedMassesAndCharges[i], isolatedMassesAndCharges[j], deconvolutionParameter);
             }
 
             HashSet<double> seen = new HashSet<double>();
@@ -680,7 +689,7 @@ namespace MassSpectrometry
         //}
 
         //TO DO: remove NeuCode peaks
-        private bool NeuCodeCheck(IsotopicEnvelope originIsotopicEnvelop, double NeuCodeMassDefect, int NeuCodeNumber)
+        private bool NeuCodeCheck(NeuCodeIsotopicEnvelop originIsotopicEnvelop, double NeuCodeMassDefect, int NeuCodeNumber)
         {
 
             for (int i = 1; i <= NeuCodeNumber; i++)
@@ -715,7 +724,7 @@ namespace MassSpectrometry
             return false;
         }
 
-        private bool NeuCodeReverseCheck(IsotopicEnvelope originIsotopicEnvelop, double NeuCodeMassDefect, int NeuCodeNumber)
+        private bool NeuCodeReverseCheck(NeuCodeIsotopicEnvelop originIsotopicEnvelop, double NeuCodeMassDefect, int NeuCodeNumber)
         {
 
             for (int i = 1; i <= NeuCodeNumber; i++)
@@ -749,5 +758,22 @@ namespace MassSpectrometry
             }
             return false;
         }
+
+        
+        //TO DO: include some math for each peak.
+        private void CheckNeuCode(NeuCodeIsotopicEnvelop firstIsotopicEnvelop, NeuCodeIsotopicEnvelop secondIsotopicEnvelop, DeconvolutionParameter deconvolutionParameter)
+        {
+            for (int i = 0; i < deconvolutionParameter.MaxmiumNeuCodeNumber; i++)
+            {
+                if (firstIsotopicEnvelop.charge == secondIsotopicEnvelop.charge &&
+    deconvolutionParameter.DeconvolutionMassTolerance.Within(firstIsotopicEnvelop.monoisotopicMass,  secondIsotopicEnvelop.monoisotopicMass-deconvolutionParameter.NeuCodeMassDefect * i/1000))
+                {
+                    firstIsotopicEnvelop.IsNeuCode = true;
+                    secondIsotopicEnvelop.IsNeuCode = true;
+                }
+            }
+
+        }
+
     }
 }

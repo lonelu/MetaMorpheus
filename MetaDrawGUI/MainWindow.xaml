@@ -184,9 +184,18 @@
                     <GroupBox Header="PSM" Name="gbPSM" Grid.Row="0">
                         <oxy:PlotView x:Name="plotView" Model="{Binding Model}" FontSize="16" FontStretch="Expanded"/>
                     </GroupBox>
-                    <GroupBox Header="Decon" Name="gbPSMDecon" Grid.Row="1">
-                        <oxy:PlotView x:Name="plotViewDecon" Model="{Binding DeconModel}" FontSize="16" FontStretch="Expanded"/>
-                    </GroupBox>
+                    <Grid Grid.Row ="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+                        <GroupBox Header="Decon" Name="gbPSMDecon">
+                            <oxy:PlotView x:Name="plotViewDecon" Model="{Binding DeconModel}" FontSize="16" FontStretch="Expanded"/>
+                        </GroupBox>
+                        <GroupBox Header="XIC" Name="gbXIC" Grid.Column="1">
+                            <oxy:PlotView x:Name="plotViewXIC" Model="{Binding XicModel}" FontSize="16" FontStretch="Expanded"/>
+                        </GroupBox>
+                    </Grid>
                     <GroupBox Header="Charge Envelopes with Normal" Name="gbChargeEnve" Grid.Row="2">
                         <oxy:PlotView x:Name="plotViewChargeEnve" Model="{Binding ChargeEnveModel}" FontSize="16" FontStretch="Expanded"/>
                     </GroupBox>

@@ -55,7 +55,9 @@ namespace MetaDrawGUI
         //View model
         private MainViewModel mainViewModel;
         public DeconViewModel DeconViewModel { get; set; }
+        public PeakViewModel XicViewModel { get; set; }
         public ChargeEnveViewModel ChargeDeconViewModel { get; set; }
+
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -79,6 +81,10 @@ namespace MetaDrawGUI
             DeconViewModel = new DeconViewModel();
 
             plotViewDecon.DataContext = DeconViewModel;
+
+            XicViewModel = new PeakViewModel();
+
+            plotViewXIC.DataContext = XicViewModel;
 
             ChargeDeconViewModel = new ChargeEnveViewModel();
 
@@ -544,6 +550,9 @@ namespace MetaDrawGUI
             var sele = (EnvolopForDataGrid)dataGridDeconNums.SelectedItem;
 
             UpdateDeconModel(sele.Ind, msDataScan);
+            var envo = IsotopicEnvelopes[sele.Ind - 1];
+
+            XicViewModel.DrawXic(envo.monoisotopicMass, envo.charge, msDataScan.RetentionTime, MsDataFile, new PpmTolerance(5), 5.0, 3, "");
         }
 
         private void DataGridChargeEnves_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
