@@ -89,7 +89,7 @@ namespace MetaDrawGUI
 
         public void DrawXic(double mass, int charge, double rt, MsDataFile file, Tolerance massTolerance, double rtTol, int numPeaks, string filename)
         {
-            PlotModel model = new PlotModel { Title = filename + "; m/z " + mass.ToMz(charge).ToString("F3") + "; z=" + charge };
+            PlotModel model = new PlotModel { Title = filename + "rt" + rt.ToString("F2") + "m/z " + mass.ToMz(charge).ToString("F3") + "; z=" + charge };
 
             var ms1 = file.GetAllScansList().Where(p => p.MsnOrder == 1).ToList();
             var rts = ms1.Select(p => p.RetentionTime).ToList();
@@ -148,6 +148,15 @@ namespace MetaDrawGUI
             }
 
             this.XicModel = model;
+        }
+
+        public void ResetViewModel()
+        {
+            // Create the plot model
+            var tmp = new PlotModel { Title = "XIC" };
+
+            // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
+            this.XicModel = tmp;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

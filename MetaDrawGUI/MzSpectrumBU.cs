@@ -268,8 +268,10 @@ namespace MassSpectrometry
 
                     var listOfPeaks = new List<(double, double)> { (candidateForMostIntensePeakMz, candidateForMostIntensePeakIntensity) };
                     var listOfRatios = new List<double> { allIntensities[massIndex][0] / candidateForMostIntensePeakIntensity };
+
                     // Assuming the test peak is most intense...
                     // Try to find the rest of the isotopes!
+                   
 
                     double differenceBetweenTheorAndActual = testMostIntenseMass - mostIntenseMasses[massIndex];
                     double totalIntensity = candidateForMostIntensePeakIntensity;
@@ -305,6 +307,10 @@ namespace MassSpectrometry
                     var lowestMass = listOfPeaks.Min(b => b.Item1).ToMass(chargeState); // But may actually observe this small peak
                     var monoisotopicMass = Math.Abs(extrapolatedMonoisotopicMass - lowestMass) < 0.5 ? lowestMass : extrapolatedMonoisotopicMass;
 
+                    var TheoryMasses = allMasses[massIndex].Select(p => p = p + differenceBetweenTheorAndActual).ToArray();
+                    var TheoryIntensities = allIntensities[massIndex];
+                    Array.Sort(TheoryMasses, TheoryIntensities);
+
                     NeuCodeIsotopicEnvelop test = new NeuCodeIsotopicEnvelop(listOfPeaks, monoisotopicMass, chargeState, totalIntensity, MathNet.Numerics.Statistics.Statistics.StandardDeviation(listOfRatios), massIndex);
 
                     if (listOfPeaks.Count >= 2 && ScoreIsotopeEnvelope(test) > ScoreIsotopeEnvelope(bestIsotopeEnvelopeForThisPeak))
@@ -327,16 +333,27 @@ namespace MassSpectrometry
                     //    isolatedMassesAndCharges.Add(bestIsotopeEnvelopeForThisPeak);
                     //}
                     isolatedMassesAndCharges.Add(bestIsotopeEnvelopeForThisPeak);
+                    //if (isolatedMassesAndCharges.Count >= 2)
+                    //{
+                    //    CheckNeuCode(isolatedMassesAndCharges[isolatedMassesAndCharges.Count - 1], isolatedMassesAndCharges[isolatedMassesAndCharges.Count - 2], deconvolutionParameter);
+                    //}
                 }
             }
 
-            //TO DO: Not working perfect
-            isolatedMassesAndCharges = isolatedMassesAndCharges.OrderBy(b => b.monoisotopicMass).ToList();
-            for (int i = 0; i < isolatedMassesAndCharges.Count-1; i++)
-            {
-                int j = i + 1;
-                CheckNeuCode(isolatedMassesAndCharges[i], isolatedMassesAndCharges[j], deconvolutionParameter);
-            }
+            //TO DO: NeuCode Check is Not working perfect
+            //isolatedMassesAndCharges = isolatedMassesAndCharges.OrderBy(b => b.monoisotopicMass).ToList();
+            //for (int i = 0; i < isolatedMassesAndCharges.Count-1; i++)
+            //{
+            //    for (int j = i + 1; j < isolatedMassesAndCharges.Count; j++)
+            //    {
+            //        if (isolatedMassesAndCharges[j].monoisotopicMass - isolatedMassesAndCharges[i].monoisotopicMass > deconvolutionParameter.NeuCodeMassDefect * (deconvolutionParameter.MaxmiumNeuCodeNumber+1))
+            //        {
+            //            break;
+            //        }
+            //        CheckNeuCode(isolatedMassesAndCharges[i], isolatedMassesAndCharges[j], deconvolutionParameter);
+            //    }
+                
+            //}
 
             HashSet<double> seen = new HashSet<double>();
             foreach (var ok in isolatedMassesAndCharges.OrderByDescending(b => ScoreIsotopeEnvelope(b)))

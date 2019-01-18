@@ -498,6 +498,7 @@ namespace MetaDrawGUI
             mainViewModel.ResetViewModel();
             chargeEnvelopesObservableCollection.Clear();
             ChargeDeconViewModel.ResetDeconModel();
+            XicViewModel.ResetViewModel();
         }
 
         private void DataGridAllScanNums_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)

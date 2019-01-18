@@ -15,5 +15,7 @@ namespace MassSpectrometry
         }
         
         public bool IsNeuCode { get; set; }
+
+
     }
 }
