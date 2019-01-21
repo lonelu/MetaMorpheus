@@ -266,7 +266,7 @@ namespace MetaDrawGUI
             (sender as Button).IsEnabled = false;
             btnAddFiles.IsEnabled = false;
             btnClearFiles.IsEnabled = false;
-            MsDataFile = spectraFileManager.LoadFile(spectraFilePath, null, 0.001, true, true, new CommonParameters());
+            MsDataFile = spectraFileManager.LoadFile(spectraFilePath, null, null, true, true, new CommonParameters());
             msDataScans = MsDataFile.GetAllScansList();
 
             foreach (var iScan in msDataScans)
@@ -330,6 +330,7 @@ namespace MetaDrawGUI
             MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
 
             IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+            MzSpectrumBU.CheckNeuCodeEnvolops(IsotopicEnvelopes, DeconvolutionParameter);
 
             int i=1;
             foreach (var item in IsotopicEnvelopes)
@@ -395,7 +396,6 @@ namespace MetaDrawGUI
 
                 var watch = System.Diagnostics.Stopwatch.StartNew();
 
-                //var isotopicEnvelopes = MS1Scans[i].MassSpectrum.Deconvolute(MS1Scans[i].ScanWindowRange, 3, 60, 5.0, 3).OrderBy(p => p.monoisotopicMass).ToList();
                 var isotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(MS1Scans[i].ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
                 watch.Stop();
 
