@@ -7,13 +7,13 @@ using MassSpectrometry;
 using System.Collections.Concurrent;
 using EngineLayer;
 using System.IO;
+using Chemistry;
+using FlashLFQ;
 
 namespace MetaDrawGUI
 {
     public class MsDataFileDecon
     {
-        //public List<ChargeDeconEnvelope> chargeEnvelopesList { get; set; } = new List<ChargeDeconEnvelope>();
-
         public List<ChargeDeconPerMS1Scan> ChargeDeconvolutionFile(List<MsDataScan> msDataScanList, CommonParameters commonParameters, DeconvolutionParameter deconvolutionParameter)
         {
             var chargeDeconPerMS1Scans = new List<ChargeDeconPerMS1Scan>();
@@ -127,6 +127,67 @@ namespace MetaDrawGUI
                     }
                 }
             }
+        }
+
+        public void DeconQuantFile(List<MsDataScan> ms1DataScanList, string filePath, DeconvolutionParameter deconvolutionParameter)
+        {
+            SpectraFileInfo mzml = new SpectraFileInfo(filePath, "", 0, 0, 0);
+
+            int ind = 0;
+            for (int i = 0; i < ms1DataScanList.Count; i++)
+            {
+                MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(ms1DataScanList[i].MassSpectrum.XArray, ms1DataScanList[i].MassSpectrum.YArray, true);
+                var isotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(ms1DataScanList[i].ScanWindowRange, deconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+
+                foreach (var enve in isotopicEnvelopes)
+                {
+                    if (CheckIfQuantifiedAlready(enve))
+                    {
+                        continue;
+                    }
+
+                    var id = GenerateIdentification(mzml, enve, ind);
+
+                    FlashLfqEngine engine = new FlashLfqEngine(new List<Identification> { id }, normalize: true);
+
+                    var results = engine.Run();
+                }
+            }
+        }
+
+        private ChemicalFormula GenerateChemicalFormula(double monoIsotopicMass)
+        {
+            double massOfAveragine = 111.1254;
+            double numberOfAveragines = monoIsotopicMass / massOfAveragine;
+
+            double averageC = 4.9384 * numberOfAveragines;
+            double averageH = 7.7583 * numberOfAveragines;
+            double averageO = 1.4773 * numberOfAveragines;
+            double averageN = 1.3577 * numberOfAveragines;
+            double averageS = 0.0417 * numberOfAveragines;
+
+            ChemicalFormula myFormula = ChemicalFormula.ParseFormula(
+                "C" + (int)Math.Round(averageC) +
+                "H" + (int)Math.Round(averageH) +
+                "O" + (int)Math.Round(averageO) +
+                "N" + (int)Math.Round(averageN) +
+                "S" + (int)Math.Round(averageS));
+
+            return myFormula;
+        }
+
+        private Identification GenerateIdentification(SpectraFileInfo mzml, NeuCodeIsotopicEnvelop Enve, int ind)
+        {
+            var myFormula = GenerateChemicalFormula(Enve.monoisotopicMass);
+            var pg = new FlashLFQ.ProteinGroup("MyProtein", "gene", "org");
+            Identification id = new Identification(mzml, "", ind.ToString(), Enve.monoisotopicMass, Enve.RT, Enve.charge, new List<FlashLFQ.ProteinGroup> { pg }, myFormula);
+            return id;
+        }
+
+        private bool CheckIfQuantifiedAlready(NeuCodeIsotopicEnvelop Enve)
+        {
+
+            return true;
         }
     }
 }

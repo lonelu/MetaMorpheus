@@ -227,6 +227,7 @@ namespace MassSpectrometry
 
             int cut = 50;
 
+            ////Deconvolution by Y decending order
             foreach (var candidateForMostIntensePeak in ExtractIndicesByY())
             //foreach (var candidateForMostIntensePeak in ExtractIndices(theRange.Minimum, theRange.Maximum))
             {            
@@ -331,6 +332,7 @@ namespace MassSpectrometry
 
                 if (bestIsotopeEnvelopeForThisPeak != null && bestIsotopeEnvelopeForThisPeak.peaks.Count >= 2)
                 {
+                    ////TO DO: NeuCode Check is Not working perfect
                     //if (!NeuCodeReverseCheck(bestIsotopeEnvelopeForThisPeak, deconvolutionParameter.NeuCodeMassDefect, deconvolutionParameter.MaxmiumNeuCodeNumber))
                     //{
                     //    if (deconvolutionParameter.CheckNeuCode && NeuCodeCheck(bestIsotopeEnvelopeForThisPeak, deconvolutionParameter.NeuCodeMassDefect, deconvolutionParameter.MaxmiumNeuCodeNumber))
@@ -347,7 +349,7 @@ namespace MassSpectrometry
                         seenPeaks.Add(peak);
                     }
                 }
-                if (isolatedMassesAndCharges.Count > 50)
+                if (isolatedMassesAndCharges.Count > cut)
                 {
                     break;
                 }

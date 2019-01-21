@@ -171,9 +171,9 @@
     <Compile Include="BasicClasses\NeuCodeIsotopicEnvelop.cs" />
     <Compile Include="BasicClasses\Timepoint.cs" />
     <Compile Include="BasicClasses\WatchEvaluation.cs" />
-    <Compile Include="ChargeDeconEnvelope.cs" />
-    <Compile Include="ChargeDeconPerMS1Scan.cs" />
-    <Compile Include="ChargeParsi.cs" />
+    <Compile Include="ChargeDecon\ChargeDeconEnvelope.cs" />
+    <Compile Include="ChargeDecon\ChargeDeconPerMS1Scan.cs" />
+    <Compile Include="ChargeDecon\ChargeParsi.cs" />
     <Compile Include="DataGrids\AllScansForDataGrid.cs" />
     <Compile Include="DataGrids\ChargeEnvelopesForDataGrid.cs" />
     <Compile Include="DataGrids\EnvolopForDataGrid.cs" />
