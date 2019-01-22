@@ -129,30 +129,40 @@ namespace MetaDrawGUI
             }
         }
 
-        public void DeconQuantFile(List<MsDataScan> ms1DataScanList, string filePath, DeconvolutionParameter deconvolutionParameter)
+        public void DeconQuantFile(List<MsDataScan> ms1DataScanList, string filePath, CommonParameters commonParameters, DeconvolutionParameter deconvolutionParameter)
         {
             SpectraFileInfo mzml = new SpectraFileInfo(filePath, "", 0, 0, 0);
+            
+            List<Identification>[] idts = new List<Identification>[ms1DataScanList.Count];
 
-            int ind = 0;
-            for (int i = 0; i < ms1DataScanList.Count; i++)
-            {
-                MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(ms1DataScanList[i].MassSpectrum.XArray, ms1DataScanList[i].MassSpectrum.YArray, true);
-                var isotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(ms1DataScanList[i].ScanWindowRange, deconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+            //for (int i = 0; i < ms1DataScanList.Count; i++)
+            Parallel.ForEach(Partitioner.Create(0, ms1DataScanList.Count), new ParallelOptions { MaxDegreeOfParallelism = commonParameters.MaxThreadsToUsePerFile }, (range, loopState) =>
+             {
+                 for (int scanIndex = range.Item1; scanIndex < range.Item2; scanIndex++)
+                 {
+                     MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(ms1DataScanList[scanIndex].MassSpectrum.XArray, ms1DataScanList[scanIndex].MassSpectrum.YArray, true);
+                     var isotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(ms1DataScanList[scanIndex].ScanWindowRange, deconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+                     List<Identification> ids = new List<Identification>();
 
-                foreach (var enve in isotopicEnvelopes)
-                {
-                    if (CheckIfQuantifiedAlready(enve))
-                    {
-                        continue;
-                    }
+                     foreach (var enve in isotopicEnvelopes)
+                     {                       
 
-                    var id = GenerateIdentification(mzml, enve, ind);
+                         var id = GenerateIdentification(mzml, enve);
 
-                    FlashLfqEngine engine = new FlashLfqEngine(new List<Identification> { id }, normalize: true);
+                         ids.Add(id);
+                     }
 
-                    var results = engine.Run();
-                }
-            }
+                     idts[scanIndex] = ids;
+                 }
+
+             });
+
+            var idList = idts.SelectMany(p => p).ToList();
+            FlashLfqEngine engine = new FlashLfqEngine(idList, normalize: true);
+
+            var results = engine.Run();
+
+            //results.WriteResults("","","");
         }
 
         private ChemicalFormula GenerateChemicalFormula(double monoIsotopicMass)
@@ -176,18 +186,16 @@ namespace MetaDrawGUI
             return myFormula;
         }
 
-        private Identification GenerateIdentification(SpectraFileInfo mzml, NeuCodeIsotopicEnvelop Enve, int ind)
+        private Identification GenerateIdentification(SpectraFileInfo mzml, NeuCodeIsotopicEnvelop Enve)
         {
             var myFormula = GenerateChemicalFormula(Enve.monoisotopicMass);
-            var pg = new FlashLFQ.ProteinGroup("MyProtein", "gene", "org");
-            Identification id = new Identification(mzml, "", ind.ToString(), Enve.monoisotopicMass, Enve.RT, Enve.charge, new List<FlashLFQ.ProteinGroup> { pg }, myFormula);
+            var pg = new FlashLFQ.ProteinGroup("", "", "");
+
+            string modifiedSeq = Enve.monoisotopicMass.ToString("F3") + "-" + Enve.RT.ToString("F1");     
+
+            Identification id = new Identification(mzml, "", modifiedSeq, Enve.monoisotopicMass, Enve.RT, Enve.charge, new List<FlashLFQ.ProteinGroup> { pg }, myFormula);
             return id;
         }
 
-        private bool CheckIfQuantifiedAlready(NeuCodeIsotopicEnvelop Enve)
-        {
-
-            return true;
-        }
     }
 }

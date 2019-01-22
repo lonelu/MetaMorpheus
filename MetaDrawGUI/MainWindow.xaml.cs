@@ -248,7 +248,6 @@ namespace MetaDrawGUI
             txtMaxAssumedChargeState.Text = DeconvolutionParameter.DeconvolutionMaxAssumedChargeState.ToString();
             txtDeconvolutionToleranc.Text = DeconvolutionParameter.DeconvolutionMassTolerance.Value.ToString();
             txtIntensityRatioLimit.Text = DeconvolutionParameter.DeconvolutionIntensityRatio.ToString();
-            CbCheckNeuCode.IsChecked = DeconvolutionParameter.CheckNeuCode;
             TxtNeuCodeMassDefect.Text = DeconvolutionParameter.NeuCodeMassDefect.ToString();
             TxtNeuCodeMaxNum.Text = DeconvolutionParameter.MaxmiumNeuCodeNumber.ToString();
         }
@@ -652,6 +651,13 @@ namespace MetaDrawGUI
         private void TxtNeuCodeMaxNum_TextChanged(object sender, TextChangedEventArgs e)
         {
             this.DeconvolutionParameter.MaxmiumNeuCodeNumber = int.Parse(TxtNeuCodeMaxNum.Text);
+        }
+
+        private void BtnDeconQuant_Click(object sender, RoutedEventArgs e)
+        {
+            spectraFilePath = spectraFilesObservableCollection.First().FilePath;
+
+            msDataFileDecon.DeconQuantFile(msDataScans.Where(p => p.MsnOrder == 1).ToList(), spectraFilePath, CommonParameters, DeconvolutionParameter);
         }
     }
 }
