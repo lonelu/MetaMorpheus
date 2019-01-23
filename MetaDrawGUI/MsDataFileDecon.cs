@@ -143,12 +143,12 @@ namespace MetaDrawGUI
                      MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(ms1DataScanList[scanIndex].MassSpectrum.XArray, ms1DataScanList[scanIndex].MassSpectrum.YArray, true);
                      var isotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(ms1DataScanList[scanIndex].ScanWindowRange, deconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
                      List<Identification> ids = new List<Identification>();
-
+                     int i = 0;
                      foreach (var enve in isotopicEnvelopes)
                      {                       
 
-                         var id = GenerateIdentification(mzml, enve);
-
+                         var id = GenerateIdentification(mzml, enve, ms1DataScanList[scanIndex].RetentionTime, scanIndex, i);
+                         i++;
                          ids.Add(id);
                      }
 
@@ -162,7 +162,8 @@ namespace MetaDrawGUI
 
             var results = engine.Run();
 
-            //results.WriteResults("","","");
+            results.WriteResults(Path.Combine(Path.GetDirectoryName(filePath), @"1.tsv"), Path.Combine(Path.GetDirectoryName(filePath), @"2.tsv"), null);
+
         }
 
         private ChemicalFormula GenerateChemicalFormula(double monoIsotopicMass)
@@ -186,15 +187,45 @@ namespace MetaDrawGUI
             return myFormula;
         }
 
-        private Identification GenerateIdentification(SpectraFileInfo mzml, NeuCodeIsotopicEnvelop Enve)
+        private Identification GenerateIdentification(SpectraFileInfo mzml, NeuCodeIsotopicEnvelop Enve, double RT, int scanIndex, int i)
         {
             var myFormula = GenerateChemicalFormula(Enve.monoisotopicMass);
             var pg = new FlashLFQ.ProteinGroup("", "", "");
 
-            string modifiedSeq = Enve.monoisotopicMass.ToString("F3") + "-" + Enve.RT.ToString("F1");     
+            //string baseSeq = "";
+            string baseSeq = changeInt2Seq(scanIndex, i);
+            string modifiedSeq = Enve.monoisotopicMass.ToString("F4") + "-" + RT.ToString("F2");     
 
-            Identification id = new Identification(mzml, "", modifiedSeq, Enve.monoisotopicMass, Enve.RT, Enve.charge, new List<FlashLFQ.ProteinGroup> { pg }, myFormula);
+            Identification id = new Identification(mzml, baseSeq, modifiedSeq, Enve.monoisotopicMass, RT, Enve.charge, new List<FlashLFQ.ProteinGroup> { pg }, myFormula);
             return id;
+        }
+
+        private string changeInt2Seq(int a, int b)
+        {
+            string seq = "";
+            
+            Dictionary<char, char> num2aa = new Dictionary<char, char>();
+            num2aa.Add('0','Q');
+            num2aa.Add('1', 'G');
+            num2aa.Add('2', 'A');
+            num2aa.Add('3', 'S');
+            num2aa.Add('4', 'T');
+            num2aa.Add('5', 'C');
+            num2aa.Add('6', 'V');
+            num2aa.Add('7', 'L');
+            num2aa.Add('8', 'I');
+            num2aa.Add('9', 'M');
+            
+            foreach (var ia in a.ToString().ToCharArray())
+            {
+                seq += num2aa[ia];
+            }
+            seq += 'F';
+            foreach (var ib in b.ToString().ToCharArray())
+            {
+                seq += num2aa[ib];
+            }
+            return seq;
         }
 
     }

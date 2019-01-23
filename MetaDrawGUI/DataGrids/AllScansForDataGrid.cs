@@ -3,10 +3,11 @@ namespace MetaDrawGUI
 {
     public class AllScansForDataGrid
     {
-        public AllScansForDataGrid(int scanNum, int? precursorScanNum, int msOrder, double? isolationMass)
+        public AllScansForDataGrid(int scanNum, int? precursorScanNum, double rt, int msOrder, double? isolationMass)
         {
             ScanNum = scanNum;
             PrecursorScanNum = precursorScanNum;
+            RT = rt;
             IsolationMass = isolationMass;
             MsOrder = msOrder;
         }
@@ -14,6 +15,8 @@ namespace MetaDrawGUI
         public int ScanNum { get; set; }
 
         public int? PrecursorScanNum { get; set; }
+
+        public double RT { get; set; }
 
         public int MsOrder { get; set; }
 

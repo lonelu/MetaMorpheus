@@ -270,7 +270,7 @@ namespace MetaDrawGUI
 
             foreach (var iScan in msDataScans)
             {
-                allScansObservableCollection.Add(new AllScansForDataGrid(iScan.OneBasedScanNumber, iScan.OneBasedPrecursorScanNumber, iScan.MsnOrder, iScan.IsolationMz));
+                allScansObservableCollection.Add(new AllScansForDataGrid(iScan.OneBasedScanNumber, iScan.OneBasedPrecursorScanNumber,iScan.RetentionTime, iScan.MsnOrder, iScan.IsolationMz));
             }
         }
 
