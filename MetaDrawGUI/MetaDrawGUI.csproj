@@ -60,7 +60,8 @@
       <HintPath>..\packages\mzLib.1.0.396\lib\net471\Chemistry.dll</HintPath>
     </Reference>
     <Reference Include="FlashLFQ, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\mzLib.1.0.396\lib\net471\FlashLFQ.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\mzLib\TestFlashLFQ\bin\x64\Debug\FlashLFQ.dll</HintPath>
     </Reference>
     <Reference Include="GraphSharp, Version=1.0.2.0, Culture=neutral, PublicKeyToken=f9c24778325a6b82, processorArchitecture=MSIL">
       <HintPath>..\packages\GraphSharp.1.1.0.0\lib\net40\GraphSharp.dll</HintPath>
@@ -168,6 +169,7 @@
     </ApplicationDefinition>
     <Compile Include="BasicClasses\ChromatographicPeak.cs" />
     <Compile Include="BasicClasses\DeconvolutionParameter.cs" />
+    <Compile Include="BasicClasses\NeucodeDoublet.cs" />
     <Compile Include="BasicClasses\NeuCodeIsotopicEnvelop.cs" />
     <Compile Include="BasicClasses\Timepoint.cs" />
     <Compile Include="BasicClasses\WatchEvaluation.cs" />

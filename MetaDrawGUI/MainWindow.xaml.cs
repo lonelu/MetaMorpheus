@@ -329,7 +329,6 @@ namespace MetaDrawGUI
             MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
 
             IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
-            MzSpectrumBU.CheckNeuCodeEnvolops(IsotopicEnvelopes, DeconvolutionParameter);
 
             int i=1;
             foreach (var item in IsotopicEnvelopes)
@@ -657,7 +656,19 @@ namespace MetaDrawGUI
         {
             spectraFilePath = spectraFilesObservableCollection.First().FilePath;
 
-            msDataFileDecon.DeconQuantFile(msDataScans.Where(p => p.MsnOrder == 1).ToList(), spectraFilePath, CommonParameters, DeconvolutionParameter);
+            var ms1ScanForDecon = new List<MsDataScan>();
+            foreach (var scan in msDataScans.Where(p => p.MsnOrder == 1))
+            {
+                //if (scan.OneBasedScanNumber >= 2 && msDataScans.ElementAt(scan.OneBasedScanNumber-2).MsnOrder == 1)
+                if (scan.ScanWindowRange.Minimum == 349)
+                {
+                    ms1ScanForDecon.Add(scan);
+                }
+            }
+            var a = ms1ScanForDecon.Count();
+            var b = msDataScans.Where(p => p.MsnOrder == 1).Count();
+            var c = msDataScans.Where(p => p.MsnOrder == 2).Count();
+            msDataFileDecon.DeconQuantFile(ms1ScanForDecon, spectraFilePath, CommonParameters, DeconvolutionParameter);
         }
     }
 }

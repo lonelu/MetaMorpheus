@@ -158,12 +158,15 @@ namespace MetaDrawGUI
              });
 
             var idList = idts.SelectMany(p => p).ToList();
-            FlashLfqEngine engine = new FlashLfqEngine(idList, normalize: true);
+            FlashLfqEngine engine = new FlashLfqEngine(idList, integrate:true, ppmTolerance:7.5, isotopeTolerancePpm:3);
 
             var results = engine.Run();
 
-            results.WriteResults(Path.Combine(Path.GetDirectoryName(filePath), @"1.tsv"), Path.Combine(Path.GetDirectoryName(filePath), @"2.tsv"), null);
+            var peaks = new List<FlashLFQ.ChromatographicPeak>();
+            List<NeucodeDoublet> neucodeDoublets = CheckNeocodeDoublet(results.Peaks.First().Value.OrderBy(p => p.Identifications.First().monoisotopicMass).ToList(), deconvolutionParameter, out peaks);
 
+            WritePeakResults(Path.Combine(Path.GetDirectoryName(filePath), @"Peaks.tsv"), peaks);
+            WriteResults(Path.Combine(Path.GetDirectoryName(filePath), @"NeucodesDoublets.tsv"), neucodeDoublets);
         }
 
         private ChemicalFormula GenerateChemicalFormula(double monoIsotopicMass)
@@ -226,6 +229,84 @@ namespace MetaDrawGUI
                 seq += num2aa[ib];
             }
             return seq;
+        }
+
+        //chromatographicPeaks should be ordered.
+        private List<NeucodeDoublet> CheckNeocodeDoublet(List<FlashLFQ.ChromatographicPeak> chromatographicPeaks, DeconvolutionParameter deconvolutionParameter, out List<FlashLFQ.ChromatographicPeak> Peaks)
+        {
+            var peaks = new List<FlashLFQ.ChromatographicPeak>();
+            List<NeucodeDoublet> neucodeDoublets = new List<NeucodeDoublet>();
+
+            for (int i = 0; i < chromatographicPeaks.Count-1; i++)
+            {
+                peaks.Add(chromatographicPeaks[i]);
+                for (int j = i+1; j < chromatographicPeaks.Count; j++)
+                {
+                    if (chromatographicPeaks[j].Identifications.First().monoisotopicMass - chromatographicPeaks[i].Identifications.First().monoisotopicMass > deconvolutionParameter.NeuCodeMassDefect * (deconvolutionParameter.MaxmiumNeuCodeNumber + 1))
+                    {
+                        break;
+                    }
+                    if (CheckNeuCode(chromatographicPeaks[i], chromatographicPeaks[j], deconvolutionParameter))
+                    {
+                        //peaks.Add(chromatographicPeaks[i]);
+                        //peaks.Add(chromatographicPeaks[j]);
+                        neucodeDoublets.Add(new NeucodeDoublet(chromatographicPeaks[i], chromatographicPeaks[j]));
+                        //TO DO: i = j + 1 will exclude peaks between neucode doublets
+                        //i = j+1;
+                        break;
+                    }
+                }
+            }
+            peaks.Add(chromatographicPeaks[chromatographicPeaks.Count - 1]);
+            Peaks = peaks;
+            return neucodeDoublets;
+        }
+
+        private bool CheckNeuCode(FlashLFQ.ChromatographicPeak aPeak, FlashLFQ.ChromatographicPeak bPeak, DeconvolutionParameter deconvolutionParameter)
+        {
+            if (aPeak.IsotopicEnvelopes.Count == 0 || bPeak.IsotopicEnvelopes.Count == 0)
+            {
+                return false;
+            }
+            for (int i = 1; i < deconvolutionParameter.MaxmiumNeuCodeNumber + 1; i++)
+            {
+                if (aPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Min() <= bPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Max()
+                    && bPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Min() <= aPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Max())
+                {
+                    if (deconvolutionParameter.DeconvolutionMassTolerance.Within(aPeak.Identifications.First().monoisotopicMass,
+                        bPeak.Identifications.First().monoisotopicMass - deconvolutionParameter.NeuCodeMassDefect * i / 1000))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public void WritePeakResults(string peaksOutputPath, List<FlashLFQ.ChromatographicPeak> chromatographicPeaks)
+        {
+            using (StreamWriter output = new StreamWriter(peaksOutputPath))
+            {
+                output.WriteLine(FlashLFQ.ChromatographicPeak.TabSeparatedHeader);
+
+                foreach (var peak in chromatographicPeaks)
+                {
+                    output.WriteLine(peak.ToString());
+                }
+            }
+        }
+
+        public void WriteResults(string peaksOutputPath, List<NeucodeDoublet> neucodeDoublets)
+        {
+            using (StreamWriter output = new StreamWriter(peaksOutputPath))
+            {
+                output.WriteLine(NeucodeDoublet.TabSeparatedHeader);
+
+                foreach (var peak in neucodeDoublets)
+                {
+                    output.WriteLine(peak.ToString());
+                }
+            }
         }
 
     }
