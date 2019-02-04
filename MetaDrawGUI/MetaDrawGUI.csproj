@@ -169,9 +169,12 @@
     </ApplicationDefinition>
     <Compile Include="BasicClasses\ChromatographicPeak.cs" />
     <Compile Include="BasicClasses\DeconvolutionParameter.cs" />
+    <Compile Include="BasicClasses\GlycanStructureAnnotation.cs" />
     <Compile Include="BasicClasses\NeucodeDoublet.cs" />
     <Compile Include="BasicClasses\NeuCodeIsotopicEnvelop.cs" />
+    <Compile Include="BasicClasses\SimplePsm.cs" />
     <Compile Include="BasicClasses\Timepoint.cs" />
+    <Compile Include="BasicClasses\TsvReader_pGlyco.cs" />
     <Compile Include="BasicClasses\WatchEvaluation.cs" />
     <Compile Include="ChargeDecon\ChargeDeconEnvelope.cs" />
     <Compile Include="ChargeDecon\ChargeDeconPerMS1Scan.cs" />
@@ -179,6 +182,7 @@
     <Compile Include="DataGrids\AllScansForDataGrid.cs" />
     <Compile Include="DataGrids\ChargeEnvelopesForDataGrid.cs" />
     <Compile Include="DataGrids\EnvolopForDataGrid.cs" />
+    <Compile Include="DataGrids\GlycoStructureForDataGrid.cs" />
     <Compile Include="DataGrids\RawDataForDataGrid.cs" />
     <Compile Include="DataGrids\SpectrumForDataGrid.cs" />
     <Compile Include="MsDataFileDecon.cs" />

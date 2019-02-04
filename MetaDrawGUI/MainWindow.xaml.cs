@@ -59,6 +59,12 @@ namespace MetaDrawGUI
         public ChargeEnveViewModel ChargeDeconViewModel { get; set; }
 
 
+        //Glyco
+        private readonly ObservableCollection<RawDataForDataGrid> GlycoResultObservableCollection = new ObservableCollection<RawDataForDataGrid>();
+
+        private readonly ObservableCollection<GlycoStructureForDataGrid> GlycoStrucureObservableCollection = new ObservableCollection<GlycoStructureForDataGrid>();
+
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         public void RaisePropChanged(string name)
@@ -108,6 +114,9 @@ namespace MetaDrawGUI
             productMassToleranceComboBox.Items.Add("Da");
             productMassToleranceComboBox.Items.Add("ppm");
             UpdateFieldsFromPanel();
+
+            dataGridGlycoResultFiles.DataContext = resultFilesObservableCollection;
+            dataGridGlyco.DataContext = GlycoStrucureObservableCollection;
         }
 
         private void Window_Drop(object sender, DragEventArgs e)
@@ -202,6 +211,7 @@ namespace MetaDrawGUI
                     break;
                 case ".psmtsv":
                 case ".tsv":
+                case ".txt":
                     RawDataForDataGrid resultFileDataGrid = new RawDataForDataGrid(draggedFilePath);
                     if (!SpectraFileExists(resultFilesObservableCollection, resultFileDataGrid)) { resultFilesObservableCollection.Add(resultFileDataGrid); }
                     break;
@@ -669,6 +679,71 @@ namespace MetaDrawGUI
             var b = msDataScans.Where(p => p.MsnOrder == 1).Count();
             var c = msDataScans.Where(p => p.MsnOrder == 2).Count();
             msDataFileDecon.DeconQuantFile(ms1ScanForDecon, spectraFilePath, CommonParameters, DeconvolutionParameter);
+        }
+
+        private void BtnDrawGlycan_Click(object sender, RoutedEventArgs e)
+        {
+            glyCanvas.Children.Clear();
+
+            if (TxtGlycan.Text != null)
+            {
+                GlycanStructureAnnotation.DrawGlycan(glyCanvas, TxtGlycan.Text, 50);
+            }
+        }
+
+        private void BtnAddGlycoResultFiles_Click(object sender, RoutedEventArgs e)
+        {
+            Microsoft.Win32.OpenFileDialog openFileDialog1 = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Result Files(*.csv;*.psmtsv;*.txt)|*.csv;*.psmtsv;*.txt",
+                FilterIndex = 1,
+                RestoreDirectory = true,
+                Multiselect = true
+            };
+            if (openFileDialog1.ShowDialog() == true)
+                foreach (var rawDataFromSelected in openFileDialog1.FileNames.OrderBy(p => p))
+                {
+                    AddAFile(rawDataFromSelected);
+                }
+            dataGridGlycoResultFiles.Items.Refresh();
+        }
+
+        private void BtnClearGlycoResultFiles_Click(object sender, RoutedEventArgs e)
+        {
+            GlycoResultObservableCollection.Clear();
+        }
+
+        private void BtnLoadGlycoResults_Click(object sender, RoutedEventArgs e)
+        {
+            resultsFilePath = resultFilesObservableCollection.First().FilePath;
+            if (resultsFilePath == null)
+            {
+                MessageBox.Show("Please add a result file.");
+                return;
+            }
+
+            // load the spectra file
+            (sender as Button).IsEnabled = false;
+            BtnAddGlycoResultFiles.IsEnabled = false;
+            btnClearGlycoResultFiles.IsEnabled = false;
+
+            // load the PSMs
+            var psms = TsvReader_pGlyco.ReadTsv(resultsFilePath);
+            foreach (var psm in psms)
+            {
+                GlycoStrucureObservableCollection.Add(new GlycoStructureForDataGrid( psm.ScanNum, psm.FullSeq, psm.GlycoStructure));
+            }
+        }
+
+        private void DataGridGlyco_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+        {
+            glyCanvas.Children.Clear();
+            if (dataGridGlyco.SelectedItem == null)
+            {
+                return;
+            }
+            var sele = (GlycoStructureForDataGrid)dataGridGlyco.SelectedItem;
+            GlycanStructureAnnotation.DrawGlycan(glyCanvas, sele.Structure, 50);
         }
     }
 }
