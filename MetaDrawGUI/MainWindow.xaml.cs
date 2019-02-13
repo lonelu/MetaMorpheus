@@ -731,7 +731,7 @@ namespace MetaDrawGUI
             var psms = TsvReader_pGlyco.ReadTsv(resultsFilePath);
             foreach (var psm in psms)
             {
-                GlycoStrucureObservableCollection.Add(new GlycoStructureForDataGrid( psm.ScanNum, psm.FullSeq, psm.GlycoStructure));
+                GlycoStrucureObservableCollection.Add(new GlycoStructureForDataGrid( psm.ScanNum, psm.BaseSeq, psm.GlycoStructure));
             }
         }
 

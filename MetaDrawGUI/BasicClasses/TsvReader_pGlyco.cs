@@ -10,6 +10,9 @@ namespace MetaDrawGUI
 {
     public class TsvReader_pGlyco
     {
+
+        private static readonly char[] Split = { '\t' };
+
         public static List<SimplePsm> ReadTsv(string filepath)
         {
             List<SimplePsm> simplePsms = new List<SimplePsm>();
@@ -35,14 +38,14 @@ namespace MetaDrawGUI
 
                 if (lineCount == 1)
                 {
-
+                    parsedHeader = ParseHeader(line);
                     continue;
                 }
 
                 try
                 {
                     var spl = line.Split('\t');
-                    simplePsms.Add(new SimplePsm(Int32.Parse(spl[0].Split('.')[1]), spl[5], spl[9]));
+                    simplePsms.Add(new SimplePsm(line, Split, parsedHeader));
                 }
                 catch (Exception e)
                 {
@@ -56,5 +59,38 @@ namespace MetaDrawGUI
             }
             return simplePsms;
         }
+
+        private static Dictionary<string, int> ParseHeader(string header)
+        {
+            var parsedHeader = new Dictionary<string, int>();
+            var spl = header.Split(Split);
+            parsedHeader.Add(PsmTsvHeader_pGlyco.FileName, Array.IndexOf(spl, PsmTsvHeader_pGlyco.FileName));
+            parsedHeader.Add(PsmTsvHeader_pGlyco.Ms2ScanRetentionTime, Array.IndexOf(spl, PsmTsvHeader_pGlyco.Ms2ScanRetentionTime));
+            parsedHeader.Add(PsmTsvHeader_pGlyco.PrecursorMass, Array.IndexOf(spl, PsmTsvHeader_pGlyco.PrecursorMass));
+            parsedHeader.Add(PsmTsvHeader_pGlyco.BaseSequence, Array.IndexOf(spl, PsmTsvHeader_pGlyco.BaseSequence));
+            parsedHeader.Add(PsmTsvHeader_pGlyco.Mods, Array.IndexOf(spl, PsmTsvHeader_pGlyco.Mods));
+            parsedHeader.Add(PsmTsvHeader_pGlyco.Glycan, Array.IndexOf(spl, PsmTsvHeader_pGlyco.Glycan));
+            parsedHeader.Add(PsmTsvHeader_pGlyco.GlyStruct, Array.IndexOf(spl, PsmTsvHeader_pGlyco.GlyStruct));
+            parsedHeader.Add(PsmTsvHeader_pGlyco.ProteinAccession, Array.IndexOf(spl, PsmTsvHeader_pGlyco.ProteinAccession));
+            parsedHeader.Add(PsmTsvHeader_pGlyco.GlyQValue, Array.IndexOf(spl, PsmTsvHeader_pGlyco.GlyQValue));
+            parsedHeader.Add(PsmTsvHeader_pGlyco.PepQValue, Array.IndexOf(spl, PsmTsvHeader_pGlyco.PepQValue));
+            parsedHeader.Add(PsmTsvHeader_pGlyco.QValue, Array.IndexOf(spl, PsmTsvHeader_pGlyco.QValue));
+            return parsedHeader;
+        }
+    }
+
+    public static class PsmTsvHeader_pGlyco
+    {
+        public const string FileName = "PepSpec";
+        public const string Ms2ScanRetentionTime = "RT";
+        public const string PrecursorMass = "PrecursorMH";
+        public const string BaseSequence = "Peptide";
+        public const string Mods = "Mod";
+        public const string Glycan = "Glycan(H,N,A,G,F)";
+        public const string GlyStruct = "PlausibleStruct";
+        public const string ProteinAccession = "Proteins";    
+        public const string GlyQValue = "GlycanFDR";
+        public const string PepQValue = "PeptideFDR";
+        public const string QValue = "TotalFDR";
     }
 }
