@@ -57,7 +57,7 @@ namespace MetaDrawGUI
         public DeconViewModel DeconViewModel { get; set; }
         public PeakViewModel XicViewModel { get; set; }
         public ChargeEnveViewModel ChargeDeconViewModel { get; set; }
-
+        public PsmAnnotationViewModel psmAnnotationViewModel { get; set; }
 
         //Glyco
         private readonly ObservableCollection<RawDataForDataGrid> GlycoResultObservableCollection = new ObservableCollection<RawDataForDataGrid>();
@@ -95,6 +95,10 @@ namespace MetaDrawGUI
             ChargeDeconViewModel = new ChargeEnveViewModel();
 
             plotViewChargeEnve.DataContext = ChargeDeconViewModel;
+
+            psmAnnotationViewModel = new PsmAnnotationViewModel();
+
+            plotAnnoView.DataContext = psmAnnotationViewModel;
 
             dataGridMassSpectraFiles.DataContext = spectraFilesObservableCollection;
 
@@ -525,11 +529,13 @@ namespace MetaDrawGUI
                 var ms2DataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
                 mainViewModel.UpdateScanModel(ms2DataScan);
                 msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.PrecursorScanNum).First();
+                psmAnnotationViewModel.DrawPeptideSpectralMatch(msDataScan);
             }
             else
             {
                 msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
                 mainViewModel.UpdateScanModel(msDataScan);
+                psmAnnotationViewModel.DrawPeptideSpectralMatch(msDataScan);
             }
             
             MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);

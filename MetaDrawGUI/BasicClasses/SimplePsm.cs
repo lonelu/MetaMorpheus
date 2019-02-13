@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Proteomics.Fragmentation;
 
 namespace MetaDrawGUI
 {
@@ -17,10 +18,12 @@ namespace MetaDrawGUI
             GlycoStructure = spl[parsedHeader[PsmTsvHeader_pGlyco.GlyStruct]].Trim();
         }
 
-        public int ScanNum { get; set; }
-        public string BaseSeq { get; set; }
-        public string Mod { get; set; }
-        public string GlycoStructure { get; set; }
-
+        public int ScanNum { get;}
+        public string BaseSeq { get; }
+        public string Mod { get;  }
+        public string GlycoStructure { get; }
+        public string BetaPeptideBaseSequence { get; set; }
+        public List<MatchedFragmentIon> MatchedIons { get; set; }
+        public List<MatchedFragmentIon> BetaPeptideMatchedIons { get; }
     }
 }

@@ -12,53 +12,165 @@
         Title="MetaDraw" 
         Drop="Window_Drop" AllowDrop="true" WindowStartupLocation="CenterScreen" MinHeight="400" MinWidth="800" Height="800" Width="1600">
     <Grid>
-        <TabControl>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="7*" />
+        </Grid.ColumnDefinitions>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="0.6*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="2*"/>
+            </Grid.RowDefinitions>
+            <GroupBox Header="Mass Spectra Files" Name="gbMassSpectraFiles" Grid.Row="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="25"/>
+                    </Grid.RowDefinitions>
+                    <DataGrid x:Name="dataGridMassSpectraFiles" ItemsSource="{Binding}" >
+                        <DataGrid.Resources>
+                        </DataGrid.Resources>
+                    </DataGrid>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
+                        <Button x:Name="btnAddFiles" Content="Add" Click="btnAddFiles_Click"/>
+                        <Button x:Name="btnClearFiles" Content="Clear" Click="btnClearFiles_Click"/>
+                        <Button x:Name="btnLoadData" Content="Load" Click="btnLoadData_Click"/>
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+            <GridSplitter Grid.Row="1"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Stretch"
+                        Background="Silver"
+                        Height="3" />
+            <GroupBox Header="Scan Numbers" Grid.Row="2">
+                <DataGrid x:Name="dataGridAllScanNums" VerticalAlignment="Stretch" ItemsSource="{Binding}" 
+                              IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0"
+                              SelectedCellsChanged="DataGridAllScanNums_SelectedCellsChanged" CanUserDeleteRows="false" CanUserAddRows="false">
+                </DataGrid>
+            </GroupBox>
+        </Grid>
+        <GridSplitter Grid.Column="1" 
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Stretch"
+                          Background="Silver"
+                          Width="5"/>
+        <TabControl Grid.Column="2">
+            <TabItem Width="150" Height="30" Header="Glycan">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="5*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="6*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="20*"/>
+                        </Grid.RowDefinitions>
+                        <TextBox x:Name="TxtGlycan" Text="Input here..." Height="30" Grid.Row="0"/>
+                        <Button x:Name="BtnDrawGlycan" Content="Draw Clycan" Click="BtnDrawGlycan_Click" Grid.Row="1"/>
+                        <GroupBox Header="Glyco Results" Name="gbGlycoResults" Grid.Row="2">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="5*"/>
+                                    <RowDefinition Height="1*"/>
+                                </Grid.RowDefinitions>
+                                <DataGrid x:Name="dataGridGlycoResultFiles" ItemsSource="{Binding}" Grid.Row="0">
+                                    <DataGrid.Resources>
+                                    </DataGrid.Resources>
+                                </DataGrid>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
+                                    <Button x:Name="BtnAddGlycoResultFiles" Content="Add" Click="BtnAddGlycoResultFiles_Click"  Height="30" VerticalAlignment="Top"/>
+                                    <Button x:Name="btnClearGlycoResultFiles" Content="Clear" Click="BtnClearGlycoResultFiles_Click" Height="30" VerticalAlignment="Top"/>
+                                    <Button x:Name="BtnLoadGlycoResults" Content="Load Result" Click="BtnLoadGlycoResults_Click" Height="30" VerticalAlignment="Top"/>
+                                </StackPanel>
+                            </Grid>
+                        </GroupBox>
+                        <GroupBox Header="Glyco Structures" Name="gbGlycoStructures" Grid.Row="5">
+                            <DataGrid x:Name="dataGridGlyco" VerticalAlignment="Stretch" ItemsSource="{Binding}"
+                                  IsReadOnly="True" ScrollViewer.CanContentScroll="True" Margin="0,0,0,0"
+                                  SelectedCellsChanged ="DataGridGlyco_SelectedCellsChanged">
+                            </DataGrid>
+                        </GroupBox>
+                    </Grid>
+                    <GridSplitter Grid.Column="1" 
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Stretch"
+                          Background="Silver"
+                          Width="5"/>
+                    <Grid Grid.Column="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+                        <GroupBox Header="PSM Annotation" Name="psmAnnotation" Grid.Column="0">
+                            <oxy:PlotView x:Name="plotAnnoView" Model="{Binding PsmAnnoModel}" FontSize="16" FontStretch="Expanded"/>
+                        </GroupBox>
+                        <StackPanel Grid.Column="1">
+                            <Canvas x:Name="glyCanvas" Height="700" Width="280" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </TabItem>
             <TabItem Width="150" Height="30" Header="Deconvolution">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*"/>
-                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="5*"/>
                         <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="2*"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="1*"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="1*"/>
                     </Grid.ColumnDefinitions>
-                    <Grid>
+
+                    <Grid Grid.Column="0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                            </Grid.RowDefinitions>
+                            <GroupBox Header="PSM" Name="gbPSM" Grid.Row="0">
+                                <oxy:PlotView x:Name="plotView" Model="{Binding Model}" FontSize="16" FontStretch="Expanded"/>
+                            </GroupBox>
+                            <Grid Grid.Row ="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <GroupBox Header="Decon" Name="gbPSMDecon">
+                                    <oxy:PlotView x:Name="plotViewDecon" Model="{Binding DeconModel}" FontSize="16" FontStretch="Expanded"/>
+                                </GroupBox>
+                                <GroupBox Header="XIC" Name="gbXIC" Grid.Column="1">
+                                    <oxy:PlotView x:Name="plotViewXIC" Model="{Binding XicModel}" FontSize="16" FontStretch="Expanded"/>
+                                </GroupBox>
+                            </Grid>
+                            <GroupBox Header="Charge Envelopes with Normal" Name="gbChargeEnve" Grid.Row="2">
+                                <oxy:PlotView x:Name="plotViewChargeEnve" Model="{Binding ChargeEnveModel}" FontSize="16" FontStretch="Expanded"/>
+                            </GroupBox>
+                        </Grid>
+                    </Grid>
+                    <GridSplitter Grid.Column="1" 
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Stretch"
+                          Background="Silver"
+                          Width="5"/>
+                    <Grid Grid.Column="2">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="0.6*"/>
-                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="2*"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="0.6*"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="1.5*"/>
                         </Grid.RowDefinitions>
-                        <GroupBox Header="Mass Spectra Files" Name="gbMassSpectraFiles" Grid.Row="0">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="25"/>
-                                </Grid.RowDefinitions>
-                                <DataGrid x:Name="dataGridMassSpectraFiles" ItemsSource="{Binding}" >
-                                    <DataGrid.Resources>
-                                    </DataGrid.Resources>
-                                </DataGrid>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
-                                    <Button x:Name="btnAddFiles" Content="Add" Click="btnAddFiles_Click"/>
-                                    <Button x:Name="btnClearFiles" Content="Clear" Click="btnClearFiles_Click"/>
-                                    <Button x:Name="btnLoadData" Content="Load" Click="btnLoadData_Click"/>
-                                </StackPanel>
-                            </Grid>
-                        </GroupBox>
-                        <GridSplitter Grid.Row="1"
-                        VerticalAlignment="Center"
-                        HorizontalAlignment="Stretch"
-                        Background="Silver"
-                        Height="3" />
-                        <GroupBox Header="Deconvolution Control" Grid.Row="2">
+                        <GroupBox Header="Deconvolution Control" Grid.Row="0">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="1.5*"/>
@@ -116,12 +228,12 @@
 
                             </Grid>
                         </GroupBox>
-                        <GridSplitter Grid.Row="3"
+                        <GridSplitter Grid.Row="1"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Stretch"
                         Background="Silver"
                         Height="3" />
-                        <GroupBox Header="MetaMorpheus Result Files" Name="gbResultFiles" Grid.Row="4">
+                        <GroupBox Header="MetaMorpheus Result Files" Name="gbResultFiles" Grid.Row="2">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="*"/>
@@ -140,12 +252,12 @@
                                 </StackPanel>
                             </Grid>
                         </GroupBox>
-                        <GridSplitter Grid.Row="5"
+                        <GridSplitter Grid.Row="3"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Stretch"
                         Background="Silver"
                         Height="3" />
-                        <GroupBox Header="Spectra" Name="gbSpectra" Grid.Row="6">
+                        <GroupBox Header="Spectra" Name="gbSpectra" Grid.Row="4">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="3*"/>
@@ -171,63 +283,12 @@
                             </Grid>
                         </GroupBox>
                     </Grid>
-                    <GridSplitter Grid.Column="1" 
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Stretch"
-                          Background="Silver"
-                          Width="5"/>
-                    <Grid Grid.Column="2">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="1*"/>
-                                <RowDefinition Height="1*"/>
-                                <RowDefinition Height="1*"/>
-                            </Grid.RowDefinitions>
-                            <GroupBox Header="PSM" Name="gbPSM" Grid.Row="0">
-                                <oxy:PlotView x:Name="plotView" Model="{Binding Model}" FontSize="16" FontStretch="Expanded"/>
-                            </GroupBox>
-                            <Grid Grid.Row ="1">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="1*"/>
-                                    <ColumnDefinition Width="1*"/>
-                                </Grid.ColumnDefinitions>
-                                <GroupBox Header="Decon" Name="gbPSMDecon">
-                                    <oxy:PlotView x:Name="plotViewDecon" Model="{Binding DeconModel}" FontSize="16" FontStretch="Expanded"/>
-                                </GroupBox>
-                                <GroupBox Header="XIC" Name="gbXIC" Grid.Column="1">
-                                    <oxy:PlotView x:Name="plotViewXIC" Model="{Binding XicModel}" FontSize="16" FontStretch="Expanded"/>
-                                </GroupBox>
-                            </Grid>
-                            <GroupBox Header="Charge Envelopes with Normal" Name="gbChargeEnve" Grid.Row="2">
-                                <oxy:PlotView x:Name="plotViewChargeEnve" Model="{Binding ChargeEnveModel}" FontSize="16" FontStretch="Expanded"/>
-                            </GroupBox>
-                        </Grid>
-                    </Grid>
                     <GridSplitter Grid.Column="3" 
                           HorizontalAlignment="Center"
                           VerticalAlignment="Stretch"
                           Background="Silver"
                           Width="5"/>
                     <Grid Grid.Column="4">
-                        <GroupBox Header="Scan Numbers">
-                            <DataGrid x:Name="dataGridAllScanNums" VerticalAlignment="Stretch" ItemsSource="{Binding}" 
-                              IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0"
-                              SelectedCellsChanged="DataGridAllScanNums_SelectedCellsChanged" CanUserDeleteRows="false" CanUserAddRows="false">
-                                <!--<DataGrid.Columns>
-                            <DataGridTextColumn Header="Scan#" Binding="{Binding ScanNum}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Pre Scan#" Binding="{Binding PrecursorScanNum}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="MsOrder" Binding="{Binding MsOrder}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="IsolationMass" Binding="{Binding IsolationMass}"></DataGridTextColumn>
-                        </DataGrid.Columns>-->
-                            </DataGrid>
-                        </GroupBox>
-                    </Grid>
-                    <GridSplitter Grid.Column="5" 
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Stretch"
-                          Background="Silver"
-                          Width="5"/>
-                    <Grid Grid.Column="6">
                         <GroupBox Header="Decon Numbers">
                             <DataGrid x:Name="dataGridDeconNums" VerticalAlignment="Stretch" ItemsSource="{Binding}" 
                               IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0"
@@ -242,12 +303,12 @@
                             </DataGrid>
                         </GroupBox>
                     </Grid>
-                    <GridSplitter Grid.Column="7" 
+                    <GridSplitter Grid.Column="5" 
                           HorizontalAlignment="Center"
                           VerticalAlignment="Stretch"
                           Background="Silver"
                           Width="5"/>
-                    <Grid Grid.Column="8">
+                    <Grid Grid.Column="6">
                         <GroupBox Header="ChargeEnve Numbers" >
                             <DataGrid x:Name="dataGridChargeEnves" VerticalAlignment="Stretch" ItemsSource="{Binding}" 
                               IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0"
@@ -260,57 +321,6 @@
                             </DataGrid>
                         </GroupBox>
                     </Grid>
-                </Grid>
-            </TabItem>
-            <TabItem Width="150" Height="30" Header="Glycan">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1*"/>
-                        <ColumnDefinition Width="auto"/>
-                        <ColumnDefinition Width="5*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="6*"/>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="20*"/>
-                        </Grid.RowDefinitions>
-                        <TextBox x:Name="TxtGlycan" Text="Input here..." Height="30" Grid.Row="0"/>
-                        <Button x:Name="BtnDrawGlycan" Content="Draw Clycan" Click="BtnDrawGlycan_Click" Grid.Row="1"/>
-                        <GroupBox Header="Glyco Results" Name="gbGlycoResults" Grid.Row="2">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="5*"/>
-                                    <RowDefinition Height="1*"/>
-                                </Grid.RowDefinitions>
-                                <DataGrid x:Name="dataGridGlycoResultFiles" ItemsSource="{Binding}" Grid.Row="0">
-                                    <DataGrid.Resources>
-                                    </DataGrid.Resources>
-                                </DataGrid>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
-                                    <Button x:Name="BtnAddGlycoResultFiles" Content="Add" Click="BtnAddGlycoResultFiles_Click"  Height="30" VerticalAlignment="Top"/>
-                                    <Button x:Name="btnClearGlycoResultFiles" Content="Clear" Click="BtnClearGlycoResultFiles_Click" Height="30" VerticalAlignment="Top"/>
-                                    <Button x:Name="BtnLoadGlycoResults" Content="Load Result" Click="BtnLoadGlycoResults_Click" Height="30" VerticalAlignment="Top"/>
-                                </StackPanel>
-                            </Grid>
-                        </GroupBox>
-                        <GroupBox Header="Glyco Structures" Name="gbGlycoStructures" Grid.Row="5">
-                        <DataGrid x:Name="dataGridGlyco" VerticalAlignment="Stretch" ItemsSource="{Binding}"
-                                  IsReadOnly="True" ScrollViewer.CanContentScroll="True" Margin="0,0,0,0"
-                                  SelectedCellsChanged ="DataGridGlyco_SelectedCellsChanged">
-                        </DataGrid>
-                        </GroupBox>
-                    </Grid>
-                    <GridSplitter Grid.Column="1" 
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Stretch"
-                          Background="Silver"
-                          Width="5"/>
-                    <StackPanel Grid.Column="2">
-                        <Canvas x:Name="glyCanvas" Height="600" Width="400" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                    </StackPanel>
                 </Grid>
             </TabItem>
         </TabControl>
