@@ -51,6 +51,7 @@ namespace MetaDrawGUI
         public List<ChargeDeconEnvelope> ScanChargeEnvelopes { get; set; } = new List<ChargeDeconEnvelope>();
         public List<NeuCodeIsotopicEnvelop> IsotopicEnvelopes { get; set; } = new List<NeuCodeIsotopicEnvelop>();
         private List<PsmFromTsv> psms = new List<PsmFromTsv>();
+        private List<SimplePsm> simplePsms = new List<SimplePsm>();
 
         //View model
         private MainViewModel mainViewModel;
@@ -519,40 +520,45 @@ namespace MetaDrawGUI
             {
                 return;
             }
-
-            ResetDataGridAndModel();
-
+            
             var sele = (AllScansForDataGrid)dataGridAllScanNums.SelectedItem;
-            
-            if (sele.MsOrder == 2)
-            {
-                var ms2DataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
-                mainViewModel.UpdateScanModel(ms2DataScan);
-                msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.PrecursorScanNum).First();
-                psmAnnotationViewModel.DrawPeptideSpectralMatch(msDataScan);
-            }
-            else
-            {
-                msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
-                mainViewModel.UpdateScanModel(msDataScan);
-                psmAnnotationViewModel.DrawPeptideSpectralMatch(msDataScan);
-            }
-            
-            MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
-            IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
 
-            int i = 1;
-            foreach (var item in IsotopicEnvelopes)
-            {
-                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
-                i++;
-            }           
+            msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
+            psmAnnotationViewModel.DrawPeptideSpectralMatch(msDataScan);
 
-            int ind = 1;
-            foreach (var theScanChargeEvelope in ScanChargeEnvelopes)
+            if (TabDecon.IsSelected)
             {
-                chargeEnvelopesObservableCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
-                ind++;
+                ResetDataGridAndModel();
+
+                if (sele.MsOrder == 2)
+                {
+                    var ms2DataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
+                    mainViewModel.UpdateScanModel(ms2DataScan);
+                    msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.PrecursorScanNum).First();
+
+                }
+                else
+                {
+                    msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
+                    mainViewModel.UpdateScanModel(msDataScan);
+                }
+
+                MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
+                IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+
+                int i = 1;
+                foreach (var item in IsotopicEnvelopes)
+                {
+                    envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
+                    i++;
+                }
+
+                int ind = 1;
+                foreach (var theScanChargeEvelope in ScanChargeEnvelopes)
+                {
+                    chargeEnvelopesObservableCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
+                    ind++;
+                }
             }
         }
 
@@ -734,21 +740,28 @@ namespace MetaDrawGUI
             btnClearGlycoResultFiles.IsEnabled = false;
 
             // load the PSMs
-            var psms = TsvReader_pGlyco.ReadTsv(resultsFilePath);
-            foreach (var psm in psms)
+            simplePsms = TsvReader_pGlyco.ReadTsv(resultsFilePath);
+            foreach (var psm in simplePsms)
             {
                 GlycoStrucureObservableCollection.Add(new GlycoStructureForDataGrid( psm.ScanNum, psm.BaseSeq, psm.GlycoStructure));
             }
         }
 
         private void DataGridGlyco_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
-        {
-            glyCanvas.Children.Clear();
+        {       
             if (dataGridGlyco.SelectedItem == null)
             {
                 return;
             }
+
             var sele = (GlycoStructureForDataGrid)dataGridGlyco.SelectedItem;
+            msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
+            var selePsm = simplePsms.Where(p => p.ScanNum == sele.ScanNum).First();
+            selePsm.MatchedIons = SimplePsm.GetMatchedIons(selePsm.BaseSeq, selePsm.Mod, selePsm.PrecursorMH, selePsm.ChargeState, CommonParameters, msDataScan);
+            psmAnnotationViewModel.DrawPeptideSpectralMatch(msDataScan, selePsm);
+
+            //Draw Glycan
+            glyCanvas.Children.Clear();          
             GlycanStructureAnnotation.DrawGlycan(glyCanvas, sele.Structure, 50);
         }
     }

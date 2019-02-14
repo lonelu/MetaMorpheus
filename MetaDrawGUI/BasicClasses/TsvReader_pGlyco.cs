@@ -44,7 +44,6 @@ namespace MetaDrawGUI
 
                 try
                 {
-                    var spl = line.Split('\t');
                     simplePsms.Add(new SimplePsm(line, Split, parsedHeader));
                 }
                 catch (Exception e)
@@ -66,7 +65,7 @@ namespace MetaDrawGUI
             var spl = header.Split(Split);
             parsedHeader.Add(PsmTsvHeader_pGlyco.FileName, Array.IndexOf(spl, PsmTsvHeader_pGlyco.FileName));
             parsedHeader.Add(PsmTsvHeader_pGlyco.Ms2ScanRetentionTime, Array.IndexOf(spl, PsmTsvHeader_pGlyco.Ms2ScanRetentionTime));
-            parsedHeader.Add(PsmTsvHeader_pGlyco.PrecursorMass, Array.IndexOf(spl, PsmTsvHeader_pGlyco.PrecursorMass));
+            parsedHeader.Add(PsmTsvHeader_pGlyco.PrecursorMH, Array.IndexOf(spl, PsmTsvHeader_pGlyco.PrecursorMH));
             parsedHeader.Add(PsmTsvHeader_pGlyco.BaseSequence, Array.IndexOf(spl, PsmTsvHeader_pGlyco.BaseSequence));
             parsedHeader.Add(PsmTsvHeader_pGlyco.Mods, Array.IndexOf(spl, PsmTsvHeader_pGlyco.Mods));
             parsedHeader.Add(PsmTsvHeader_pGlyco.Glycan, Array.IndexOf(spl, PsmTsvHeader_pGlyco.Glycan));
@@ -83,7 +82,7 @@ namespace MetaDrawGUI
     {
         public const string FileName = "PepSpec";
         public const string Ms2ScanRetentionTime = "RT";
-        public const string PrecursorMass = "PrecursorMH";
+        public const string PrecursorMH = "PrecursorMH";
         public const string BaseSequence = "Peptide";
         public const string Mods = "Mod";
         public const string Glycan = "Glycan(H,N,A,G,F)";

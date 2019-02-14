@@ -57,8 +57,8 @@
                           VerticalAlignment="Stretch"
                           Background="Silver"
                           Width="5"/>
-        <TabControl Grid.Column="2">
-            <TabItem Width="150" Height="30" Header="Glycan">
+        <TabControl x:Name="MyTab" Grid.Column="2">
+            <TabItem x:Name="TabGlycan" Width="150" Height="30" Header="Glycan">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1*"/>
@@ -118,7 +118,7 @@
                     </Grid>
                 </Grid>
             </TabItem>
-            <TabItem Width="150" Height="30" Header="Deconvolution">
+            <TabItem x:Name="TabDecon" Width="150" Height="30" Header="Deconvolution">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="5*"/>
