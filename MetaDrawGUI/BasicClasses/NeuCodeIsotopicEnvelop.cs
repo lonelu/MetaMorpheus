@@ -15,5 +15,32 @@ namespace MassSpectrometry
         }
         
         public bool IsNeuCode { get; set; }
+
+        public static string TabSeparatedHeader
+        {
+            get
+            {
+                var sb = new StringBuilder();
+                sb.Append("monoisotopicMass" + "\t");
+                sb.Append("charge" + "\t");
+                sb.Append("totalIntensity" + "\t");
+                sb.Append("peaks.Count" + "\t");
+                sb.Append("stDev" + "\t");
+                sb.Append("IsNeuCode" + "\t");
+                return sb.ToString();
+            }
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(monoisotopicMass + "\t");
+            sb.Append(charge + "\t");
+            sb.Append(totalIntensity + "\t");         
+            sb.Append(peaks.Count + "\t");
+            sb.Append(stDev + "\t");
+            sb.Append((IsNeuCode ? 1:0) + "\t");
+            return sb.ToString();
+        }
     }
 }

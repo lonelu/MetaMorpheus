@@ -134,6 +134,7 @@ namespace MetaDrawGUI
             SpectraFileInfo mzml = new SpectraFileInfo(filePath, "", 0, 0, 0);
             
             List<Identification>[] idts = new List<Identification>[ms1DataScanList.Count];
+            List<NeuCodeIsotopicEnvelop>[] neuCodeIsotopicEnvelops = new List<NeuCodeIsotopicEnvelop>[ms1DataScanList.Count];
 
             //for (int i = 0; i < ms1DataScanList.Count; i++)
             Parallel.ForEach(Partitioner.Create(0, ms1DataScanList.Count), new ParallelOptions { MaxDegreeOfParallelism = commonParameters.MaxThreadsToUsePerFile }, (range, loopState) =>
@@ -142,6 +143,8 @@ namespace MetaDrawGUI
                  {
                      MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(ms1DataScanList[scanIndex].MassSpectrum.XArray, ms1DataScanList[scanIndex].MassSpectrum.YArray, true);
                      var isotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(ms1DataScanList[scanIndex].ScanWindowRange, deconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+                     neuCodeIsotopicEnvelops[scanIndex] = isotopicEnvelopes;
+
                      List<Identification> ids = new List<Identification>();
                      int i = 0;
                      foreach (var enve in isotopicEnvelopes)
@@ -167,6 +170,9 @@ namespace MetaDrawGUI
 
             WritePeakResults(Path.Combine(Path.GetDirectoryName(filePath), @"Peaks.tsv"), peaks);
             WriteResults(Path.Combine(Path.GetDirectoryName(filePath), @"NeucodesDoublets.tsv"), neucodeDoublets);
+
+            var envelops = neuCodeIsotopicEnvelops.SelectMany(p => p).ToList();
+            WriteEnvelopResults(Path.Combine(Path.GetDirectoryName(filePath), @"Envelops.tsv"), envelops);
         }
 
         private ChemicalFormula GenerateChemicalFormula(double monoIsotopicMass)
@@ -305,6 +311,19 @@ namespace MetaDrawGUI
                 foreach (var peak in neucodeDoublets)
                 {
                     output.WriteLine(peak.ToString());
+                }
+            }
+        }
+
+        public void WriteEnvelopResults(string peaksOutputPath, List<NeuCodeIsotopicEnvelop> neuCodeIsotopicEnvelops)
+        {
+            using (StreamWriter output = new StreamWriter(peaksOutputPath))
+            {
+                output.WriteLine(NeuCodeIsotopicEnvelop.TabSeparatedHeader);
+
+                foreach (var enve in neuCodeIsotopicEnvelops)
+                {
+                    output.WriteLine(enve.ToString());
                 }
             }
         }
