@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Chemistry;
 
 namespace MassSpectrometry
 {
@@ -13,7 +14,10 @@ namespace MassSpectrometry
         {
 
         }
-        
+          
+        public int ScanNum { get; set; }
+        public double RT { get; set; }
+        public double ScanTotalIntensity { get; set; }
         public bool IsNeuCode { get; set; }
 
         public static string TabSeparatedHeader
@@ -21,7 +25,11 @@ namespace MassSpectrometry
             get
             {
                 var sb = new StringBuilder();
+                sb.Append("ScanNum" + "\t");
+                sb.Append("RT" + "\t");
                 sb.Append("monoisotopicMass" + "\t");
+                sb.Append("MZ" + "\t");
+                sb.Append("ScanTotalIntensity" + "\t");             
                 sb.Append("charge" + "\t");
                 sb.Append("totalIntensity" + "\t");
                 sb.Append("peaks.Count" + "\t");
@@ -34,7 +42,11 @@ namespace MassSpectrometry
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
+            sb.Append(ScanNum + "\t");
+            sb.Append(RT + "\t");
             sb.Append(monoisotopicMass + "\t");
+            sb.Append(ClassExtensions.ToMz(monoisotopicMass, charge) + "\t");
+            sb.Append(ScanTotalIntensity + "\t");           
             sb.Append(charge + "\t");
             sb.Append(totalIntensity + "\t");         
             sb.Append(peaks.Count + "\t");

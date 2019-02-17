@@ -546,9 +546,13 @@ namespace MetaDrawGUI
                 MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
                 IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
 
+
                 int i = 1;
                 foreach (var item in IsotopicEnvelopes)
                 {
+                    IsotopicEnvelopes[i - 1].ScanNum = msDataScan.OneBasedScanNumber;
+                    IsotopicEnvelopes[i - 1].RT = msDataScan.RetentionTime;
+                    IsotopicEnvelopes[i - 1].ScanTotalIntensity = msDataScan.TotalIonCurrent;
                     envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
                     i++;
                 }
@@ -682,14 +686,14 @@ namespace MetaDrawGUI
             foreach (var scan in msDataScans.Where(p => p.MsnOrder == 1))
             {
                 //if (scan.OneBasedScanNumber >= 2 && msDataScans.ElementAt(scan.OneBasedScanNumber-2).MsnOrder == 1)
-                if (scan.ScanWindowRange.Minimum == 349)
+                if (scan.ScanWindowRange.Minimum == 349) //TO DO: this is temp special for the coon lab neocode data.
                 {
                     ms1ScanForDecon.Add(scan);
                 }
             }
-            var a = ms1ScanForDecon.Count();
-            var b = msDataScans.Where(p => p.MsnOrder == 1).Count();
-            var c = msDataScans.Where(p => p.MsnOrder == 2).Count();
+            //var a = ms1ScanForDecon.Count();
+            //var b = msDataScans.Where(p => p.MsnOrder == 1).Count();
+            //var c = msDataScans.Where(p => p.MsnOrder == 2).Count();
             msDataFileDecon.DeconQuantFile(ms1ScanForDecon, spectraFilePath, CommonParameters, DeconvolutionParameter);
         }
 

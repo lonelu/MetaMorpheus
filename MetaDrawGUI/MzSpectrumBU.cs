@@ -278,7 +278,7 @@ namespace MassSpectrometry
 
                     var test = GetEnvelopForThisPeak(candidateForMostIntensePeakMz, candidateForMostIntensePeakIntensity, massIndex, chargeState, deconvolutionParameter);
 
-                    if (test.peaks.Count >= 2 && ScoreIsotopeEnvelope(test) > ScoreIsotopeEnvelope(bestIsotopeEnvelopeForThisPeak))
+                    if (test.peaks.Count >= 2 && test.stDev < 0.00001 && ScoreIsotopeEnvelope(test) > ScoreIsotopeEnvelope(bestIsotopeEnvelopeForThisPeak))
                     {
                         //Console.WriteLine("Better charge state is " + test.charge);
                         //Console.WriteLine("peaks: " + string.Join(",", listOfPeaks.Select(b => b.Item1)));

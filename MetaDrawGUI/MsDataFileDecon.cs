@@ -135,39 +135,44 @@ namespace MetaDrawGUI
             
             List<Identification>[] idts = new List<Identification>[ms1DataScanList.Count];
             List<NeuCodeIsotopicEnvelop>[] neuCodeIsotopicEnvelops = new List<NeuCodeIsotopicEnvelop>[ms1DataScanList.Count];
+            FlashLfqResults[] flashLfqResults = new FlashLfqResults[ms1DataScanList.Count];
 
             //for (int i = 0; i < ms1DataScanList.Count; i++)
             Parallel.ForEach(Partitioner.Create(0, ms1DataScanList.Count), new ParallelOptions { MaxDegreeOfParallelism = commonParameters.MaxThreadsToUsePerFile }, (range, loopState) =>
-             {
+            {
                  for (int scanIndex = range.Item1; scanIndex < range.Item2; scanIndex++)
                  {
                      MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(ms1DataScanList[scanIndex].MassSpectrum.XArray, ms1DataScanList[scanIndex].MassSpectrum.YArray, true);
                      var isotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(ms1DataScanList[scanIndex].ScanWindowRange, deconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
-                     neuCodeIsotopicEnvelops[scanIndex] = isotopicEnvelopes;
-
+                     
                      List<Identification> ids = new List<Identification>();
                      int i = 0;
                      foreach (var enve in isotopicEnvelopes)
-                     {                       
-
+                     {
+                         isotopicEnvelopes[i].ScanNum = ms1DataScanList[scanIndex].OneBasedScanNumber;
+                         isotopicEnvelopes[i].RT = ms1DataScanList[scanIndex].RetentionTime;
+                         isotopicEnvelopes[i].ScanTotalIntensity = ms1DataScanList[scanIndex].TotalIonCurrent;
                          var id = GenerateIdentification(mzml, enve, ms1DataScanList[scanIndex].RetentionTime, scanIndex, i);
                          i++;
                          ids.Add(id);
                      }
+                    FlashLfqEngine engi = new FlashLfqEngine(ids, integrate: true, ppmTolerance: 7.5, isotopeTolerancePpm: 3);
+                    flashLfqResults[scanIndex] = engi.Run();
 
-                     idts[scanIndex] = ids;
+                    idts[scanIndex] = ids;
+                     neuCodeIsotopicEnvelops[scanIndex] = isotopicEnvelopes;
                  }
 
              });
 
+            var peaksPerScans = flashLfqResults.SelectMany(p => p.Peaks.First().Value).ToList();
+            WritePeakResults(Path.Combine(Path.GetDirectoryName(filePath), @"PeaksPerScans.tsv"), peaksPerScans);
+
             var idList = idts.SelectMany(p => p).ToList();
             FlashLfqEngine engine = new FlashLfqEngine(idList, integrate:true, ppmTolerance:7.5, isotopeTolerancePpm:3);
-
             var results = engine.Run();
-
             var peaks = new List<FlashLFQ.ChromatographicPeak>();
             List<NeucodeDoublet> neucodeDoublets = CheckNeocodeDoublet(results.Peaks.First().Value.OrderBy(p => p.Identifications.First().monoisotopicMass).ToList(), deconvolutionParameter, out peaks);
-
             WritePeakResults(Path.Combine(Path.GetDirectoryName(filePath), @"Peaks.tsv"), peaks);
             WriteResults(Path.Combine(Path.GetDirectoryName(filePath), @"NeucodesDoublets.tsv"), neucodeDoublets);
 
