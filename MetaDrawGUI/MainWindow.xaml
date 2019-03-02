@@ -323,6 +323,21 @@
                     </Grid>
                 </Grid>
             </TabItem>
+            <TabItem x:Name="CrosslinkMultiprotease" Width="150" Height="30" Header="MultiProteaseCrosslink">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="30"/>
+                    </Grid.RowDefinitions>
+                    <DataGrid x:Name="dataGridMutiproteaseCrosslink" ItemsSource="{Binding}" Grid.Row="0">
+                        <DataGrid.Resources>
+                        </DataGrid.Resources>
+                    </DataGrid>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
+                        <Button x:Name="BtnLoadMutiProteaseCrosslink" Content="Load Result" Click="BtnLoadMutiProteaseCrosslink_Click"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>

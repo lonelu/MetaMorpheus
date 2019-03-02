@@ -26,6 +26,7 @@ namespace MetaDrawGUI
         private readonly ObservableCollection<RawDataForDataGrid> spectraFilesObservableCollection = new ObservableCollection<RawDataForDataGrid>();
         private readonly ObservableCollection<RawDataForDataGrid> resultFilesObservableCollection = new ObservableCollection<RawDataForDataGrid>();
 
+
         //All Scan Data Grid
         private readonly ObservableCollection<AllScansForDataGrid> allScansObservableCollection = new ObservableCollection<AllScansForDataGrid>();
         private readonly ObservableCollection<SpectrumForDataGrid> spectrumNumsObservableCollection = new ObservableCollection<SpectrumForDataGrid>();
@@ -64,6 +65,9 @@ namespace MetaDrawGUI
         private readonly ObservableCollection<RawDataForDataGrid> GlycoResultObservableCollection = new ObservableCollection<RawDataForDataGrid>();
 
         private readonly ObservableCollection<GlycoStructureForDataGrid> GlycoStrucureObservableCollection = new ObservableCollection<GlycoStructureForDataGrid>();
+
+        //MultiproteaseCrosslink
+        private readonly ObservableCollection<RawDataForDataGrid> MutiProteaseCrosslinkResultFilesObservableCollection = new ObservableCollection<RawDataForDataGrid>();
 
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -112,6 +116,8 @@ namespace MetaDrawGUI
             dataGridChargeEnves.DataContext = chargeEnvelopesObservableCollection;
 
             dataGridAllScanNums.DataContext = allScansObservableCollection;
+
+            dataGridMutiproteaseCrosslink.DataContext = resultFilesObservableCollection;
 
             Title = "MetaDraw" + GlobalVariables.MetaMorpheusVersion;
 
@@ -217,6 +223,7 @@ namespace MetaDrawGUI
                 case ".psmtsv":
                 case ".tsv":
                 case ".txt":
+                case ".csv":
                     RawDataForDataGrid resultFileDataGrid = new RawDataForDataGrid(draggedFilePath);
                     if (!SpectraFileExists(resultFilesObservableCollection, resultFileDataGrid)) { resultFilesObservableCollection.Add(resultFileDataGrid); }
                     break;
@@ -767,6 +774,22 @@ namespace MetaDrawGUI
             //Draw Glycan
             glyCanvas.Children.Clear();          
             GlycanStructureAnnotation.DrawGlycan(glyCanvas, sele.Structure, 50);
+        }
+
+        private void BtnLoadMutiProteaseCrosslink_Click(object sender, RoutedEventArgs e)
+        {
+            resultsFilePath = resultFilesObservableCollection.First().FilePath;
+            if (resultsFilePath == null)
+            {
+                MessageBox.Show("Please add a result file.");
+                return;
+            }
+
+            // load the spectra file
+            (sender as Button).IsEnabled = false;
+
+            MultiproteaseCrosslink.Read(resultsFilePath);
+            
         }
     }
 }

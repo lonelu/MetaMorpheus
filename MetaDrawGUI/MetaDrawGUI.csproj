@@ -186,6 +186,7 @@
     <Compile Include="DataGrids\RawDataForDataGrid.cs" />
     <Compile Include="DataGrids\SpectrumForDataGrid.cs" />
     <Compile Include="MsDataFileDecon.cs" />
+    <Compile Include="Multiprotease\MultiProteaseCrosslink.cs" />
     <Compile Include="MzSpectrumBU.cs" />
     <Compile Include="Regression\GaussianModel.cs" />
     <Compile Include="Regression\LevenbergMarquardtSolver.cs" />
