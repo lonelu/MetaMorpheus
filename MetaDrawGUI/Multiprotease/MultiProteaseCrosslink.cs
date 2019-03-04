@@ -115,6 +115,11 @@ namespace MetaDrawGUI
                             
             }
 
+            var c1 = crosslinks[0].OrderBy(p => p.Item1);
+            var c2 = crosslinks[1].OrderBy(p => p.Item1);
+            var c3 = crosslinks[2].OrderBy(p => p.Item1);
+            var c4 = crosslinks[3].OrderBy(p => p.Item1);
+
             var c12 = crosslinks12.Count();
             var c13 = crosslinks13.Count();
             var c14 = crosslinks14.Count();
