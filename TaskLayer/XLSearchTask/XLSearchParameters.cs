@@ -7,8 +7,10 @@ namespace TaskLayer
     {
         public XlSearchParameters()
         {
+            OpenSearchType = OpenSearchType.Crosslink;
             DecoyType = DecoyType.Reverse;
             CrosslinkerType = CrosslinkerType.DSSO;
+            OnlyAnalyzeOxiniumIons = false;
             RestrictToTopNHits = true;
             CrosslinkSearchTopNum = 300;
             CrosslinkerName = null;
@@ -26,11 +28,12 @@ namespace TaskLayer
             XlQuench_Tris = true;
             WriteOutputForPercolator = false;
             WritePepXml = true;
-            //XlCharge_2_3 = true;
         }
         
+        public OpenSearchType OpenSearchType { get; set; }
         public DecoyType DecoyType { get; set; }
         public CrosslinkerType CrosslinkerType { get; set; }
+        public bool OnlyAnalyzeOxiniumIons { get; set; }
         public int CrosslinkSearchTopNum { get; set; }
         public string CrosslinkerName { get; set; }
         public double? CrosslinkerTotalMass { get; set; }
@@ -43,7 +46,6 @@ namespace TaskLayer
         public double? CrosslinkerDeadEndMassNH2 { get; set; }
         public double? CrosslinkerDeadEndMassTris { get; set; }
         
-        // TODO: 2+ 3+ prime fragments?
         public bool IsCleavable { get; set; }
         public bool RestrictToTopNHits { get; set; }
         public bool WriteOutputForPercolator { get; set; }
@@ -51,6 +53,7 @@ namespace TaskLayer
         public bool XlQuench_H2O { get; set; }
         public bool XlQuench_Tris { get; set; }
         public bool XlQuench_NH2 { get; set; }
-        //public bool XlCharge_2_3 { get; set; }
+
+
     }
 }

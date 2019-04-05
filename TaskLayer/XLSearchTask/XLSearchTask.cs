@@ -10,6 +10,8 @@ using System.Linq;
 using MzLibUtil;
 using EngineLayer.FdrAnalysis;
 using System;
+using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace TaskLayer
 {
@@ -89,7 +91,26 @@ namespace TaskLayer
                 MsDataFile myMsDataFile = myFileManager.LoadFile(origDataFile, combinedParams.TopNpeaks, combinedParams.MinRatio, combinedParams.TrimMs1Peaks, combinedParams.TrimMsMsPeaks, combinedParams);
 
                 Status("Getting ms2 scans...", thisId);
+
                 Ms2ScanWithSpecificMass[] arrayOfMs2ScansSortedByMass = GetMs2Scans(myMsDataFile, origDataFile, combinedParams).OrderBy(b => b.PrecursorMass).ToArray();
+
+                if (!combinedParams.DoPrecursorDeconvolution && combinedParams.UseProvidedPrecursorInfo && XlSearchParameters.OnlyAnalyzeOxiniumIons)
+                {
+                    MassDiffAcceptor massDiffAcceptor = new SinglePpmAroundZeroSearchMode(combinedParams.ProductMassTolerance.Value);
+                    Tuple<int, double[]>[] tuples = new Tuple<int, double[]>[arrayOfMs2ScansSortedByMass.Length];
+                    Parallel.ForEach(Partitioner.Create(0, arrayOfMs2ScansSortedByMass.Length), new ParallelOptions { MaxDegreeOfParallelism = combinedParams.MaxThreadsToUsePerFile }, (range, loopState) =>
+                    {
+                        for (int scanIndex = range.Item1; scanIndex < range.Item2; scanIndex++)
+                        {
+                            double[] oxoniumIonIntensities = GlycoPeptides.ScanGetOxoniumIons(arrayOfMs2ScansSortedByMass[scanIndex], massDiffAcceptor);
+                            tuples[scanIndex] = new Tuple<int, double[]>(arrayOfMs2ScansSortedByMass[scanIndex].OneBasedScanNumber, oxoniumIonIntensities);
+                        }
+                    });
+                    var writtenFile= Path.Combine(OutputFolder, "oxiniumIons" + ".tsv");
+                    WriteOxoniumIons(tuples, writtenFile);
+
+                    return MyTaskResults;
+                }
 
                 CrosslinkSpectralMatch[] newPsms = new CrosslinkSpectralMatch[arrayOfMs2ScansSortedByMass.Length];
                 for (int currentPartition = 0; currentPartition < CommonParameters.TotalPartitions; currentPartition++)
@@ -102,14 +123,15 @@ namespace TaskLayer
                     List<int>[] fragmentIndex = null;
                     List<int>[] precursorIndex = null;
 
-                    GenerateIndexes(indexEngine, dbFilenameList, ref peptideIndex, ref fragmentIndex, ref precursorIndex, proteinList, GlobalVariables.AllModsKnown.ToList(), taskId);
+                    GenerateIndexes(indexEngine, dbFilenameList, ref peptideIndex, ref fragmentIndex, ref precursorIndex, proteinList, GlobalVariables.AllModsKnown.ToList(), taskId);                  
 
                     Status("Searching files...", taskId);
-                    new CrosslinkSearchEngine(newPsms, arrayOfMs2ScansSortedByMass, peptideIndex, fragmentIndex, currentPartition, combinedParams, crosslinker,
+                    new CrosslinkSearchEngine(newPsms, arrayOfMs2ScansSortedByMass, peptideIndex, fragmentIndex, currentPartition, combinedParams, XlSearchParameters.OpenSearchType, crosslinker,
                         XlSearchParameters.RestrictToTopNHits, XlSearchParameters.CrosslinkSearchTopNum, XlSearchParameters.XlQuench_H2O,
                         XlSearchParameters.XlQuench_NH2, XlSearchParameters.XlQuench_Tris, thisId).Run();
 
                     ReportProgress(new ProgressEventArgs(100, "Done with search " + (currentPartition + 1) + "/" + CommonParameters.TotalPartitions + "!", thisId));
+                    if (GlobalVariables.StopLoops) { break; }
                 }
 
                 allPsms.AddRange(newPsms.Where(p => p != null));
@@ -121,6 +143,40 @@ namespace TaskLayer
             ReportProgress(new ProgressEventArgs(100, "Done with all searches!", new List<string> { taskId, "Individual Spectra Files" }));
 
             allPsms = allPsms.OrderByDescending(p => p.XLTotalScore).ToList();
+
+            if (XlSearchParameters.OpenSearchType == OpenSearchType.NGlyco)
+            {
+                //SingleFDRAnalysis(allPsms, new List<string> { taskId });             
+                //var writtenFileInter = Path.Combine(OutputFolder, "all_fdr" + ".mytsv");
+                //WritePsmCrossToTsv(allPsms, writtenFileInter, 3);
+
+                var allPsmsSingle = allPsms.Where(p => p.Glycan == null && p.Score > 2).OrderByDescending(p => p.XLTotalScore).ToList();           
+                SingleFDRAnalysis(allPsmsSingle, new List<string> { taskId });
+                var writtenFileInter1 = Path.Combine(OutputFolder, "single_fdr" + ".mytsv");
+                WritePsmCrossToTsv(allPsmsSingle, writtenFileInter1, 1);
+
+                //TO DO: there may have a bug. I have to filter the following loopPsms, deadendPsms with a BestScore higher than 2, Or some of the Psms will have everything be 0!
+                var allPsmsGly = allPsms.Where(p => p.Glycan != null && p.Score > 2).OrderByDescending(p => p.XLTotalScore).ToList();
+                SingleFDRAnalysis(allPsmsGly, new List<string> { taskId });
+                var writtenFileInter2 = Path.Combine(OutputFolder, "glyco_fdr" + ".mytsv");
+                WritePsmCrossToTsv(allPsmsGly, writtenFileInter2, 3);
+
+                return MyTaskResults;
+            }
+
+            if (XlSearchParameters.OpenSearchType == OpenSearchType.OGlyco)
+            {
+                var allPsmsSingle = allPsms.Where(p => p.glycanBoxes == null && p.Score > 2).OrderByDescending(p => p.XLTotalScore).ToList();
+                SingleFDRAnalysis(allPsmsSingle, new List<string> { taskId });
+                var writtenFileInter1 = Path.Combine(OutputFolder, "single_fdr" + ".mytsv");
+                WritePsmCrossToTsv(allPsmsSingle, writtenFileInter1, 1);
+
+                var allPsmsGly = allPsms.Where(p => p.glycanBoxes != null && p.Score > 2).OrderByDescending(p => p.XLTotalScore).ToList();
+                SingleFDRAnalysis(allPsmsGly, new List<string> { taskId });
+                var writtenFileInter2 = Path.Combine(OutputFolder, "glyco_fdr" + ".mytsv");
+                WritePsmCrossToTsv(allPsmsGly, writtenFileInter2, 3);
+                return MyTaskResults;
+            }
 
             var allPsmsXL = allPsms.Where(p => p.CrossType == PsmCrossType.Cross).ToList();
 

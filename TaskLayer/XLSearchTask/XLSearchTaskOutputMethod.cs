@@ -13,7 +13,7 @@ namespace TaskLayer
 {
     public partial class XLSearchTask : MetaMorpheusTask
     {
-        public void WritePsmCrossToTsv(List<CrosslinkSpectralMatch> items, string filePath, int writeType)
+        public static void WritePsmCrossToTsv(List<CrosslinkSpectralMatch> items, string filePath, int writeType)
         {
             if (items.Count == 0)
             {
@@ -30,6 +30,9 @@ namespace TaskLayer
                         break;
                     case 2:
                         header = CrosslinkSpectralMatch.GetTabSepHeaderCross();
+                        break;
+                    case 3:
+                        header = CrosslinkSpectralMatch.GetTabSepHeaderGlyco();
                         break;
                     default:
                         break;
@@ -73,7 +76,7 @@ namespace TaskLayer
                             + "\t" + item.BetaPeptide.BaseSequence.Length.ToString(CultureInfo.InvariantCulture)
                             + "\t" + item.BaseSequence.Length.ToString(CultureInfo.InvariantCulture)
                             + "\t" + (item.BetaPeptide.BaseSequence.Length + item.BaseSequence.Length).ToString(CultureInfo.InvariantCulture)
-                            + "\t" + "-." + item.BaseSequence + item.LinkPositions.First().ToString(CultureInfo.InvariantCulture) + "--" + item.BetaPeptide.BaseSequence + item.BetaPeptide.LinkPositions.First().ToString(CultureInfo.InvariantCulture) + ".-"
+                            + "\t" + "-." + item.FullSequence + item.LinkPositions.First().ToString(CultureInfo.InvariantCulture) + "--" + item.BetaPeptide.FullSequence + item.BetaPeptide.LinkPositions.First().ToString(CultureInfo.InvariantCulture) + ".-"
                             + "\t" + item.BestMatchingPeptides.First().Peptide.Protein.Accession.ToString(CultureInfo.InvariantCulture)
                                    + "(" + item.XlProteinPos.ToString(CultureInfo.InvariantCulture) + ")"
                             + "\t" + item.BetaPeptide.BestMatchingPeptides.First().Peptide.Protein.Accession.ToString(CultureInfo.InvariantCulture)
@@ -84,7 +87,7 @@ namespace TaskLayer
             }
             FinishedWritingFile(writtenFile, nestedIds);
         }
-
+        
         public void WritePepXML_xl(List<CrosslinkSpectralMatch> items, List<Protein> proteinList, string databasePath, List<Modification> variableModifications, List<Modification> fixedModifications, List<string> localizeableModificationTypes, string outputFolder, string fileName, List<string> nestedIds)
         {
             if (!items.Any())
@@ -424,6 +427,23 @@ namespace TaskLayer
             _indexedSerializer.Serialize(writer, _pepxml);
             writer.Close();
             FinishedWritingFile(Path.Combine(outputFolder, fileName + ".pep.XML"), nestedIds);
+        }
+
+        public void WriteOxoniumIons(Tuple<int, double[]>[] items, string filePath)
+        {
+            using (StreamWriter output = new StreamWriter(filePath))
+            {
+                output.WriteLine("ScanNum\t109\t115\t126\t127\t138\t144\t163\t168\t186\t204\t274\t290\t292\t308\t366\t657\t673");
+                foreach (var item in items)
+                {
+                    output.Write(item.Item1.ToString());
+                    foreach (var d in item.Item2)
+                    {
+                        output.Write('\t' + (d/item.Item2.Max()).ToString());
+                    }
+                    output.Write("\r\n");
+                }
+            }
         }
     }
 }

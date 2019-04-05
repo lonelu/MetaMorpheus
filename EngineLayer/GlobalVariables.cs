@@ -50,6 +50,10 @@ namespace EngineLayer
             ElementsLocation = Path.Combine(DataDir, @"Data", @"elements.dat");
             UsefulProteomicsDatabases.Loaders.LoadElements();
 
+            NGlycanLocation = Path.Combine(DataDir, @"Data", @"NGlycan.gdb");
+            NGlycanLocation_182 = Path.Combine(DataDir, @"Data", @"Glycans_182.gdb");
+            OGlycanLocation = Path.Combine(DataDir, @"Data", @"OGlycan.gdb");
+
             ExperimentalDesignFileName = "ExperimentalDesign.tsv";
 
             UnimodDeserialized = UsefulProteomicsDatabases.Loaders.LoadUnimod(Path.Combine(DataDir, @"Data", @"unimod.xml")).ToList();
@@ -64,7 +68,7 @@ namespace EngineLayer
 
             AddMods(UniprotDeseralized.OfType<Modification>(), false);
             AddMods(UnimodDeserialized.OfType<Modification>(), false);
-            
+
             // populate dictionaries of known mods/proteins for deserialization
             AllModsKnownDictionary = new Dictionary<string, Modification>();
             foreach (Modification mod in AllModsKnown)
@@ -83,15 +87,18 @@ namespace EngineLayer
                 { DissociationType.ETD.ToString(), DissociationType.ETD },
                 { DissociationType.HCD.ToString(), DissociationType.HCD },
                 { DissociationType.EThcD.ToString(), DissociationType.EThcD },
-                { DissociationType.Custom.ToString(), DissociationType.Custom }
+                { DissociationType.Custom.ToString(), DissociationType.Custom },
+                { DissociationType.LowCID.ToString(), DissociationType.LowCID}
 
                 // TODO: allow reading from scan header (autodetect dissociation type)
             };
         }
 
         public static List<string> ErrorsReadingMods = new List<string>();
+
         // File locations
         public static string DataDir { get; }
+
         public static bool StopLoops { get; set; }
         public static string ElementsLocation { get; }
         public static string MetaMorpheusVersion { get; }
@@ -105,6 +112,9 @@ namespace EngineLayer
         public static Dictionary<string, DissociationType> AllSupportedDissociationTypes { get; private set; }
 
         public static string ExperimentalDesignFileName { get; }
+        public static string NGlycanLocation { get; }
+        public static string NGlycanLocation_182 { get; }
+        public static string OGlycanLocation { get; }
 
         public static void AddMods(IEnumerable<Modification> modifications, bool modsAreFromTheTopOfProteinXml)
         {
