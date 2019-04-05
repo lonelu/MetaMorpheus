@@ -66,6 +66,8 @@ namespace MetaDrawGUI
 
         private readonly ObservableCollection<GlycoStructureForDataGrid> GlycoStrucureObservableCollection = new ObservableCollection<GlycoStructureForDataGrid>();
 
+        private readonly ObservableCollection<GlycanDatabaseForDataGrid> glycanDatabaseCollection = new ObservableCollection<GlycanDatabaseForDataGrid>();
+
         //MultiproteaseCrosslink
         private readonly ObservableCollection<RawDataForDataGrid> MutiProteaseCrosslinkResultFilesObservableCollection = new ObservableCollection<RawDataForDataGrid>();
 
@@ -128,6 +130,7 @@ namespace MetaDrawGUI
 
             dataGridGlycoResultFiles.DataContext = resultFilesObservableCollection;
             dataGridGlyco.DataContext = GlycoStrucureObservableCollection;
+            dataGridGlycan.DataContext = glycanDatabaseCollection;
         }
 
         private void Window_Drop(object sender, DragEventArgs e)
@@ -790,6 +793,11 @@ namespace MetaDrawGUI
 
             MultiproteaseCrosslink.Read(resultsFilePath);
             
+        }
+
+        private void BtnLoadGlycans_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

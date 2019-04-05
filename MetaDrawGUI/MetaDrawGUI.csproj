@@ -182,6 +182,7 @@
     <Compile Include="DataGrids\AllScansForDataGrid.cs" />
     <Compile Include="DataGrids\ChargeEnvelopesForDataGrid.cs" />
     <Compile Include="DataGrids\EnvolopForDataGrid.cs" />
+    <Compile Include="DataGrids\GlycanDatabaseForDataGrid.cs" />
     <Compile Include="DataGrids\GlycoStructureForDataGrid.cs" />
     <Compile Include="DataGrids\RawDataForDataGrid.cs" />
     <Compile Include="DataGrids\SpectrumForDataGrid.cs" />

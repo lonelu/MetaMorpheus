@@ -58,7 +58,7 @@
                           Background="Silver"
                           Width="5"/>
         <TabControl x:Name="MyTab" Grid.Column="2">
-            <TabItem x:Name="TabGlycan" Width="150" Height="30" Header="Glycan">
+            <TabItem x:Name="TabGlycopeptides" Width="150" Height="30" Header="Glycopeptides">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1*"/>
@@ -88,7 +88,7 @@
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
                                     <Button x:Name="BtnAddGlycoResultFiles" Content="Add" Click="BtnAddGlycoResultFiles_Click"  Height="30" VerticalAlignment="Top"/>
                                     <Button x:Name="btnClearGlycoResultFiles" Content="Clear" Click="BtnClearGlycoResultFiles_Click" Height="30" VerticalAlignment="Top"/>
-                                    <Button x:Name="BtnLoadGlycoResults" Content="Load Result" Click="BtnLoadGlycoResults_Click" Height="30" VerticalAlignment="Top"/>
+                                    <Button x:Name="BtnLoadGlycoResults" Content="Load Result" Click="BtnLoadGlycoResults_Click" Margin="0,0,0,-9"/>
                                 </StackPanel>
                             </Grid>
                         </GroupBox>
@@ -114,6 +114,54 @@
                         </GroupBox>
                         <StackPanel Grid.Column="1">
                             <Canvas x:Name="glyCanvas" Height="700" Width="280" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </TabItem>
+            <TabItem x:Name="TabGlycanDatabase" Width="150" Height="30" Header="Glycan Database">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="5*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="20*"/>
+                        </Grid.RowDefinitions>
+                        <TextBox x:Name="TxtGlycans" Text="Input here..." Height="30" Grid.Row="0"/>
+                        <Button x:Name="BtnDrawGlycans" Content="Draw Clycan" Click="BtnDrawGlycan_Click" Grid.Row="1"/>
+                        <Button x:Name="BtnLoadGlycans" Content="Load Clycan" Click="BtnLoadGlycans_Click" Grid.Row="3"/>
+                        <GroupBox Header="Glyco Structures" Name="gbGlycanStructures" Grid.Row="5">
+                            <DataGrid x:Name="dataGridGlycan" VerticalAlignment="Stretch" ItemsSource="{Binding}"
+                                  IsReadOnly="True" ScrollViewer.CanContentScroll="True" Margin="0,0,0,0"
+                                  SelectedCellsChanged ="DataGridGlyco_SelectedCellsChanged">
+                            </DataGrid>
+                        </GroupBox>
+                    </Grid>
+                    <GridSplitter Grid.Column="1" 
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Stretch"
+                          Background="Silver"
+                          Width="5"/>
+                    <Grid Grid.Column="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <Canvas x:Name="glyCanvasLeft" Height="700" Width="280" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <Canvas x:Name="glyCanvasMiddle" Height="700" Width="280" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <Canvas x:Name="glyCanvasRight" Height="700" Width="280" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                         </StackPanel>
                     </Grid>
                 </Grid>
