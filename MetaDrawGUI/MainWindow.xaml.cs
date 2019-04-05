@@ -67,7 +67,7 @@ namespace MetaDrawGUI
         private readonly ObservableCollection<GlycoStructureForDataGrid> GlycoStrucureObservableCollection = new ObservableCollection<GlycoStructureForDataGrid>();
 
         private readonly ObservableCollection<GlycanDatabaseForDataGrid> glycanDatabaseCollection = new ObservableCollection<GlycanDatabaseForDataGrid>();
-
+        private List<Glycan> NGlycans { get; set; }
         //MultiproteaseCrosslink
         private readonly ObservableCollection<RawDataForDataGrid> MutiProteaseCrosslinkResultFilesObservableCollection = new ObservableCollection<RawDataForDataGrid>();
 
@@ -797,7 +797,41 @@ namespace MetaDrawGUI
 
         private void BtnLoadGlycans_Click(object sender, RoutedEventArgs e)
         {
+            NGlycans = Glycan.LoadGlycan(GlobalVariables.NGlycanLocation).ToList();
+            foreach (var glycan in NGlycans)
+            {
+                glycanDatabaseCollection.Add(new GlycanDatabaseForDataGrid(glycan.GlyId, Glycan.GetKindString(glycan.Kind), glycan.Struc));
+            }
+        }
 
+        private void BtnSearchGlycan_Click(object sender, RoutedEventArgs e)
+        {
+            if (TxtGlycanKind.Text != null)
+            {
+                var x = NGlycans.Where(p => Glycan.GetKindString(p.Kind) == TxtGlycanKind.Text).ToList();
+
+                if (x.Count > 0)
+                {
+                    glycanDatabaseCollection.Clear();
+                    foreach (var glycan in x)
+                    {
+                        glycanDatabaseCollection.Add(new GlycanDatabaseForDataGrid(glycan.GlyId, Glycan.GetKindString(glycan.Kind), glycan.Struc));
+                    }
+                }
+                
+            }
+        }
+
+        private void DataGridGlycan_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+        {
+            if (dataGridGlycan.SelectedItem == null)
+            {
+                return;
+            }
+
+            var sele = (GlycanDatabaseForDataGrid)dataGridGlycan.SelectedItem;
+            glyCanvasLeft.Children.Clear();
+            GlycanStructureAnnotation.DrawGlycan(glyCanvasLeft, sele.Structure, 50);
         }
     }
 }

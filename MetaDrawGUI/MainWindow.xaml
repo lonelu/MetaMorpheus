@@ -131,15 +131,18 @@
                             <RowDefinition Height="1*"/>
                             <RowDefinition Height="1*"/>
                             <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
                             <RowDefinition Height="20*"/>
                         </Grid.RowDefinitions>
                         <TextBox x:Name="TxtGlycans" Text="Input here..." Height="30" Grid.Row="0"/>
                         <Button x:Name="BtnDrawGlycans" Content="Draw Clycan" Click="BtnDrawGlycan_Click" Grid.Row="1"/>
-                        <Button x:Name="BtnLoadGlycans" Content="Load Clycan" Click="BtnLoadGlycans_Click" Grid.Row="3"/>
+                        <Button x:Name="BtnLoadGlycans" Content="Load Clycan" Click="BtnLoadGlycans_Click" Grid.Row="2"/>
+                        <TextBox x:Name="TxtGlycanKind" Text="In order H_N_A_G_F, ex.'H2N2F'" Height="30" Grid.Row="3"/>
+                        <Button x:Name="BtnSearchGlycan" Content="Search Clycan" Click="BtnSearchGlycan_Click"  Grid.Row="4"/>
                         <GroupBox Header="Glyco Structures" Name="gbGlycanStructures" Grid.Row="5">
                             <DataGrid x:Name="dataGridGlycan" VerticalAlignment="Stretch" ItemsSource="{Binding}"
                                   IsReadOnly="True" ScrollViewer.CanContentScroll="True" Margin="0,0,0,0"
-                                  SelectedCellsChanged ="DataGridGlyco_SelectedCellsChanged">
+                                  SelectedCellsChanged ="DataGridGlycan_SelectedCellsChanged">
                             </DataGrid>
                         </GroupBox>
                     </Grid>
