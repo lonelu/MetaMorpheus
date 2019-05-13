@@ -8,9 +8,18 @@ namespace MetaDrawGUI
 {
     public class WatchEvaluation
     {
+        public WatchEvaluation(int theScanNumber, double theRT, double watchIsoDecon, double watchIsoDeconByParallel, double watchChaDecon)
+        {
+            TheScanNumber = theScanNumber;
+            TheRT = theRT;
+            WatchIsoDecon = watchIsoDecon;
+            WatchIsoDeconByParallel = watchIsoDeconByParallel;
+            WatchChaDecon = watchChaDecon;
+        }
         public int TheScanNumber { get; set; }
         public double TheRT { get; set; }
         public double WatchIsoDecon { get; set; }
+        public double WatchIsoDeconByParallel { get; set; }
         public double WatchChaDecon { get; set; }
     }
 }

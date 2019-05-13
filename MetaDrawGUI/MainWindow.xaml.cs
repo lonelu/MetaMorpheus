@@ -290,7 +290,7 @@ namespace MetaDrawGUI
             (sender as Button).IsEnabled = false;
             btnAddFiles.IsEnabled = false;
             btnClearFiles.IsEnabled = false;
-            MsDataFile = spectraFileManager.LoadFile(spectraFilePath, null, null, true, true, new CommonParameters());
+            MsDataFile = spectraFileManager.LoadFile(spectraFilePath, null, null, false, false, new CommonParameters());
             msDataScans = MsDataFile.GetAllScansList();
 
             foreach (var iScan in msDataScans)
@@ -353,9 +353,11 @@ namespace MetaDrawGUI
             msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == x).First();
             MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
 
-            IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+            //IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+            //IsotopicEnvelopes = mzSpectrumBU.Deconvolute(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+            IsotopicEnvelopes = mzSpectrumBU.ParallelDeconvolute(msDataScan.ScanWindowRange, DeconvolutionParameter, 8).OrderBy(p => p.monoisotopicMass).ToList();
 
-            int i=1;
+            int i =1;
             foreach (var item in IsotopicEnvelopes)
             {
                 envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
@@ -419,8 +421,13 @@ namespace MetaDrawGUI
 
                 var watch = System.Diagnostics.Stopwatch.StartNew();
 
-                var isotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(MS1Scans[i].ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+                var isotopicEnvelopes = mzSpectrumBU.Deconvolute(MS1Scans[i].ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
                 watch.Stop();
+
+                var watch0 = System.Diagnostics.Stopwatch.StartNew();
+
+                var isotopicEnvelopesByParallel = mzSpectrumBU.ParallelDeconvolute(MS1Scans[i].ScanWindowRange, DeconvolutionParameter, 8).OrderBy(p => p.monoisotopicMass).ToList();
+                watch0.Stop();
 
                 var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
@@ -428,11 +435,7 @@ namespace MetaDrawGUI
 
                 watch1.Stop();
 
-                var theEvaluation = new WatchEvaluation();
-                theEvaluation.TheScanNumber = theScanNum;
-                theEvaluation.TheRT = theRT;
-                theEvaluation.WatchIsoDecon = watch.ElapsedMilliseconds;
-                theEvaluation.WatchChaDecon = watch1.ElapsedMilliseconds;
+                var theEvaluation = new WatchEvaluation(theScanNum, theRT, watch.ElapsedMilliseconds, watch0.ElapsedMilliseconds, watch1.ElapsedMilliseconds);
                 evalution.Add(theEvaluation);
                 i++;
 
@@ -441,10 +444,10 @@ namespace MetaDrawGUI
             var writtenFile = Path.Combine(Path.GetDirectoryName(spectraFilesObservableCollection.First().FilePath), "watches.mytsv");
             using (StreamWriter output = new StreamWriter(writtenFile))
             {
-                output.WriteLine("ScanNum\tRT\tIsotopicDecon\tChargeDecon");
+                output.WriteLine("ScanNum\tRT\tIsotopicDecon\tIsoTopicDeconByParallel\tChargeDecon");
                 foreach (var theEvaluation in evalution)
                 {
-                    output.WriteLine(theEvaluation.TheScanNumber.ToString() + "\t" + theEvaluation.TheRT + "\t" + theEvaluation.WatchIsoDecon.ToString() + "\t" + theEvaluation.WatchChaDecon.ToString());
+                    output.WriteLine(theEvaluation.TheScanNumber.ToString() + "\t" + theEvaluation.TheRT + "\t" + theEvaluation.WatchIsoDecon.ToString() + "\t" + theEvaluation.WatchIsoDeconByParallel.ToString() + "\t" + theEvaluation.WatchChaDecon.ToString());
                 }
             }
 
