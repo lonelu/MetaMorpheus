@@ -354,8 +354,8 @@ namespace MetaDrawGUI
             MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
 
             //IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
-            //IsotopicEnvelopes = mzSpectrumBU.Deconvolute(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
-            IsotopicEnvelopes = mzSpectrumBU.ParallelDeconvolute(msDataScan.ScanWindowRange, DeconvolutionParameter, 8).OrderBy(p => p.monoisotopicMass).ToList();
+            IsotopicEnvelopes = mzSpectrumBU.Deconvolute(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+            //IsotopicEnvelopes = mzSpectrumBU.ParallelDeconvolute(msDataScan.ScanWindowRange, DeconvolutionParameter, 8).OrderBy(p => p.monoisotopicMass).ToList();
 
             int i =1;
             foreach (var item in IsotopicEnvelopes)
@@ -557,7 +557,7 @@ namespace MetaDrawGUI
                 }
 
                 MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
-                IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+                IsotopicEnvelopes = mzSpectrumBU.Deconvolute(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
 
 
                 int i = 1;
@@ -699,10 +699,9 @@ namespace MetaDrawGUI
             foreach (var scan in msDataScans.Where(p => p.MsnOrder == 1))
             {
                 //if (scan.OneBasedScanNumber >= 2 && msDataScans.ElementAt(scan.OneBasedScanNumber-2).MsnOrder == 1)
-                if (scan.ScanWindowRange.Minimum == 349) //TO DO: this is temp special for the coon lab neocode data.
-                {
+                //if (scan.ScanWindowRange.Minimum == 349) //TO DO: this is temp special for the coon lab neocode data.              
                     ms1ScanForDecon.Add(scan);
-                }
+                
             }
             //var a = ms1ScanForDecon.Count();
             //var b = msDataScans.Where(p => p.MsnOrder == 1).Count();
