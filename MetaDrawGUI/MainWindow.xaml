@@ -88,7 +88,8 @@
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
                                     <Button x:Name="BtnAddGlycoResultFiles" Content="Add" Click="BtnAddGlycoResultFiles_Click"  Height="30" VerticalAlignment="Top"/>
                                     <Button x:Name="btnClearGlycoResultFiles" Content="Clear" Click="BtnClearGlycoResultFiles_Click" Height="30" VerticalAlignment="Top"/>
-                                    <Button x:Name="BtnLoadGlycoResults" Content="Load Result" Click="BtnLoadGlycoResults_Click" Margin="0,0,0,-9"/>
+                                    <Button x:Name="BtnLoadGlycoResults" Content="Load Result" Click="BtnLoadGlycoResults_Click" />
+                                    <Button x:Name="BtnWriteGlycoResults" Content="Write Result" Click="BtnWriteGlycoResults_Click"/>
                                 </StackPanel>
                             </Grid>
                         </GroupBox>

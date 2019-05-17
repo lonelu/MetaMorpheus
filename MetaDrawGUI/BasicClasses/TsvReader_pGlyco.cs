@@ -68,13 +68,36 @@ namespace MetaDrawGUI
             parsedHeader.Add(PsmTsvHeader_pGlyco.PrecursorMH, Array.IndexOf(spl, PsmTsvHeader_pGlyco.PrecursorMH));
             parsedHeader.Add(PsmTsvHeader_pGlyco.BaseSequence, Array.IndexOf(spl, PsmTsvHeader_pGlyco.BaseSequence));
             parsedHeader.Add(PsmTsvHeader_pGlyco.Mods, Array.IndexOf(spl, PsmTsvHeader_pGlyco.Mods));
+            parsedHeader.Add(PsmTsvHeader_pGlyco.PeptideMH, Array.IndexOf(spl, PsmTsvHeader_pGlyco.PeptideMH));
+            parsedHeader.Add(PsmTsvHeader_pGlyco.GlycanMass, Array.IndexOf(spl, PsmTsvHeader_pGlyco.GlycanMass));
             parsedHeader.Add(PsmTsvHeader_pGlyco.Glycan, Array.IndexOf(spl, PsmTsvHeader_pGlyco.Glycan));
             parsedHeader.Add(PsmTsvHeader_pGlyco.GlyStruct, Array.IndexOf(spl, PsmTsvHeader_pGlyco.GlyStruct));
             parsedHeader.Add(PsmTsvHeader_pGlyco.ProteinAccession, Array.IndexOf(spl, PsmTsvHeader_pGlyco.ProteinAccession));
             parsedHeader.Add(PsmTsvHeader_pGlyco.GlyQValue, Array.IndexOf(spl, PsmTsvHeader_pGlyco.GlyQValue));
             parsedHeader.Add(PsmTsvHeader_pGlyco.PepQValue, Array.IndexOf(spl, PsmTsvHeader_pGlyco.PepQValue));
             parsedHeader.Add(PsmTsvHeader_pGlyco.QValue, Array.IndexOf(spl, PsmTsvHeader_pGlyco.QValue));
+            parsedHeader.Add(PsmTsvHeader_pGlyco.ProSite, Array.IndexOf(spl, PsmTsvHeader_pGlyco.ProSite));
+            parsedHeader.Add(PsmTsvHeader_pGlyco.GlySite, Array.IndexOf(spl, PsmTsvHeader_pGlyco.GlySite));
             return parsedHeader;
+        }
+
+        public static void WriteTsv(string filePath, List<SimplePsm> simplePsms)
+        {
+            if (simplePsms.Count == 0)
+            {
+                return;
+            }
+
+            using (StreamWriter output = new StreamWriter(filePath))
+            {
+                string header = SimplePsm.GetTabSepHeaderGlyco();
+
+                output.WriteLine(header);
+                foreach (var heh in simplePsms.OrderBy(p=>p.QValue).Where(p=>p.QValue < 0.01))
+                {
+                    output.WriteLine(heh.ToString());
+                }
+            }
         }
     }
 
@@ -85,11 +108,16 @@ namespace MetaDrawGUI
         public const string PrecursorMH = "PrecursorMH";
         public const string BaseSequence = "Peptide";
         public const string Mods = "Mod";
+        public const string PeptideMH = "PeptideMH";
+        public const string GlycanMass = "GlyMass";
         public const string Glycan = "Glycan(H,N,A,G,F)";
         public const string GlyStruct = "PlausibleStruct";
         public const string ProteinAccession = "Proteins";    
         public const string GlyQValue = "GlycanFDR";
         public const string PepQValue = "PeptideFDR";
         public const string QValue = "TotalFDR";
+        public const string ProSite = "ProSite";
+        public const string GlySite = "GlySite";
+        public const string GlyComp = "Glycan(H,N,A,G,F)";
     }
 }
