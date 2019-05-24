@@ -10,8 +10,8 @@ namespace EngineLayer
     {
         private static readonly int hydrogenAtomMonoisotopicMass =  Convert.ToInt32(PeriodicTable.GetElement("H").PrincipalIsotope.AtomicMass * 1E5);
 
-        //H: C6O5H10, N: C8O5NH13, A: C11O8NH17, G: C11H17NO9, F: C6O4H10
-        private static Dictionary<char, int> CharMassDic = new Dictionary<char, int>() { { 'H', 16205282 }, { 'N', 20307937 }, { 'A', 29109542 }, { 'G', 30709033 }, { 'F', 14605791 } };
+        //H: C6O5H10, N: C8O5NH13, A: C11O8NH17, G: C11H17NO9, F: C6O4H10, X: C5H10O5, K: C9H16O9, P: PO3H, S: SO3H, R: C6H10O7
+        private static Dictionary<char, int> CharMassDic = new Dictionary<char, int>() { { 'H', 16205282 }, { 'N', 20307937 }, { 'A', 29109542 }, { 'G', 30709033 }, { 'F', 14605791 }, {'X', 15005282 }, {'K', 26807943 }, {'P', 7996633 }, {'S', 8096464 }, {'R', 19404265 } };
 
         public static HashSet<int> oxoniumIons = new HashSet<int>()
         {13805550, 16806607, 18607663, 20408720, 36614002 };
@@ -59,7 +59,7 @@ namespace EngineLayer
         public List<GlycanIon> Ions { get; set; }
         public bool Decoy { get; set; }
         
-        private static Node Struct2Node(string theGlycanStruct)
+        public static Node Struct2Node(string theGlycanStruct)
         {
             int level = 0;
             Node curr = new Node(theGlycanStruct[1], level);
@@ -74,23 +74,30 @@ namespace EngineLayer
                     }
                     if (theGlycanStruct[i] == ')')
                     {
-                        curr = curr.father;
+                        curr = curr.Father;
                         level--;
                     }
                     else
                     {
                         level++;
-                        if (curr.lChild == null)
+                        if (curr.LeftChild == null)
                         {
-                            curr.lChild = new Node(theGlycanStruct[i], level);
-                            curr.lChild.father = curr;
-                            curr = curr.lChild;
+                            curr.LeftChild = new Node(theGlycanStruct[i], level);
+                            curr.LeftChild.Father = curr;
+                            curr = curr.LeftChild;
                         }
-                        else
+                        else if(curr.RightChild == null)
                         {
-                            curr.rChild = new Node(theGlycanStruct[i], level);
-                            curr.rChild.father = curr;
-                            curr = curr.rChild;
+                            curr.RightChild = new Node(theGlycanStruct[i], level);
+                            curr.RightChild.Father = curr;
+                            curr = curr.RightChild;
+                        }
+                        else if(curr.MiddleChild == null)
+                        {
+                            curr.MiddleChild = curr.LeftChild;
+                            curr.LeftChild = new Node(theGlycanStruct[i], level);
+                            curr.LeftChild.Father = curr;
+                            curr = curr.LeftChild;
                         }
                     }
 
@@ -104,7 +111,7 @@ namespace EngineLayer
             string output = "";
             if (node != null)
             {
-                output += "(" + node.value + Node2Struct(node.lChild) + Node2Struct(node.rChild) + ")";
+                output += "(" + node.Value + Node2Struct(node.MiddleChild) + Node2Struct(node.LeftChild) + Node2Struct(node.RightChild) + ")";
             }
             return output;
         }
@@ -113,46 +120,119 @@ namespace EngineLayer
         {
             List<Node> nodes = new List<Node>();
             var curr = node;
-            if (curr.lChild == null && curr.rChild == null)
+            if (curr.LeftChild == null && curr.RightChild == null)
             {
                 nodes.Add(curr);
             }
             else
             {
-                List<Node> l = GetAllChildrenCombination(curr.lChild);
-                nodes.Add(new Node(curr.value));
-                if (curr.rChild != null)
+                List<Node> l = GetAllChildrenCombination(curr.LeftChild);
+                nodes.Add(new Node(curr.Value));
+                if (curr.RightChild != null)
                 {
-                    List<Node> r = GetAllChildrenCombination(curr.rChild);
-                    foreach (var lNode in l)
+                    List<Node> r = GetAllChildrenCombination(curr.RightChild);
+                    if (curr.MiddleChild != null)
                     {
-                        var c = new Node(curr.value);
-                        c.lChild = lNode;
-                        nodes.Add(c);
-                    }
-                    foreach (var rNode in r)
-                    {
-                        var c = new Node(curr.value);
-                        c.rChild = rNode;
-                        nodes.Add(c);
-                    }
-                    foreach (var lNode in l)
-                    {
-                        foreach (var rNode in r)
+                        List<Node> m = GetAllChildrenCombination(curr.MiddleChild);
+
+                        foreach (var lNode in l)
                         {
-                            var c = new Node(curr.value);
-                            c.lChild = lNode;
-                            c.rChild = rNode;
+                            var c = new Node(curr.Value);
+                            c.LeftChild = lNode;
                             nodes.Add(c);
                         }
+                        foreach (var rNode in r)
+                        {
+                            var c = new Node(curr.Value);
+                            c.RightChild = rNode;
+                            nodes.Add(c);
+                        }
+                        foreach (var mNode in m)
+                        {
+                            var c = new Node(curr.Value);
+                            c.MiddleChild = mNode;
+                            nodes.Add(c);
+                        }
+                        foreach (var lNode in l)
+                        {
+                            foreach (var rNode in r)
+                            {
+                                var c = new Node(curr.Value);
+                                c.LeftChild = lNode;
+                                c.RightChild = rNode;
+                                nodes.Add(c);
+                            }
+                        }
+
+                        foreach (var rNode in r)
+                        {
+                            foreach (var mNode in m)
+                            {
+                                var c = new Node(curr.Value);
+                                c.RightChild = rNode;
+                                c.MiddleChild = mNode;
+                                nodes.Add(c);
+                            }
+                        }
+
+                        foreach (var lNode in l)
+                        {
+                            foreach (var mNode in m)
+                            {
+                                var c = new Node(curr.Value);
+                                c.LeftChild = lNode;
+                                c.MiddleChild = mNode;
+                                nodes.Add(c);
+                            }
+                        }
+
+                        foreach (var lNode in l)
+                        {
+                            foreach (var rNode in r)
+                            {
+                                foreach (var mNode in m)
+                                {
+                                    var c = new Node(curr.Value);
+                                    c.LeftChild = lNode;
+                                    c.RightChild = rNode;
+                                    c.MiddleChild = mNode;
+                                    nodes.Add(c);
+                                }                               
+                            }
+                        }
                     }
+                    else
+                    {
+                        foreach (var lNode in l)
+                        {
+                            var c = new Node(curr.Value);
+                            c.LeftChild = lNode;
+                            nodes.Add(c);
+                        }
+                        foreach (var rNode in r)
+                        {
+                            var c = new Node(curr.Value);
+                            c.RightChild = rNode;
+                            nodes.Add(c);
+                        }
+                        foreach (var lNode in l)
+                        {
+                            foreach (var rNode in r)
+                            {
+                                var c = new Node(curr.Value);
+                                c.LeftChild = lNode;
+                                c.RightChild = rNode;
+                                nodes.Add(c);
+                            }
+                        }
+                    }                 
                 }
                 else
                 {
                     foreach (var lNode in l)
                     {
-                        var c = new Node(curr.value);
-                        c.lChild = lNode;
+                        var c = new Node(curr.Value);
+                        c.LeftChild = lNode;
                         nodes.Add(c);
                     }
                 }
@@ -171,7 +251,7 @@ namespace EngineLayer
             return y;
         }
 
-        private static byte[] GetKind(string structure)
+        public static byte[] GetKind(string structure)
         {
             byte[] kind = new byte[] { Convert.ToByte(structure.Count(p => p == 'H')), Convert.ToByte(structure.Count(p => p == 'N')), Convert.ToByte(structure.Count(p => p == 'A')) , Convert.ToByte(structure.Count(p => p == 'G')) , Convert.ToByte(structure.Count(p => p == 'F')) };
             return kind;
@@ -187,36 +267,120 @@ namespace EngineLayer
             return GetMass(lossKind);
         }
 
-        //TO DO: how to get reasonable ionKind
-        private static List<byte[]> GetAllIonKinds(byte[] Kind)
+        //Find glycans from structured glycan database
+        public static List<Glycan> GetAllIonMassFromKind(byte[] kind, Dictionary<string, List<Glycan>> groupedGlycans)
         {
-            List<byte[]> allIonKinds = new List<byte[]>();
+            var kindKey = GetKindString(kind);
+            List<Glycan> glycans = new List<Glycan>();
 
-            
+            groupedGlycans.TryGetValue(kindKey, out glycans);
 
-            return allIonKinds;
-        }
-
-        public static List<GlycanIon> GetGlycanIons(byte[] Kind)
-        {
-            List<GlycanIon> glycanIons = new List<GlycanIon>();
-            HashSet<double> ionMasses = new HashSet<double>();
-            var allIonKinds = GetAllIonKinds(Kind);
-            foreach (var ionKind in allIonKinds)
+            if (glycans==null)
             {
-                var ionMass = GetMass(ionKind);
-                if (!ionMasses.Contains(ionMass))
+                //if not in the structured glycan database, find a smaller one.
+                bool notFound = true;
+                while (notFound)
                 {
-                    ionMasses.Add(ionMass);
-                    var lossIonMass = GetIonLossMass(Kind, ionKind);
-                    GlycanIon glycanIon = new GlycanIon(0, ionMass, ionKind, lossIonMass);
-                    glycanIons.Add(glycanIon);
+                    var childKinds = BuildChildKindKey(kind);
+                    foreach (var child in childKinds)
+                    {
+                        var key = GetKindString(child);
+                        if (groupedGlycans.TryGetValue(key, out glycans))
+                        {
+                            notFound = false;
+                            break;
+                        }
+                    }
+
+                    if (notFound == true)
+                    {
+                        glycans = GetAllIonMassFromKind(childKinds[0], groupedGlycans);
+                        notFound = false;
+                    }
                 }
             }
-            glycanIons.Add(new GlycanIon(0, 8303819, new byte[] { 0, 0, 0, 0, 0 }, GetMass(Kind) - 8303819)); //Cross-ring mass
-            glycanIons = glycanIons.OrderBy(p => p.IonMass).ToList();
 
-            return glycanIons;
+            return glycans;
+        }
+
+        private static List<byte[]> BuildChildKindKey(byte[] kind)
+        {
+            List<byte[]> childKinds = new List<byte[]>();
+            for (int i = kind.Length -1; i >=0; i--)
+            {             
+                if (kind[i] >= 1)
+                {
+                    var childKind = new byte[kind.Length];
+                    Array.Copy(kind, childKind, kind.Length);
+                    childKind[i]--;
+                    childKinds.Add(childKind);
+                }           
+            }
+            return childKinds;
+        }
+
+        public static IEnumerable<Glycan> LoadKindGlycan(string filePath, IEnumerable<Glycan> NGlycans)
+        {
+            var groupedGlycans = NGlycans.GroupBy(p => GetKindString(p.Kind)).ToDictionary(p => p.Key, p => p.ToList());
+
+            using (StreamReader lines = new StreamReader(filePath))
+            {
+                int id = 1;
+                while (lines.Peek() != -1)
+                {
+                    string line = lines.ReadLine();
+
+                    byte[] kind = new byte[10] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0  };
+                    var x = line.Split('(', ')');
+                    int i = 0;
+                    while (i < x.Length - 1)
+                    {
+                        switch (x[i])
+                        {
+                            case "Hex":
+                                kind[0] = byte.Parse(x[i + 1]);
+                                break;
+                            case "HexNAc":
+                                kind[1] = byte.Parse(x[i + 1]);
+                                break;
+                            case "NeuAc":                            
+                                kind[2] = byte.Parse(x[i + 1]);
+                                break;
+                            case "NeuGc":
+                                kind[3] = byte.Parse(x[i + 1]);
+                                break;
+                            case "Fuc":
+                                kind[4] = byte.Parse(x[i + 1]);
+                                break;
+                            case "Xyl":
+                                kind[5] = byte.Parse(x[i + 1]);
+                                break;
+                            case "KND":
+                                kind[6] = byte.Parse(x[i + 1]);
+                                break;
+                            case "Phosphate":
+                                kind[7] = byte.Parse(x[i + 1]);
+                                break;
+                            case "Sulfate":
+                                kind[8] = byte.Parse(x[i + 1]);
+                                break;
+                            case "HexA":
+                                kind[9] = byte.Parse(x[i + 1]);
+                                break;
+                            default:
+                                break;
+                        }
+                        i = i + 2;
+                    }                  
+                    var mass = GetMass(kind);
+                    
+                    var glycans = GetAllIonMassFromKind(kind, groupedGlycans);
+
+                    var glycan = new Glycan(glycans.First().Struc, mass, kind, glycans.First().Ions, true);
+                    glycan.GlyId = id++; 
+                    yield return glycan; 
+                }
+            }
         }
 
         public static bool DistingushGlycans(Glycan glycan1, Glycan glycan2)
@@ -241,37 +405,30 @@ namespace EngineLayer
 
         public static int GetMass(byte[] kind)
         {
-            int y = CharMassDic['H'] * kind[0] +
+            int mass = 0;
+            if (kind.Length <= 5)
+            {
+                mass = CharMassDic['H'] * kind[0] +
                 CharMassDic['N'] * kind[1] +
                 CharMassDic['A'] * kind[2] +
                 CharMassDic['G'] * kind[3] +
                 CharMassDic['F'] * kind[4];
-            return y;
-        }
-
-        public static SortedSet<int> GetAllChildrenMassFromKind(byte[] kind)
-        {
-            //TO DO: This is not right. 
-            SortedSet<int> vs = new SortedSet<int>();
-            for (byte g = 0; g <= kind[3]; g++)
-            {
-                for (byte a = 0; a <= kind[2]; a++)
-                {
-                    for (byte f = 0; f <= kind[4]; f++)
-                    {
-                        for (byte h  = 0; h <= kind[0]; h++)
-                        {
-                            for (byte n = 1; n <= kind[1]; n++)
-                            {
-                                byte[] akind = new byte[5] { h, n, f, a, g};
-                                int amass = GetMass(akind);
-                                vs.Add(amass);
-                            }
-                        }
-                    }
-                }
             }
-            return vs;
+            else
+            {
+                mass = CharMassDic['H'] * kind[0] +
+                CharMassDic['N'] * kind[1] +
+                CharMassDic['A'] * kind[2] +
+                CharMassDic['G'] * kind[3] +
+                CharMassDic['F'] * kind[4] +
+                CharMassDic['X'] * kind[5] +
+                CharMassDic['K'] * kind[6] +
+                CharMassDic['P'] * kind[7] +
+                CharMassDic['S'] * kind[8] +
+                CharMassDic['R'] * kind[9];
+            }
+            
+            return mass;
         }
 
         public HashSet<int> GetDiagnosticIons()
@@ -325,11 +482,11 @@ namespace EngineLayer
                     ionMasses.Add(ionMass);
                     var ionKind = GetKind(Node2Struct(aNodeIon));
                     var lossIonMass = GetIonLossMass(kind, ionKind);
-                    GlycanIon glycanIon = new GlycanIon(0, ionMass, ionKind, lossIonMass);
+                    GlycanIon glycanIon = new GlycanIon(null, ionMass, ionKind, lossIonMass);
                     glycanIons.Add(glycanIon);
                 }
             }
-            glycanIons.Add(new GlycanIon(0, 8303819, new byte[] { 0, 0, 0, 0, 0 }, mass - 8303819)); //Cross-ring mass
+            glycanIons.Add(new GlycanIon(null, 8303819, new byte[] { 0, 0, 0, 0, 0 }, mass - 8303819)); //Cross-ring mass
             glycanIons = glycanIons.OrderBy(p => p.IonMass).ToList();
             //glycanIons.RemoveAt(glycanIons.Count - 1);
 
@@ -359,16 +516,15 @@ namespace EngineLayer
             foreach (var aGlycan in glycans)
             {
                 allGlycans.Add(aGlycan);
-                var value = random.Next(30000, 90000); //TO DO: how to choose the number
-
                 List<GlycanIon> glycanIons = new List<GlycanIon>();
                 foreach (var ion in aGlycan.Ions)
                 {
-                    GlycanIon glycanIon = new GlycanIon(0, ion.IonMass, ion.IonKind, ion.LossIonMass + value);
+                    var value = random.Next(100000, 3000000); //Based on pGlyco [1, 30] and GlycoPAT [-50, 50].
+                    GlycanIon glycanIon = new GlycanIon(null, ion.IonMass + value, ion.IonKind, ion.LossIonMass - value);
                     glycanIons.Add(glycanIon);
                 }
-                var aDecoyGlycan = new Glycan(aGlycan.Struc, aGlycan.Mass + value, aGlycan.Kind, glycanIons, true);
-
+                var aDecoyGlycan = new Glycan(aGlycan.Struc, aGlycan.Mass, aGlycan.Kind, glycanIons, true);
+                aDecoyGlycan.GlyId = aGlycan.GlyId;
                 allGlycans.Add(aDecoyGlycan);
             }
             return allGlycans.OrderBy(p=>p.Mass).ToArray();
@@ -376,31 +532,23 @@ namespace EngineLayer
 
         public static string GetKindString(byte[] Kind)
         {
-            string H = (Kind[0] > 0) ? "H" + Kind[0].ToString() : "";
-            string N = (Kind[1] > 0) ? "N" + Kind[1].ToString() : "";
-            string A = (Kind[2] > 0) ? "A" + Kind[2].ToString() : "";
-            string G = (Kind[3] > 0) ? "G" + Kind[3].ToString() : "";
-            string F = (Kind[4] > 0) ? "F" + Kind[4].ToString() : "";
+            string H =  "H" + Kind[0].ToString();
+            string N =  "N" + Kind[1].ToString();
+            string A =  "A" + Kind[2].ToString();
+            string G =  "G" + Kind[3].ToString();
+            string F =  "F" + Kind[4].ToString();
             string kindString = H + N + A + G + F;
-            if (kindString == "")
-            {
-                kindString = "@";
-            }
             return kindString;
         }
 
         public static string GetKindString(string structure)
         {
-            string H = (structure.Count(p => p == 'H') > 0) ? "H" + structure.Count(p => p == 'H').ToString() : "";
-            string N = (structure.Count(p => p == 'N') > 0) ? "N" + structure.Count(p => p == 'N').ToString() : "";
-            string A = (structure.Count(p => p == 'A') > 0) ? "A" + structure.Count(p => p == 'A').ToString() : "";
-            string G = (structure.Count(p => p == 'G') > 0) ? "G" + structure.Count(p => p == 'G').ToString() : "";
-            string F = (structure.Count(p => p == 'F') > 0) ? "F" + structure.Count(p => p == 'F').ToString() : "";
+            string H =  "H" + structure.Count(p => p == 'H').ToString();
+            string N =  "N" + structure.Count(p => p == 'N').ToString();
+            string A =  "A" + structure.Count(p => p == 'A').ToString();
+            string G =  "G" + structure.Count(p => p == 'G').ToString();
+            string F =  "F" + structure.Count(p => p == 'F').ToString();
             string kindString = H + N + A + G + F;
-            if (kindString == "")
-            {
-                kindString = "@";
-            }
             return kindString;
         }
 
@@ -456,9 +604,9 @@ namespace EngineLayer
 
         private static Node GobackRootNode(Node node)
         {
-            while (node.father != null)
+            while (node.Father != null)
             {
-                node = node.father;
+                node = node.Father;
             }
             return node;
         }
@@ -478,14 +626,14 @@ namespace EngineLayer
 
     public class GlycanIon
     {
-        public GlycanIon(int ionStruct, int ionMass, byte[] ionKind, int lossIonMass)
+        public GlycanIon(string ionStruct, int ionMass, byte[] ionKind, int lossIonMass)
         {
             IonStruct = ionStruct;
             IonMass = ionMass;
             IonKind = ionKind;
             LossIonMass = lossIonMass;
         }
-        public int IonStruct { get; set; }
+        public string IonStruct { get; set; }
         public int IonMass { get; set; }
         public int LossIonMass { get; set; }//Glycan.Mass - IonMass
         public byte[] IonKind { get; set; }
@@ -517,7 +665,7 @@ namespace EngineLayer
                     {
                         ionMasses.Add(ion.IonMass);
                         var lossIonMass = Glycan.GetIonLossMass(Kind, ion.IonKind);
-                        GlycanIon glycanIon = new GlycanIon(0, ion.IonMass, ion.IonKind, lossIonMass);
+                        GlycanIon glycanIon = new GlycanIon(null, ion.IonMass, ion.IonKind, lossIonMass);
                         glycanIons.Add(glycanIon);
                     }
                 }

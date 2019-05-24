@@ -39,12 +39,7 @@ namespace TaskLayer
             // load proteins
             List<Protein> proteinList = LoadProteins(taskId, dbFilenameList, true, XlSearchParameters.DecoyType, localizeableModificationTypes, CommonParameters);
 
-            var crosslinker = new Crosslinker();
-            crosslinker = crosslinker.SelectCrosslinker(XlSearchParameters.CrosslinkerType);
-            if (XlSearchParameters.CrosslinkerType == CrosslinkerType.UserDefined)
-            {
-                crosslinker = GenerateUserDefinedCrosslinker(XlSearchParameters);
-            }
+            var crosslinker = XlSearchParameters.Crosslinker;
 
             MyFileManager myFileManager = new MyFileManager(true);
 
@@ -83,33 +78,41 @@ namespace TaskLayer
             {
                 var origDataFile = currentRawFileList[spectraFileIndex];
                 CommonParameters combinedParams = SetAllFileSpecificCommonParams(CommonParameters, fileSettingsList[spectraFileIndex]);
+                MassDiffAcceptor massDiffAcceptor = SearchTask.GetMassDiffAcceptor(combinedParams.PrecursorMassTolerance, XlSearchParameters.MassDiffAcceptorType, "");
 
                 var thisId = new List<string> { taskId, "Individual Spectra Files", origDataFile };
                 NewCollection(Path.GetFileName(origDataFile), thisId);
 
                 Status("Loading spectra file...", thisId);
-                MsDataFile myMsDataFile = myFileManager.LoadFile(origDataFile, combinedParams.TopNpeaks, combinedParams.MinRatio, combinedParams.TrimMs1Peaks, combinedParams.TrimMsMsPeaks, combinedParams);
+                MsDataFile myMsDataFile = myFileManager.LoadFile(origDataFile, combinedParams);
 
                 Status("Getting ms2 scans...", thisId);
 
                 Ms2ScanWithSpecificMass[] arrayOfMs2ScansSortedByMass = GetMs2Scans(myMsDataFile, origDataFile, combinedParams).OrderBy(b => b.PrecursorMass).ToArray();
 
-                if (!combinedParams.DoPrecursorDeconvolution && combinedParams.UseProvidedPrecursorInfo && XlSearchParameters.OnlyAnalyzeOxiniumIons)
+                if (XlSearchParameters.AnalyzeOxiniumIons || XlSearchParameters.FilterScanOxiniumIons)
                 {
-                    MassDiffAcceptor massDiffAcceptor = new SinglePpmAroundZeroSearchMode(combinedParams.ProductMassTolerance.Value);
+                    MassDiffAcceptor massDiffAcceptor_oxiniumIons = new SinglePpmAroundZeroSearchMode(combinedParams.ProductMassTolerance.Value);
                     Tuple<int, double[]>[] tuples = new Tuple<int, double[]>[arrayOfMs2ScansSortedByMass.Length];
                     Parallel.ForEach(Partitioner.Create(0, arrayOfMs2ScansSortedByMass.Length), new ParallelOptions { MaxDegreeOfParallelism = combinedParams.MaxThreadsToUsePerFile }, (range, loopState) =>
                     {
                         for (int scanIndex = range.Item1; scanIndex < range.Item2; scanIndex++)
                         {
-                            double[] oxoniumIonIntensities = GlycoPeptides.ScanGetOxoniumIons(arrayOfMs2ScansSortedByMass[scanIndex], massDiffAcceptor);
+                            double[] oxoniumIonIntensities = GlycoPeptides.ScanGetOxoniumIons(arrayOfMs2ScansSortedByMass[scanIndex], massDiffAcceptor_oxiniumIons);
+                            arrayOfMs2ScansSortedByMass[scanIndex].OxiniumIonNum = oxoniumIonIntensities.Where(p=>p>0).Count();
                             tuples[scanIndex] = new Tuple<int, double[]>(arrayOfMs2ScansSortedByMass[scanIndex].OneBasedScanNumber, oxoniumIonIntensities);
                         }
                     });
-                    var writtenFile= Path.Combine(OutputFolder, "oxiniumIons" + ".tsv");
-                    WriteOxoniumIons(tuples, writtenFile);
+                    if (XlSearchParameters.AnalyzeOxiniumIons)
+                    {
+                        var writtenFile = Path.Combine(OutputFolder, "oxiniumIons" + ".tsv");
+                        WriteOxoniumIons(tuples, writtenFile);
+                    }
 
-                    return MyTaskResults;
+                    if (XlSearchParameters.FilterScanOxiniumIons)
+                    {
+                        arrayOfMs2ScansSortedByMass = arrayOfMs2ScansSortedByMass.Where(p => p.OxiniumIonNum >= 2).ToArray();
+                    }
                 }
 
                 CrosslinkSpectralMatch[] newPsms = new CrosslinkSpectralMatch[arrayOfMs2ScansSortedByMass.Length];
@@ -119,16 +122,16 @@ namespace TaskLayer
                     List<Protein> proteinListSubset = proteinList.GetRange(currentPartition * proteinList.Count() / combinedParams.TotalPartitions, ((currentPartition + 1) * proteinList.Count() / combinedParams.TotalPartitions) - (currentPartition * proteinList.Count() / combinedParams.TotalPartitions));
 
                     Status("Getting fragment dictionary...", new List<string> { taskId });
-                    var indexEngine = new IndexingEngine(proteinListSubset, variableModifications, fixedModifications, currentPartition, UsefulProteomicsDatabases.DecoyType.Reverse, combinedParams, 30000.0, false, dbFilenameList.Select(p => new FileInfo(p.FilePath)).ToList(), new List<string> { taskId });
+                    var indexEngine = new IndexingEngine(proteinListSubset, variableModifications, fixedModifications, null, currentPartition, UsefulProteomicsDatabases.DecoyType.Reverse, combinedParams, 30000.0, false, dbFilenameList.Select(p => new FileInfo(p.FilePath)).ToList(), new List<string> { taskId });
                     List<int>[] fragmentIndex = null;
                     List<int>[] precursorIndex = null;
 
                     GenerateIndexes(indexEngine, dbFilenameList, ref peptideIndex, ref fragmentIndex, ref precursorIndex, proteinList, GlobalVariables.AllModsKnown.ToList(), taskId);                  
 
                     Status("Searching files...", taskId);
-                    new CrosslinkSearchEngine(newPsms, arrayOfMs2ScansSortedByMass, peptideIndex, fragmentIndex, currentPartition, combinedParams, XlSearchParameters.OpenSearchType, crosslinker,
+                    new CrosslinkSearchEngine(newPsms, arrayOfMs2ScansSortedByMass, peptideIndex, fragmentIndex, currentPartition, combinedParams, massDiffAcceptor, XlSearchParameters.OpenSearchType, crosslinker,
                         XlSearchParameters.RestrictToTopNHits, XlSearchParameters.CrosslinkSearchTopNum, XlSearchParameters.XlQuench_H2O,
-                        XlSearchParameters.XlQuench_NH2, XlSearchParameters.XlQuench_Tris, thisId).Run();
+                        XlSearchParameters.XlQuench_NH2, XlSearchParameters.XlQuench_Tris, XlSearchParameters.SearchGlycan182, thisId).Run();
 
                     ReportProgress(new ProgressEventArgs(100, "Done with search " + (currentPartition + 1) + "/" + CommonParameters.TotalPartitions + "!", thisId));
                     if (GlobalVariables.StopLoops) { break; }
@@ -160,6 +163,10 @@ namespace TaskLayer
                 SingleFDRAnalysis(allPsmsGly, new List<string> { taskId });
                 var writtenFileInter2 = Path.Combine(OutputFolder, "glyco_fdr" + ".mytsv");
                 WritePsmCrossToTsv(allPsmsGly, writtenFileInter2, 3);
+
+                //var allPsmsGlyForFDR = allPsms.SelectMany(p => p.crosslinkSpectralMatches).ToList();
+                //var writtenFileInter3 = Path.Combine(OutputFolder, "glyco_for_fdr" + ".mytsv");
+                //WritePsmCrossToTsv(allPsmsGlyForFDR, writtenFileInter3, 3);
 
                 return MyTaskResults;
             }
@@ -349,26 +356,6 @@ namespace TaskLayer
                     qValueThreshold = csm.FdrInfo.QValue;
                 }
             }
-        }
-        
-        //Generate user defined crosslinker
-        public static Crosslinker GenerateUserDefinedCrosslinker(XlSearchParameters xlSearchParameters)
-        {
-            var crosslinker = new Crosslinker(
-                xlSearchParameters.CrosslinkerResidues,
-                xlSearchParameters.CrosslinkerResidues2,
-                xlSearchParameters.CrosslinkerName,
-                xlSearchParameters.IsCleavable,
-                xlSearchParameters.CrosslinkerTotalMass ?? double.NaN,
-                xlSearchParameters.CrosslinkerShortMass ?? double.NaN,
-                xlSearchParameters.CrosslinkerLongMass ?? double.NaN,
-                xlSearchParameters.CrosslinkerLoopMass ?? double.NaN,
-                xlSearchParameters.CrosslinkerDeadEndMassH2O ?? double.NaN,
-                xlSearchParameters.CrosslinkerDeadEndMassNH2 ?? double.NaN,
-                xlSearchParameters.CrosslinkerDeadEndMassTris ?? double.NaN
-            );
-
-            return crosslinker;
-        }
+        }       
     }
 }
