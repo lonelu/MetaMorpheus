@@ -290,7 +290,7 @@ namespace MetaDrawGUI
             (sender as Button).IsEnabled = false;
             btnAddFiles.IsEnabled = false;
             btnClearFiles.IsEnabled = false;
-            MsDataFile = spectraFileManager.LoadFile(spectraFilePath, null, null, false, false, new CommonParameters());
+            MsDataFile = spectraFileManager.LoadFile(spectraFilePath, new CommonParameters());
             msDataScans = MsDataFile.GetAllScansList();
 
             foreach (var iScan in msDataScans)
@@ -760,7 +760,7 @@ namespace MetaDrawGUI
             simplePsms = TsvReader_pGlyco.ReadTsv(resultsFilePath);
             foreach (var psm in simplePsms)
             {
-                GlycoStrucureObservableCollection.Add(new GlycoStructureForDataGrid( psm.ScanNum, psm.BaseSeq, psm.GlycanStructure));
+                GlycoStrucureObservableCollection.Add(new GlycoStructureForDataGrid( psm.ScanNum, psm.BaseSeq, psm.glycan.Struc));
             }
         }
 
@@ -782,7 +782,7 @@ namespace MetaDrawGUI
             var sele = (GlycoStructureForDataGrid)dataGridGlyco.SelectedItem;
             msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
             var selePsm = simplePsms.Where(p => p.ScanNum == sele.ScanNum).First();
-            selePsm.MatchedIons = SimplePsm.GetMatchedIons(selePsm.BaseSeq, selePsm.Mod, selePsm.PrecursorMass, selePsm.ChargeState, CommonParameters, msDataScan);
+            selePsm.MatchedIons = SimplePsm.GetMatchedIons(selePsm.glycoPwsm, selePsm.PrecursorMass, selePsm.ChargeState, CommonParameters, msDataScan);
             psmAnnotationViewModel.DrawPeptideSpectralMatch(msDataScan, selePsm);
 
             //Draw Glycan
