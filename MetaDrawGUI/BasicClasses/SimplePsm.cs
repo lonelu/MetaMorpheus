@@ -14,13 +14,55 @@ namespace MetaDrawGUI
 {
     public class SimplePsm
     {
-        public SimplePsm(string line, char[] split, Dictionary<string, int> parsedHeader)
+        public SimplePsm(string line, char[] split, Dictionary<string, int> parsedHeader, TsvType tsvType)
         {
-            //this is special for pGlyco
+            switch (tsvType)
+            {
+                case TsvType.pGlyco:
+                    generateSimplePsm_pGlyco(line, split, parsedHeader);
+                    break;
+                case TsvType.GlycReSoft:
+                    generateSimplePsm_GlycReSoft(line, split, parsedHeader);
+                    break;
+                case TsvType.Byonic:
+                    break;
+                default:
+                    break;
+            }
+            
+        }
+
+        public string FileName { get; set; }
+        public int ScanNum { get; set; }
+        public double RT { get; set; }
+        public double PrecursorMass { get; set; }
+        public int ChargeState { get; set; }
+        public double MonoisotopicMass { get; set; }     
+        public string BaseSeq { get; set; }
+        public string FullSeq { get; set; }
+        public string Mod { get; set; }
+        public double QValue { get; set; }
+        public bool Decoy { get; set; }
+        public string ProteinName { get; set; }       
+        public string ProteinAccess { get; set; }
+        public string ProteinStartEnd { get; set; }
+
+        public string BetaPeptideBaseSequence { get; set; }
+        private string GlycanStructure { get; set; }
+        public byte[] glycanKind { get; set; }
+        public Glycan glycan { get; set; }
+        public PeptideWithSetModifications glycoPwsm { get; set; }
+        public List<MatchedFragmentIon> MatchedIons { get; set; }
+        public List<MatchedFragmentIon> BetaPeptideMatchedIons { get; set; }
+
+        private void generateSimplePsm_pGlyco(string line, char[] split, Dictionary<string, int> parsedHeader)
+        {
             var spl = line.Split(split);
-            FileName = spl[parsedHeader[PsmTsvHeader_pGlyco.FileName]].Split('.')[0]; 
-            ScanNum = int.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.FileName]].Split('.')[1]); 
-            RT = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.Ms2ScanRetentionTime]])/60;
+
+            //this is special for pGlyco
+            FileName = spl[parsedHeader[PsmTsvHeader_pGlyco.FileName]].Split('.')[0];
+            ScanNum = int.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.FileName]].Split('.')[1]);
+            RT = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.Ms2ScanRetentionTime]]) / 60;
             PrecursorMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.PrecursorMH]]) - 1.0073;
             ChargeState = int.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.FileName]].Split('.')[3]);
             GlycanStructure = spl[parsedHeader[PsmTsvHeader_pGlyco.GlyStruct]].Trim();
@@ -33,11 +75,11 @@ namespace MetaDrawGUI
             Mod = spl[parsedHeader[PsmTsvHeader_pGlyco.Mods]].Trim();
 
             Modification modification = GlycoPeptides.GlycanToModification(glycan);
-            Dictionary<int, Modification> testMods = GetMods(Mod, AllPossibleMods);
+            Dictionary<int, Modification> testMods = GetMods_pGlyco(Mod, AllPossibleMods_pGlyco);
             testMods.Add(pBaseSeq.IndexOf('J') + 1, modification);
             FullSeq = GetFullSeq(BaseSeq, testMods);
 
-            glycoPwsm = new PeptideWithSetModifications(FullSeq, GlobalVariables.AllModsKnownDictionary);          
+            glycoPwsm = new PeptideWithSetModifications(FullSeq, GlobalVariables.AllModsKnownDictionary);
 
             QValue = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.QValue]]);
             Decoy = false;
@@ -46,33 +88,40 @@ namespace MetaDrawGUI
             int ProSite = int.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.ProSite]].Split('/')[0]);
             int GlySite = int.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.GlySite]]);
             int peptideLength = BaseSeq.Count();
-            ProteinStartEnd = "[" +(ProSite - GlySite).ToString() + " to " +(ProSite + peptideLength - GlySite).ToString() + "]";
+            ProteinStartEnd = "[" + (ProSite - GlySite).ToString() + " to " + (ProSite + peptideLength - GlySite).ToString() + "]";
+
         }
 
-        public string FileName { get; set; }
-        public int ScanNum { get;}
-        public double RT { get; }
-        public double PrecursorMass { get; }
-        public int ChargeState { get; }
-        public double MonoisotopicMass { get; }     
-        public string BaseSeq { get; }
-        public string FullSeq { get; }
-        public string Mod { get;  }
-        public double QValue { get; }
-        public bool Decoy { get; }
-        public string ProteinName { get; }       
-        public string ProteinAccess { get; }
-        public string ProteinStartEnd { get; }
+        private void generateSimplePsm_GlycReSoft(string line, char[] split, Dictionary<string, int> parsedHeader)
+        {
+            var spl = line.Split(split);
 
-        public string BetaPeptideBaseSequence { get; }
-        private string GlycanStructure { get; }
-        public Glycan glycan { get; set; }
-        public PeptideWithSetModifications glycoPwsm { get;  }
-        public List<MatchedFragmentIon> MatchedIons { get; set; }
-        public List<MatchedFragmentIon> BetaPeptideMatchedIons { get; set; }
+            FileName = "";
+            ScanNum = int.Parse(spl[parsedHeader[PsmTsvHeader_GlycReSoft.scan_id]].Split('=')[3]);
 
-        private static Dictionary<string, Modification> AllPossibleMods = GetAllPossibleMods();
+            RT = double.Parse(spl[parsedHeader[PsmTsvHeader_GlycReSoft.scan_time]]);
+            MonoisotopicMass = double.Parse(spl[parsedHeader[PsmTsvHeader_GlycReSoft.neutral_mass]]); //TO CHECK: monoisotopic mass?
+            ChargeState = int.Parse(spl[parsedHeader[PsmTsvHeader_GlycReSoft.charge]]);
+            double massAccuracy = double.Parse(spl[parsedHeader[PsmTsvHeader_GlycReSoft.mass_accuracy]]);
+            PrecursorMass = MonoisotopicMass - massAccuracy;
+            BaseSeq = GetBaseSeq_GlycReSoft(spl[parsedHeader[PsmTsvHeader_GlycReSoft.glycopeptide]]);
+            glycanKind = GetGlycan_GlycReSoft(spl[parsedHeader[PsmTsvHeader_GlycReSoft.glycopeptide]]);
+            glycan = Glycan.Kind2Glycan(glycanKind);
+            Mod = spl[parsedHeader[PsmTsvHeader_GlycReSoft.mass_shift_name]];  //TO DO: Mod is not converted to MetaMorpheus mod.
+            Modification modification = GlycanToModificationWithNoMass(glycan);
+            Dictionary<int, Modification> testMods = new Dictionary<int, Modification>();
+            testMods.Add(spl[parsedHeader[PsmTsvHeader_GlycReSoft.glycopeptide]].IndexOf('('), modification);
+            FullSeq = GetFullSeq(BaseSeq, testMods);
 
+            glycoPwsm = new PeptideWithSetModifications(FullSeq, GlobalVariables.AllModsKnownDictionary);
+
+            QValue = double.Parse(spl[parsedHeader[PsmTsvHeader_GlycReSoft.q_value]]);
+            Decoy = false;
+            ProteinAccess = spl[parsedHeader[PsmTsvHeader_GlycReSoft.protein_name]].Split('|')[1]; //Only works for uniprot fasta
+            ProteinName = spl[parsedHeader[PsmTsvHeader_GlycReSoft.protein_name]].Split('|')[2].Split('_')[0]; //Only works for uniprot fasta
+            ProteinStartEnd = "[" + spl[parsedHeader[PsmTsvHeader_GlycReSoft.peptide_start]] + " to " + spl[parsedHeader[PsmTsvHeader_GlycReSoft.peptide_end]] + "]";
+
+        }
 
         //TO DO: Bug may exist for the PrecursorMH, which is different from PrecursorMass.
         public static List<MatchedFragmentIon> GetMatchedIons(PeptideWithSetModifications glycoPwsm, double precursorMH, int chargeState, CommonParameters commonParameters, MsDataScan msDataScan)
@@ -83,7 +132,9 @@ namespace MetaDrawGUI
             return matchedIons;
         }
 
-        private static Dictionary<string, Modification> GetAllPossibleMods()
+        private static Dictionary<string, Modification> AllPossibleMods_pGlyco = GetAllPossibleMods_pGlyco();
+
+        private static Dictionary<string, Modification> GetAllPossibleMods_pGlyco()
         {
             Dictionary<string, Modification> allPossibleMods = new Dictionary<string, Modification>();
 
@@ -101,7 +152,7 @@ namespace MetaDrawGUI
             return allPossibleMods;
         }
 
-        private static Dictionary<int, Modification> GetMods(string mod, Dictionary<string, Modification> AllPossibleMods)
+        private static Dictionary<int, Modification> GetMods_pGlyco(string mod, Dictionary<string, Modification> AllPossibleMods)
         {
             //This is for pGlyco Mod: {1,Acetyl[ProteinN-term];1,Oxidation[M];}
             Dictionary<int, Modification> mods = new Dictionary<int, Modification>();
@@ -127,6 +178,22 @@ namespace MetaDrawGUI
             return mods;
         }
 
+        public static Modification GlycanToModificationWithNoMass(Glycan glycan)
+        {
+            //string[] motifs = new string[] { "Nxt", "Nxs" };
+            ModificationMotif.TryGetMotif("N", out ModificationMotif finalMotif); //TO DO: only one motif can be write here.
+            var id = Glycan.GetKindString(glycan.Kind);
+
+            Modification modification = new Modification(
+                _originalId: id,
+                _modificationType: "N-Glycosylation",
+                _monoisotopicMass: (double)glycan.Mass / 1E5,
+                _locationRestriction: "Anywhere.",
+                _target: finalMotif
+            );
+            return modification;
+        }
+
         private static string GetFullSeq(string BaseSeq, Dictionary<int, Modification> modDict)
         {
             string fullSeq = "";
@@ -139,6 +206,78 @@ namespace MetaDrawGUI
                 fullSeq += BaseSeq[i];
             }
             return fullSeq;
+        }
+
+        private static string GetBaseSeq_GlycReSoft(string glycopeptide)
+        {
+            string baseSeq = "";
+            bool add = true;
+            foreach (var c in glycopeptide)
+            {
+                if (c == '(' || c == '{')
+                {
+                    add = false;
+                    continue;
+                }
+                if (c == ')')
+                {
+                    add = true;
+                    continue;
+                }
+                if (add)
+                {
+                    baseSeq += c;
+                }
+            }
+            return baseSeq;
+        }
+
+        public static byte[] GetGlycan_GlycReSoft(string line)
+        {      
+            byte[] kind = new byte[5] { 0, 0, 0, 0, 0};
+            var y = line.Split('{', '}');
+            var x = y[1].Split(';', ':');
+            int i = 0;
+            while (i < x.Length - 1)
+            {
+                switch (x[i].Trim())
+                {
+                    case "Hex":
+                        kind[0] = byte.Parse(x[i + 1]);
+                        break;
+                    case "HexNAc":
+                        kind[1] = byte.Parse(x[i + 1]);
+                        break;
+                    case "Neu5Ac":
+                        kind[2] = byte.Parse(x[i + 1]);
+                        break;
+                    case "Neu5Gc":
+                        kind[3] = byte.Parse(x[i + 1]);
+                        break;
+                    case "Fuc":
+                        kind[4] = byte.Parse(x[i + 1]);
+                        break;
+                    case "Xyl":
+                        kind[5] = byte.Parse(x[i + 1]);
+                        break;
+                    case "KND":
+                        kind[6] = byte.Parse(x[i + 1]);
+                        break;
+                    case "Phosphate":
+                        kind[7] = byte.Parse(x[i + 1]);
+                        break;
+                    case "Sulfate":
+                        kind[8] = byte.Parse(x[i + 1]);
+                        break;
+                    case "HexA":
+                        kind[9] = byte.Parse(x[i + 1]);
+                        break;
+                    default:
+                        break;
+                }
+                i = i + 2;
+            }
+            return kind;
         }
 
         public static string GetTabSepHeaderGlyco()
@@ -189,5 +328,6 @@ namespace MetaDrawGUI
             sb.Append(Glycan.GetKindString(glycan.Kind) + '\t');
             return sb.ToString();
         }
+
     }
 }

@@ -232,7 +232,8 @@ namespace EngineLayer.CrosslinkSearch
             diagnosticIons.Add(DissociationType.EThcD, glycan.GetDiagnosticIons().Select(p => (double)p / 1E5).ToList());
             //string[] motifs = new string[] { "Nxt", "Nxs" };
             ModificationMotif.TryGetMotif("N", out ModificationMotif finalMotif); //TO DO: only one motif can be write here.
-            var id = Glycan.GetKindString(glycan.Struc);
+            var id = Glycan.GetKindString(glycan.Kind);
+
             Modification modification = new Modification(
                 _originalId: id,
                 _modificationType: "N-Glycosylation",
@@ -244,6 +245,8 @@ namespace EngineLayer.CrosslinkSearch
             );
             return modification;
         }
+
+
 
         //<modSites, >
         public static IEnumerable<Tuple<int[] , Tuple<int[], List<Product>>>> OGlyGetTheoreticalFragments(DissociationType dissociationType, 

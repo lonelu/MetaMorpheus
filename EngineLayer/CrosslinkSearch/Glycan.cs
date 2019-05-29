@@ -319,7 +319,7 @@ namespace EngineLayer
             return childKinds;
         }
 
-        public static IEnumerable<Glycan> LoadKindGlycan(string filePath, IEnumerable<Glycan> NGlycans)
+        public static IEnumerable<Glycan> LoadKindGlycan(string filePath, IEnumerable<Glycan> NGlycans) //Database from Nick in coon lab
         {
             var groupedGlycans = NGlycans.GroupBy(p => GetKindString(p.Kind)).ToDictionary(p => p.Key, p => p.ToList());
 
@@ -492,6 +492,12 @@ namespace EngineLayer
 
             Glycan glycan = new Glycan(theGlycanStruct, mass, kind, glycanIons, false);
             glycan.GlyId = id;
+            return glycan;
+        }
+
+        public static Glycan Kind2Glycan(byte[] kind)
+        {
+            Glycan glycan = new Glycan(null, GetMass(kind), kind, null, false);
             return glycan;
         }
 

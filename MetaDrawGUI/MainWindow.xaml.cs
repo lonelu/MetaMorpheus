@@ -757,7 +757,7 @@ namespace MetaDrawGUI
             BtnWriteGlycoResults.IsEnabled = true;
 
             // load the PSMs
-            simplePsms = TsvReader_pGlyco.ReadTsv(resultsFilePath);
+            simplePsms = TsvReader_Glyco.ReadTsv(resultsFilePath);
             foreach (var psm in simplePsms)
             {
                 GlycoStrucureObservableCollection.Add(new GlycoStructureForDataGrid( psm.ScanNum, psm.BaseSeq, psm.glycan.Struc));
@@ -769,7 +769,7 @@ namespace MetaDrawGUI
 
             var ForderPath = Path.Combine(Path.GetDirectoryName(resultFilesObservableCollection.First().FilePath), "pGlyco.mytsv");
 
-            TsvReader_pGlyco.WriteTsv(ForderPath, simplePsms);
+            TsvReader_Glyco.WriteTsv(ForderPath, simplePsms);
         }
 
         private void DataGridGlyco_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
