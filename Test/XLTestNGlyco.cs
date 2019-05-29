@@ -269,7 +269,7 @@ namespace Test
             {
                 foreach (var glycan in NGlycans)
                 {
-                    var mod = GlycoPeptides.GlycanToModification(glycan.Value.First());
+                    var mod = GlycoPeptides.GlycanToModificationWithNoMass(glycan.Value.First());
                     List<string> temp = new List<string>();
                     temp.Add(mod.ToString());
                     temp.Add(@"//");

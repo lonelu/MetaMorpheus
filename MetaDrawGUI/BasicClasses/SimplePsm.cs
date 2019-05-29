@@ -79,7 +79,16 @@ namespace MetaDrawGUI
             testMods.Add(pBaseSeq.IndexOf('J') + 1, modification);
             FullSeq = GetFullSeq(BaseSeq, testMods);
 
-            glycoPwsm = new PeptideWithSetModifications(FullSeq, GlobalVariables.AllModsKnownDictionary);
+            var AllModsKnownDictionary = new Dictionary<string, Modification>();
+            foreach (Modification mod in testMods.Values)
+            {
+                if (!AllModsKnownDictionary.ContainsKey(mod.IdWithMotif))
+                {
+                    AllModsKnownDictionary.Add(mod.IdWithMotif, mod);
+                }
+                // no error thrown if multiple mods with this ID are present - just pick one
+            }
+            glycoPwsm = new PeptideWithSetModifications(FullSeq, AllModsKnownDictionary);
 
             QValue = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.QValue]]);
             Decoy = false;
@@ -113,7 +122,16 @@ namespace MetaDrawGUI
             testMods.Add(spl[parsedHeader[PsmTsvHeader_GlycReSoft.glycopeptide]].IndexOf('('), modification);
             FullSeq = GetFullSeq(BaseSeq, testMods);
 
-            glycoPwsm = new PeptideWithSetModifications(FullSeq, GlobalVariables.AllModsKnownDictionary);
+            var AllModsKnownDictionary = new Dictionary<string, Modification>();
+            foreach (Modification mod in testMods.Values)
+            {
+                if (!AllModsKnownDictionary.ContainsKey(mod.IdWithMotif))
+                {
+                    AllModsKnownDictionary.Add(mod.IdWithMotif, mod);
+                }
+                // no error thrown if multiple mods with this ID are present - just pick one
+            }
+            glycoPwsm = new PeptideWithSetModifications(FullSeq, AllModsKnownDictionary);
 
             QValue = double.Parse(spl[parsedHeader[PsmTsvHeader_GlycReSoft.q_value]]);
             Decoy = false;
@@ -146,8 +164,6 @@ namespace MetaDrawGUI
 
             var m3 = GlobalVariables.AllModsKnown.Where(p => p.IdWithMotif == "Acetylation" && p.ModificationType == "N-terminal.").FirstOrDefault();
             allPossibleMods.Add("Acetyl[ProteinN-term]", m3);
-
-            //var x = GlobalVariables.AllModsKnownDictionary;
 
             return allPossibleMods;
         }

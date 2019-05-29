@@ -246,6 +246,22 @@ namespace EngineLayer.CrosslinkSearch
             return modification;
         }
 
+        public static Modification GlycanToModificationWithNoMass(Glycan glycan)
+        {
+            //string[] motifs = new string[] { "Nxt", "Nxs" };
+            ModificationMotif.TryGetMotif("N", out ModificationMotif finalMotif); //TO DO: only one motif can be write here.
+            var id = Glycan.GetKindString(glycan.Kind);
+
+            Modification modification = new Modification(
+                _originalId: id,
+                _modificationType: "N-Glycosylation",
+                _monoisotopicMass: (double)glycan.Mass / 1E5,
+                _locationRestriction: "Anywhere.",
+                _target: finalMotif
+            );
+            return modification;
+        }
+
 
 
         //<modSites, >
