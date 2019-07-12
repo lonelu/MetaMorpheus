@@ -195,6 +195,7 @@
     <Compile Include="Regression\NonlinearSolver.cs" />
     <Compile Include="Regression\Solver.cs" />
     <Compile Include="Regression\SolverOptions.cs" />
+    <Compile Include="Thanos.cs" />
     <Compile Include="ViewModels\ChargeEnveViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\DeconViewModel.cs" />

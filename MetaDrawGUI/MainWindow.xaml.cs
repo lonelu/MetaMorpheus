@@ -61,6 +61,8 @@ namespace MetaDrawGUI
         public ChargeEnveViewModel ChargeDeconViewModel { get; set; }
         public PsmAnnotationViewModel psmAnnotationViewModel { get; set; }
 
+        public Thanos Thanos { get; set; }
+
         //Glyco
         private readonly ObservableCollection<RawDataForDataGrid> GlycoResultObservableCollection = new ObservableCollection<RawDataForDataGrid>();
 
@@ -86,6 +88,8 @@ namespace MetaDrawGUI
         public MainWindow()
         {
             InitializeComponent();
+
+            Thanos = new Thanos();
 
             mainViewModel = new MainViewModel();
 
@@ -843,6 +847,26 @@ namespace MetaDrawGUI
             var sele = (GlycanDatabaseForDataGrid)dataGridGlycan.SelectedItem;
             glyCanvasLeft.Children.Clear();
             GlycanStructureAnnotation.DrawGlycan(glyCanvasLeft, sele.Structure, 50);
+        }
+
+        private void CmbAction_DropDownClosed(object sender, EventArgs e)
+        {
+
+        }
+
+        private void BtnStart_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (var spectrafileGrid in spectraFilesObservableCollection)
+            {
+                var aSpectraFilePath = spectrafileGrid.FilePath;
+                if (aSpectraFilePath == null)
+                {
+                    continue;
+                }
+
+                Thanos.MsDataFilePaths.Add(aSpectraFilePath);
+            }
+            Thanos.AllFilesForBoxCar(500, 1600, 100);
         }
     }
 }
