@@ -50,7 +50,7 @@ namespace MetaDrawGUI
             WriteNormalizedIntensities(MsDataFilePaths.First(), binNum, allFileBoxCar);
         }
 
-        public double[] CalculateNormalizedIntensitiesForBoxCar(MsDataFile msDataFile, double low, double high, int binNum)
+        private double[] CalculateNormalizedIntensitiesForBoxCar(MsDataFile msDataFile, double low, double high, int binNum)
         {
             double[] all = new double[binNum];
 
@@ -66,12 +66,6 @@ namespace MetaDrawGUI
                 allBins[i] = new double[binNum];
                 allBins[i] = BinIntensities(ms1scans.ElementAt(i), ranges);
             });
-
-            //for (int i = 0; i < ms1scans.Count(); i++)
-            //{
-            //    allBins[i] = new double[binNum];
-            //    allBins[i] = BinIntensities(ms1scans.ElementAt(i), ranges);
-            //}
 
             Parallel.For(0, binNum, i =>
             {

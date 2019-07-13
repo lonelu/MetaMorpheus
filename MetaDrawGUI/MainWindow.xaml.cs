@@ -866,7 +866,7 @@ namespace MetaDrawGUI
 
                 Thanos.MsDataFilePaths.Add(aSpectraFilePath);
             }
-            Thanos.AllFilesForBoxCar(500, 1600, 100);
+            Thanos.AllFilesForBoxCar(500, 1600, 50);
         }
     }
 }
