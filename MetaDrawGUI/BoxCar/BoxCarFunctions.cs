@@ -159,7 +159,7 @@ namespace BoxCar
                     }                   
                     set.AddToMs1Scans(scans[i]);
                 }
-                else if (scans[i].ScanFilter.Contains("Full msx ms"))
+                else if (scans[i].ScanFilter.Contains("msx ms"))
                 {
                     set.AddToBoxcarScans(scans[i]);
                 }
@@ -176,7 +176,10 @@ namespace BoxCar
             boxcarRanges = RemoveOverlap(boxcarRanges);
             Parallel.ForEach(setOfScans, set =>
             {
-                set.MergedBoxScan = SetOfScans.MergeBoxScans(set.BoxcarScans, boxcarRanges);
+                if (set.BoxcarScans.Count!=0)
+                {
+                    set.MergedBoxScan = SetOfScans.MergeBoxScans(set.BoxcarScans, boxcarRanges);
+                }
             });
 
             return setOfScans;
@@ -189,6 +192,7 @@ namespace BoxCar
             int oneBasedScanNumber = 1;
             foreach (var set in setOfScans)
             {
+                set.Ms1scans.First().SetOneBasedScanNumber(oneBasedScanNumber);
                 scans.Add(set.Ms1scans.First());
                 oneBasedScanNumber++;
                 if (set.MergedBoxScan != null)
@@ -202,7 +206,7 @@ namespace BoxCar
                     foreach (var ms2scan in set.Ms2scans)
                     {
                         ms2scan.SetOneBasedScanNumber(oneBasedScanNumber);
-                        ms2scan.SetOneBasedPrecursorScanNumber(set.MergedBoxScan.OneBasedScanNumber);
+                        ms2scan.SetOneBasedPrecursorScanNumber(set.Ms1scans.First().OneBasedScanNumber);
                         scans.Add(ms2scan);
                         oneBasedScanNumber++;
                     }

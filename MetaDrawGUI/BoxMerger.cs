@@ -13,7 +13,7 @@ namespace MetaDrawGUI
     {
         public void MergeBoxScans(List<string> MsDataFilePaths, MyFileManager spectraFileManager)
         {
-            var boxcarRanges = GenerateRealRanges_td_2_12();
+            var boxcarRanges = GenerateRealRanges_td2_2_12();
 
             foreach (var filePath in MsDataFilePaths)
             {
@@ -25,17 +25,17 @@ namespace MetaDrawGUI
 
                 var scans = BoxCarFunctions.OutputMergedBoxScans(scanSets);
 
-                WriteBoxMzmlFile(scans, msDataFile, Path.GetDirectoryName(filePath), msDataFile.SourceFile.FileName + "_MergedBox_allScans.mzML");
+                WriteBoxMzmlFile(scans, msDataFile, filePath + "_MergedBox_allScans.mzML");
             }
         }
 
-        public static void WriteBoxMzmlFile(List<MsDataScan> scans, MsDataFile originalFile, string filepath, string fileName)
+        public static void WriteBoxMzmlFile(List<MsDataScan> scans, MsDataFile originalFile, string fileName)
         {
 
             SourceFile sourceFile = originalFile.SourceFile;
             MsDataFile msDataFile = new MsDataFile(scans.ToArray(), sourceFile);
 
-            IO.MzML.MzmlMethods.CreateAndWriteMyMzmlWithCalibratedSpectra(msDataFile, filepath + fileName, false);
+            IO.MzML.MzmlMethods.CreateAndWriteMyMzmlWithCalibratedSpectra(msDataFile, fileName, false);
         }
 
         private List<BoxcarRange>[] GenerateRealRanges_bottomup_3_12()
@@ -89,37 +89,70 @@ namespace MetaDrawGUI
         private List<BoxcarRange>[] GenerateRealRanges_td_2_12()
         {
             List<BoxcarRange> toAddA = new List<BoxcarRange>();
-            toAddA.Add(new BoxcarRange(400, 416.3));
-            toAddA.Add(new BoxcarRange(441.2, 454.2));
-            toAddA.Add(new BoxcarRange(476.3, 488.8));
-            toAddA.Add(new BoxcarRange(510.3, 523.3));
-            toAddA.Add(new BoxcarRange(545, 557.8));
-            toAddA.Add(new BoxcarRange(580.8, 594));
-            toAddA.Add(new BoxcarRange(618.4, 633));
-            toAddA.Add(new BoxcarRange(660.3, 676.4));
-            toAddA.Add(new BoxcarRange(708.3, 726.3));
-            toAddA.Add(new BoxcarRange(764.4, 788.4));
-            toAddA.Add(new BoxcarRange(837.9, 868.8));
-            toAddA.Add(new BoxcarRange(945, 999));
+            toAddA.Add(new BoxcarRange(400, 423.2));
+            toAddA.Add(new BoxcarRange(441.2, 459.9));
+            toAddA.Add(new BoxcarRange(476.3, 494.3));
+            toAddA.Add(new BoxcarRange(510.3, 528.8));
+            toAddA.Add(new BoxcarRange(545, 563.8));
+            toAddA.Add(new BoxcarRange(580.8, 600.3));
+            toAddA.Add(new BoxcarRange(618.4, 639.8));
+            toAddA.Add(new BoxcarRange(660.3, 684.3));
+            toAddA.Add(new BoxcarRange(708.3, 735.4));
+            toAddA.Add(new BoxcarRange(764.4, 799.9));
+            toAddA.Add(new BoxcarRange(837.9, 885.4));
+            toAddA.Add(new BoxcarRange(945, 1032));
 
             List<BoxcarRange> toAddB = new List<BoxcarRange>();
-            toAddB.Add(new BoxcarRange(415.3, 429.7));
-            toAddB.Add(new BoxcarRange(453.2, 465.9));
-            toAddB.Add(new BoxcarRange(487.8, 499.9));
-            toAddB.Add(new BoxcarRange(522.3, 534.8));
-            toAddB.Add(new BoxcarRange(556.8, 569.6));
-            toAddB.Add(new BoxcarRange(593, 606.6));
-            toAddB.Add(new BoxcarRange(632, 646.8));
-            toAddB.Add(new BoxcarRange(675.4, 692.3));
-            toAddB.Add(new BoxcarRange(725.3, 745));
-            toAddB.Add(new BoxcarRange(787.4, 812.4));
-            toAddB.Add(new BoxcarRange(867.8, 903.5));
-            toAddB.Add(new BoxcarRange(998, 1071.1));
+            toAddB.Add(new BoxcarRange(422.2, 442.2));
+            toAddB.Add(new BoxcarRange(458.9, 477.3));
+            toAddB.Add(new BoxcarRange(493.3, 511.3));
+            toAddB.Add(new BoxcarRange(527.8, 546));
+            toAddB.Add(new BoxcarRange(562.8, 581.8));
+            toAddB.Add(new BoxcarRange(599.3, 619.4));
+            toAddB.Add(new BoxcarRange(638.8, 661.3));
+            toAddB.Add(new BoxcarRange(683.3, 709.3));
+            toAddB.Add(new BoxcarRange(734.4, 765.4));
+            toAddB.Add(new BoxcarRange(798.9, 838.9));
+            toAddB.Add(new BoxcarRange(884.4, 946));
+            toAddB.Add(new BoxcarRange(1031, 1201));
 
             var boxcarRanges = new List<BoxcarRange>[2] { new List<BoxcarRange>(toAddA), new List<BoxcarRange>(toAddB) };
             return boxcarRanges;
         }
 
+        private List<BoxcarRange>[] GenerateRealRanges_td2_2_12()
+        {
+            List<BoxcarRange> toAddA = new List<BoxcarRange>();
+            toAddA.Add(new BoxcarRange(499, 546.8));
+            toAddA.Add(new BoxcarRange(591.2, 638));
+            toAddA.Add(new BoxcarRange(682.8, 729.7));
+            toAddA.Add(new BoxcarRange(774.5, 821.3));
+            toAddA.Add(new BoxcarRange(866.2, 913));
+            toAddA.Add(new BoxcarRange(957.8, 1004.7));
+            toAddA.Add(new BoxcarRange(1049.5, 1096.3));
+            toAddA.Add(new BoxcarRange(1141.2, 1188));
+            toAddA.Add(new BoxcarRange(1232.8, 1279.7));
+            toAddA.Add(new BoxcarRange(1324.5, 1371.3));
+            toAddA.Add(new BoxcarRange(1416.2, 1463));
+            toAddA.Add(new BoxcarRange(1507.8, 1554.7));
+
+            List<BoxcarRange> toAddB = new List<BoxcarRange>();
+            toAddB.Add(new BoxcarRange(545.8, 592.7));
+            toAddB.Add(new BoxcarRange(637, 683.8));
+            toAddB.Add(new BoxcarRange(728.7, 775.5));
+            toAddB.Add(new BoxcarRange(820.3, 867.2));
+            toAddB.Add(new BoxcarRange(912, 958.8));
+            toAddB.Add(new BoxcarRange(1003.7, 1050.5));
+            toAddB.Add(new BoxcarRange(1095.3, 1142.2));
+            toAddB.Add(new BoxcarRange(1187, 1233.8));
+            toAddB.Add(new BoxcarRange(1278.7, 1325.5));
+            toAddB.Add(new BoxcarRange(1370.3, 1417.2));
+            toAddB.Add(new BoxcarRange(1462, 1508.8));
+            toAddB.Add(new BoxcarRange(1553.7, 1601));
+
+            var boxcarRanges = new List<BoxcarRange>[2] { new List<BoxcarRange>(toAddA), new List<BoxcarRange>(toAddB) };
+            return boxcarRanges;
+        }
 
     }
 }
