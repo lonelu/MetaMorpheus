@@ -61,7 +61,8 @@ namespace MetaDrawGUI
         public ChargeEnveViewModel ChargeDeconViewModel { get; set; }
         public PsmAnnotationViewModel psmAnnotationViewModel { get; set; }
 
-        public Thanos Thanos { get; set; }
+        public Thanos thanos { get; set; }
+        public Action action { get; set; }
 
         //Glyco
         private readonly ObservableCollection<RawDataForDataGrid> GlycoResultObservableCollection = new ObservableCollection<RawDataForDataGrid>();
@@ -89,7 +90,9 @@ namespace MetaDrawGUI
         {
             InitializeComponent();
 
-            Thanos = new Thanos();
+            thanos = new Thanos();
+
+            PopulateChoice();
 
             mainViewModel = new MainViewModel();
 
@@ -135,6 +138,16 @@ namespace MetaDrawGUI
             dataGridGlycoResultFiles.DataContext = resultFilesObservableCollection;
             dataGridGlyco.DataContext = GlycoStrucureObservableCollection;
             dataGridGlycan.DataContext = glycanDatabaseCollection;
+        }
+
+        private void PopulateChoice()
+        {
+            foreach (string aSkill in Enum.GetNames(typeof(Skill)))
+            {
+                {
+                    cmbAction.Items.Add(aSkill);
+                }
+            }
         }
 
         private void Window_Drop(object sender, DragEventArgs e)
@@ -849,13 +862,22 @@ namespace MetaDrawGUI
             GlycanStructureAnnotation.DrawGlycan(glyCanvasLeft, sele.Structure, 50);
         }
 
-        private void CmbAction_DropDownClosed(object sender, EventArgs e)
-        {
-
-        }
-
         private void BtnStart_Click(object sender, RoutedEventArgs e)
         {
+            Skill skill = ((Skill)cmbAction.SelectedIndex);
+
+            switch (skill)
+            {
+                case Skill.accumulate_intensity:
+                    action = thanos.Accumulate;
+                    break;
+                case Skill.merge_boxcarScan:
+                    action = thanos.MergeBoxCarScan;
+                    break;
+                default:
+                    break;
+            }
+
             foreach (var spectrafileGrid in spectraFilesObservableCollection)
             {
                 var aSpectraFilePath = spectrafileGrid.FilePath;
@@ -864,9 +886,11 @@ namespace MetaDrawGUI
                     continue;
                 }
 
-                Thanos.MsDataFilePaths.Add(aSpectraFilePath);
+                thanos.MsDataFilePaths.Add(aSpectraFilePath);
             }
-            Thanos.AllFilesForBoxCar(500, 1600, 50);
+
+            action();
         }
+
     }
 }

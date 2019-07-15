@@ -166,6 +166,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Accumulator.cs" />
     <Compile Include="BasicClasses\ChromatographicPeak.cs" />
     <Compile Include="BasicClasses\DeconvolutionParameter.cs" />
     <Compile Include="BasicClasses\GlycanStructureAnnotation.cs" />
@@ -175,6 +176,10 @@
     <Compile Include="BasicClasses\Timepoint.cs" />
     <Compile Include="BasicClasses\TsvReader_Glyco.cs" />
     <Compile Include="BasicClasses\WatchEvaluation.cs" />
+    <Compile Include="BoxCar\BoxCarFunctions.cs" />
+    <Compile Include="BoxCar\BoxcarRange.cs" />
+    <Compile Include="BoxCar\SetOfScans.cs" />
+    <Compile Include="BoxMerger.cs" />
     <Compile Include="ChargeDecon\ChargeDeconEnvelope.cs" />
     <Compile Include="ChargeDecon\ChargeDeconPerMS1Scan.cs" />
     <Compile Include="ChargeDecon\ChargeParsi.cs" />
@@ -195,6 +200,7 @@
     <Compile Include="Regression\NonlinearSolver.cs" />
     <Compile Include="Regression\Solver.cs" />
     <Compile Include="Regression\SolverOptions.cs" />
+    <Compile Include="Skill.cs" />
     <Compile Include="Thanos.cs" />
     <Compile Include="ViewModels\ChargeEnveViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
