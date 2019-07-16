@@ -874,6 +874,9 @@ namespace MetaDrawGUI
                 case Skill.merge_boxcarScan:
                     action = thanos.MergeBoxCarScan;
                     break;
+                case Skill.Extract_ScanNumber:
+                    action = thanos.ExtractScanInfor;
+                    break;
                 default:
                     break;
             }

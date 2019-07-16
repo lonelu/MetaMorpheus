@@ -176,7 +176,7 @@ namespace BoxCar
             boxcarRanges = RemoveOverlap(boxcarRanges);
             Parallel.ForEach(setOfScans, set =>
             {
-                if (set.BoxcarScans.Count!=0)
+                if (set.BoxcarScans.Count > 0)
                 {
                     set.MergedBoxScan = SetOfScans.MergeBoxScans(set.BoxcarScans, boxcarRanges);
                 }
@@ -186,6 +186,20 @@ namespace BoxCar
 
         }
 
+        private static string ChangedNativeID(MsDataScan msDataScan, int oneBasedScanNumber)
+        {
+            var id = msDataScan.NativeId;
+            var x = id.Split('=');
+            var y = "";
+            for (int i = 0; i < x.Length - 1; i++)
+            {
+                y += x[i] + "=";
+            }
+            y += oneBasedScanNumber.ToString();
+            return y;
+        }
+
+
         public static List<MsDataScan> OutputMergedBoxScans(List<SetOfScans> setOfScans)
         {
             List<MsDataScan> scans = new List<MsDataScan>();
@@ -193,11 +207,15 @@ namespace BoxCar
             foreach (var set in setOfScans)
             {
                 set.Ms1scans.First().SetOneBasedScanNumber(oneBasedScanNumber);
+                set.Ms1scans.First().SetNativeId(ChangedNativeID(set.Ms1scans.First(), oneBasedScanNumber));
+
                 scans.Add(set.Ms1scans.First());
                 oneBasedScanNumber++;
                 if (set.MergedBoxScan != null)
                 {
                     set.MergedBoxScan.SetOneBasedScanNumber(oneBasedScanNumber);
+                    set.MergedBoxScan.SetNativeId(ChangedNativeID(set.MergedBoxScan, oneBasedScanNumber));
+
                     scans.Add(set.MergedBoxScan);
                     oneBasedScanNumber++;
                 }
@@ -207,6 +225,8 @@ namespace BoxCar
                     {
                         ms2scan.SetOneBasedScanNumber(oneBasedScanNumber);
                         ms2scan.SetOneBasedPrecursorScanNumber(set.Ms1scans.First().OneBasedScanNumber);
+                        ms2scan.SetNativeId(ChangedNativeID(ms2scan, oneBasedScanNumber));
+
                         scans.Add(ms2scan);
                         oneBasedScanNumber++;
                     }

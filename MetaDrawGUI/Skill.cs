@@ -9,6 +9,7 @@ namespace MetaDrawGUI
     public enum Skill
     {
         accumulate_intensity = 0,
-        merge_boxcarScan = 1
+        merge_boxcarScan = 1,
+        Extract_ScanNumber = 2
     }
 }

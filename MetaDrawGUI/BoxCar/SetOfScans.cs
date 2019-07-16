@@ -175,8 +175,8 @@ namespace BoxCar
 
             MzSpectrum newMassSpectrum = new MzSpectrum(x.ToArray(), y.ToArray(), true);
 
-            //TO DO: OneBasedScanNumber is wrong here.
-            MsDataScan newScan = new MsDataScan(newMassSpectrum, BoxcarScans[0].OneBasedScanNumber, 1, true, BoxcarScans[0].Polarity, BoxcarScans[0].RetentionTime, BoxcarScans[0].ScanWindowRange, BoxcarScans[0].ScanFilter, BoxcarScans[0].MzAnalyzer, BoxcarScans[0].TotalIonCurrent, BoxcarScans[0].InjectionTime, BoxcarScans[0].NoiseData, BoxcarScans[0].NativeId);
+            var range = new MzLibUtil.MzRange(BoxcarScans.First().ScanWindowRange.Minimum, BoxcarScans.Last().ScanWindowRange.Maximum);
+            MsDataScan newScan = new MsDataScan(newMassSpectrum, BoxcarScans[0].OneBasedScanNumber, 1, true, BoxcarScans[0].Polarity, BoxcarScans[0].RetentionTime, range, BoxcarScans[0].ScanFilter, BoxcarScans[0].MzAnalyzer, BoxcarScans.Sum(p => p.TotalIonCurrent), BoxcarScans[0].InjectionTime, BoxcarScans[0].NoiseData, BoxcarScans[0].NativeId);
 
             return newScan;
         }

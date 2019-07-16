@@ -45,5 +45,9 @@ namespace MetaDrawGUI
             boxMerger.MergeBoxScans(MsDataFilePaths, spectraFileManager);
         }
 
+        public void ExtractScanInfor()
+        {
+            boxMerger.ExtractScanNumTime(MsDataFilePaths, spectraFileManager);
+        }
     }
 }
