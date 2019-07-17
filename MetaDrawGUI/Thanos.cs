@@ -24,6 +24,8 @@ namespace MetaDrawGUI
 
         public BoxMerger boxMerger = new BoxMerger();
 
+        public Accountant accountant = new Accountant();
+
         public Thanos()
         {
             MsDataFilePaths = new List<string>();
@@ -47,7 +49,7 @@ namespace MetaDrawGUI
 
         public void ExtractScanInfor()
         {
-            boxMerger.ExtractScanNumTime(MsDataFilePaths, spectraFileManager);
+            accountant.ExtractScanNumTime(MsDataFilePaths, spectraFileManager);
         }
     }
 }

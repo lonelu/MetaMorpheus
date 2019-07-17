@@ -10,6 +10,6 @@ namespace MetaDrawGUI
     {
         accumulate_intensity = 0,
         merge_boxcarScan = 1,
-        Extract_ScanNumber = 2
+        account_scanInfo = 2
     }
 }

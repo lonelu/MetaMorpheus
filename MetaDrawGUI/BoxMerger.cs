@@ -12,25 +12,6 @@ namespace MetaDrawGUI
 {
     public class BoxMerger
     {
-
-        public void ExtractScanNumTime(List<string> MsDataFilePaths, MyFileManager spectraFileManager)
-        {
-            List<Tuple<int, int, int>> tuples = new List<Tuple<int, int, int>>();
-
-            foreach (var filePath in MsDataFilePaths)
-            {
-                var msDataFile = spectraFileManager.LoadFile(filePath, new CommonParameters());
-                var scanSets = BoxCarFunctions.GenerateScanSet(msDataFile);
-
-                var fullNum = scanSets.Sum(p => p.Ms1scans.Count);      
-                var msxNum = scanSets.Sum(p => p.BoxcarScans.Count);
-                var MS2Num = scanSets.Sum(p => p.Ms2scans.Count);
-
-                tuples.Add(new Tuple<int, int, int>(fullNum, msxNum, MS2Num));
-            }
-
-        }
-
         public void MergeBoxScans(List<string> MsDataFilePaths, MyFileManager spectraFileManager)
         {
             var boxcarRanges = GenerateRealRanges_td2_2_12();
@@ -45,7 +26,7 @@ namespace MetaDrawGUI
 
                 var scans = BoxCarFunctions.OutputMergedBoxScans(scanSets);
 
-                WriteBoxMzmlFile(scans, msDataFile, filePath + "_MergedBox_allScans.mzML");
+                WriteBoxMzmlFile(scans, msDataFile, filePath + "_MergedBox_allScans2.mzML");
             }
         }
 

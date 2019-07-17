@@ -207,14 +207,14 @@ namespace BoxCar
             foreach (var set in setOfScans)
             {
                 set.Ms1scans.First().SetOneBasedScanNumber(oneBasedScanNumber);
-                set.Ms1scans.First().SetNativeId(ChangedNativeID(set.Ms1scans.First(), oneBasedScanNumber));
+                set.Ms1scans.First().SetNativeID(ChangedNativeID(set.Ms1scans.First(), oneBasedScanNumber));
 
                 scans.Add(set.Ms1scans.First());
                 oneBasedScanNumber++;
                 if (set.MergedBoxScan != null)
                 {
                     set.MergedBoxScan.SetOneBasedScanNumber(oneBasedScanNumber);
-                    set.MergedBoxScan.SetNativeId(ChangedNativeID(set.MergedBoxScan, oneBasedScanNumber));
+                   set.MergedBoxScan.SetNativeID(ChangedNativeID(set.MergedBoxScan, oneBasedScanNumber));
 
                     scans.Add(set.MergedBoxScan);
                     oneBasedScanNumber++;
@@ -225,7 +225,7 @@ namespace BoxCar
                     {
                         ms2scan.SetOneBasedScanNumber(oneBasedScanNumber);
                         ms2scan.SetOneBasedPrecursorScanNumber(set.Ms1scans.First().OneBasedScanNumber);
-                        ms2scan.SetNativeId(ChangedNativeID(ms2scan, oneBasedScanNumber));
+                        ms2scan.SetNativeID(ChangedNativeID(ms2scan, oneBasedScanNumber));
 
                         scans.Add(ms2scan);
                         oneBasedScanNumber++;
