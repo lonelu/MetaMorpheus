@@ -139,7 +139,7 @@ namespace MetaDrawGUI
         public void ExtractScanInfo_Glyco(List<string> MsDataFilePaths, MyFileManager spectraFileManager, Tuple<double, double> timeRange)
         {
             //fullNum, MS2Num, HCDNum, ETDNum
-            List<Tuple<int, int, int, int>> tuples = new List<Tuple<int, int, int, int>>();
+            List<Tuple<int, int, int, int, int>> tuples = new List<Tuple<int, int, int, int, int>>();
 
             foreach (var filePath in MsDataFilePaths)
             {
@@ -150,11 +150,12 @@ namespace MetaDrawGUI
                 var fullNum = scanSets.Where(p => p.Ms1scans.First().RetentionTime > timeRange.Item1 && p.Ms1scans.First().RetentionTime < timeRange.Item2).Sum(p => p.Ms1scans.Count);
                 //var msxNum = scanSets.Where(p => p.Ms1scans.First().RetentionTime > timeRange.Item1 && p.Ms1scans.First().RetentionTime < timeRange.Item2).Sum(p => p.BoxcarScans.Count);
                 var MS2_Num = scanSets.Where(p => p.Ms1scans.First().RetentionTime > timeRange.Item1 && p.Ms1scans.First().RetentionTime < timeRange.Item2).Sum(p => p.Ms2scans.Count);
-                var HCD_Num = scanSets.Where(p => p.Ms1scans.First().RetentionTime > timeRange.Item1 && p.Ms1scans.First().RetentionTime < timeRange.Item2).Sum(p => p.Ms2scans.Where(k => k.ScanFilter.Contains("hcd")).Count());
-                var ETD_Num = scanSets.Where(p => p.Ms1scans.First().RetentionTime > timeRange.Item1 && p.Ms1scans.First().RetentionTime < timeRange.Item2).Sum(p => p.Ms2scans.Where(k => k.ScanFilter.Contains("etd")).Count());
+                var HCD_Num = scanSets.Where(p => p.Ms1scans.First().RetentionTime > timeRange.Item1 && p.Ms1scans.First().RetentionTime < timeRange.Item2).Sum(p => p.Ms2scans.Where(k => k.ScanFilter.Contains("hcd") && !k.ScanFilter.Contains("etd")).Count());
+                var ETD_Num = scanSets.Where(p => p.Ms1scans.First().RetentionTime > timeRange.Item1 && p.Ms1scans.First().RetentionTime < timeRange.Item2).Sum(p => p.Ms2scans.Where(k => k.ScanFilter.Contains("etd") && !k.ScanFilter.Contains("hcd")).Count());
+                var EThcD_Num = scanSets.Where(p => p.Ms1scans.First().RetentionTime > timeRange.Item1 && p.Ms1scans.First().RetentionTime < timeRange.Item2).Sum(p => p.Ms2scans.Where(k => k.ScanFilter.Contains("etd") && k.ScanFilter.Contains("hcd")).Count());
 
 
-                tuples.Add(new Tuple<int, int, int, int>(fullNum, MS2_Num, HCD_Num, ETD_Num));
+                tuples.Add(new Tuple<int, int, int, int, int>(fullNum, MS2_Num, HCD_Num, ETD_Num, EThcD_Num));
 
                 var scans = msDataFile.GetAllScansList();
 
@@ -182,14 +183,18 @@ namespace MetaDrawGUI
                 {
                     scanType = "Full";
                 }
-                else if (scans[i].ScanFilter.Contains("hcd"))
+                else if (scans[i].ScanFilter.Contains("hcd") && !scans[i].ScanFilter.Contains("etd"))
                 {
                     scanType = "hcd";
 
                 }
-                else if (scans[i].ScanFilter.Contains("etd"))
+                else if (!scans[i].ScanFilter.Contains("hcd") && scans[i].ScanFilter.Contains("etd"))
                 {
                     scanType = "etd";
+                }
+                else if (scans[i].ScanFilter.Contains("hcd") && scans[i].ScanFilter.Contains("etd"))
+                {
+                    scanType = "ethcd";
                 }
 
 
@@ -197,30 +202,40 @@ namespace MetaDrawGUI
                 {
                     previousScanType = "Full";
                 }
-                else if (scans[i - 1].ScanFilter.Contains("hcd"))
+                else if (scans[i-1].ScanFilter.Contains("hcd") && !scans[i-1].ScanFilter.Contains("etd"))
                 {
                     previousScanType = "hcd";
 
                 }
-                else if (scans[i - 1].ScanFilter.Contains("etd"))
+                else if (!scans[i-1].ScanFilter.Contains("hcd") && scans[i-1].ScanFilter.Contains("etd"))
                 {
                     previousScanType = "etd";
                 }
+                else if (scans[i-1].ScanFilter.Contains("hcd") && scans[i-1].ScanFilter.Contains("etd"))
+                {
+                    previousScanType = "ethcd";
+                }
+
 
 
                 if (scans[i + 1].ScanFilter.Contains("Full ms "))
                 {
                     nextScanType = "Full";
                 }
-                else if (scans[i + 1].ScanFilter.Contains("hcd"))
+                else if (scans[i + 1].ScanFilter.Contains("hcd") && !scans[i + 1].ScanFilter.Contains("etd"))
                 {
                     nextScanType = "hcd";
 
                 }
-                else if (scans[i + 1].ScanFilter.Contains("etd"))
+                else if (!scans[i + 1].ScanFilter.Contains("hcd") && scans[i + 1].ScanFilter.Contains("etd"))
                 {
                     nextScanType = "etd";
                 }
+                else if (scans[i + 1].ScanFilter.Contains("hcd") && scans[i + 1].ScanFilter.Contains("etd"))
+                {
+                    nextScanType = "ethcd";
+                }
+
 
                 double previousTime = (scans[i].RetentionTime - scans[i - 1].RetentionTime) * 60000;
 
@@ -247,15 +262,15 @@ namespace MetaDrawGUI
             }
         }
 
-        private void WriteExtractedNum_Glyco(string FilePath, string name, List<Tuple<int, int, int, int>> tuples)
+        private void WriteExtractedNum_Glyco(string FilePath, string name, List<Tuple<int, int, int, int, int>> tuples)
         {
             var writtenFile = Path.Combine(Path.GetDirectoryName(FilePath), name + ".tsv");
             using (StreamWriter output = new StreamWriter(writtenFile))
             {
-                output.WriteLine("FullTotal\tMs2Total\tHcdTotal\tEtdTotal");
+                output.WriteLine("FullTotal\tMs2Total\tHcdTotal\tEtdTotal\tEThcDTotal");
                 for (int i = 0; i < tuples.Count; i++)
                 {
-                    output.WriteLine(tuples[i].Item1 + "\t" + tuples[i].Item2 + "\t" + tuples[i].Item3 + "\t" + tuples[i].Item4);
+                    output.WriteLine(tuples[i].Item1 + "\t" + tuples[i].Item2 + "\t" + tuples[i].Item3 + "\t" + tuples[i].Item4 + "\t" + tuples[i].Item5);
                 }
             }
         }
