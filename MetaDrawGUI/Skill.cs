@@ -10,6 +10,9 @@ namespace MetaDrawGUI
     {
         accumulate_intensity = 0,
         merge_boxcarScan = 1,
-        account_scanInfo = 2
+        account_scanInfo = 2,
+        sweet_pGlcoResult = 3,
+        plot_glycoFamilcy = 4,
+        account_glycoScanInfo = 5
     }
 }

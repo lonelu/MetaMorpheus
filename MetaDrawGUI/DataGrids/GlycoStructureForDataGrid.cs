@@ -8,11 +8,9 @@ namespace MetaDrawGUI
 {
     public class GlycoStructureForDataGrid
     {
-        public GlycoStructureForDataGrid(int scanNum, string fullSeq, string structure)
+        public GlycoStructureForDataGrid(int scanNum)
         {
             ScanNum = scanNum;
-            FullSeq = fullSeq;
-            Structure = structure;
         }
 
         public int ScanNum { get; set; }

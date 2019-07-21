@@ -49,7 +49,7 @@ namespace MetaDrawGUI
                         tsvType = TsvType.GlycReSoft;
                         Split = new char[] { ',' };
                     }
-                    else if (line.StartsWith(""))
+                    else if (line.StartsWith("something"))
                     {
                         tsvType = TsvType.Byonic;
                     }

@@ -72,15 +72,11 @@
                     </Grid.ColumnDefinitions>
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="1*"/>
                             <RowDefinition Height="6*"/>
                             <RowDefinition Height="1*"/>
                             <RowDefinition Height="20*"/>
                         </Grid.RowDefinitions>
-                        <TextBox x:Name="TxtGlycan" Text="Input here..." Height="30" Grid.Row="0"/>
-                        <Button x:Name="BtnDrawGlycan" Content="Draw Clycan" Click="BtnDrawGlycan_Click" Grid.Row="1"/>
-                        <GroupBox Header="Glyco Results" Name="gbGlycoResults" Grid.Row="2">
+                        <GroupBox Header="Glyco Results" Name="gbGlycoResults" Grid.Row="0">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="5*"/>
@@ -94,7 +90,6 @@
                                     <Button x:Name="BtnAddGlycoResultFiles" Content="Add" Click="BtnAddGlycoResultFiles_Click"  Height="30" VerticalAlignment="Top"/>
                                     <Button x:Name="btnClearGlycoResultFiles" Content="Clear" Click="BtnClearGlycoResultFiles_Click" Height="30" VerticalAlignment="Top"/>
                                     <Button x:Name="BtnLoadGlycoResults" Content="Load Result" Click="BtnLoadGlycoResults_Click" />
-                                    <Button x:Name="BtnWriteGlycoResults" Content="Write Result" Click="BtnWriteGlycoResults_Click"/>
                                 </StackPanel>
                             </Grid>
                         </GroupBox>

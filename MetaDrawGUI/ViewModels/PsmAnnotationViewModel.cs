@@ -17,7 +17,7 @@ namespace ViewModels
     {
         private const double STROKE_THICKNESS_UNANNOTATED = 0.5;
         private const double STROKE_THICKNESS_ANNOTATED = 2.0;
-        private PlotModel privateModel;
+        public PlotModel privateModel;
 
         private static Dictionary<ProductType, OxyColor> productTypeDrawColors = new Dictionary<ProductType, OxyColor>
         {

@@ -208,6 +208,7 @@
     <Compile Include="Regression\Solver.cs" />
     <Compile Include="Regression\SolverOptions.cs" />
     <Compile Include="Skill.cs" />
+    <Compile Include="Sweetor.cs" />
     <Compile Include="Thanos.cs" />
     <Compile Include="ViewModels\ChargeEnveViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />

@@ -32,6 +32,7 @@ namespace MetaDrawGUI
             
         }
 
+        public string iD { get; set; }
         public string FileName { get; set; }
         public int ScanNum { get; set; }
         public double RT { get; set; }
@@ -48,6 +49,7 @@ namespace MetaDrawGUI
         public string ProteinStartEnd { get; set; }
 
         public string BetaPeptideBaseSequence { get; set; }
+        public double glycanMass { get; set; }
         private string GlycanStructure { get; set; }
         public byte[] glycanKind { get; set; }
         public Glycan glycan { get; set; }
@@ -65,30 +67,42 @@ namespace MetaDrawGUI
             RT = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.Ms2ScanRetentionTime]]) / 60;
             PrecursorMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.PrecursorMH]]) - 1.0073;
             ChargeState = int.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.FileName]].Split('.')[3]);
-            GlycanStructure = spl[parsedHeader[PsmTsvHeader_pGlyco.GlyStruct]].Trim();
-            glycan = Glycan.Struct2Glycan(GlycanStructure, 0);
-            MonoisotopicMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.PeptideMH]]) + glycan.Mass - 1.0073;
+
+            if (parsedHeader[PsmTsvHeader_pGlyco.GlyStruct] > 0)
+            {
+                GlycanStructure = spl[parsedHeader[PsmTsvHeader_pGlyco.GlyStruct]].Trim();
+                glycan = Glycan.Struct2Glycan(GlycanStructure, 0);
+            }
+
+
+            glycanMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.GlycanMass]]);
+            MonoisotopicMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.PeptideMH]]) + glycanMass - 1.0073;
             var pBaseSeq = spl[parsedHeader[PsmTsvHeader_pGlyco.BaseSequence]].Trim();
             StringBuilder sb = new StringBuilder(pBaseSeq);
             sb[pBaseSeq.IndexOf('J')] = 'N';
             BaseSeq = sb.ToString();
             Mod = spl[parsedHeader[PsmTsvHeader_pGlyco.Mods]].Trim();
 
-            Modification modification = GlycoPeptides.GlycanToModification(glycan);
-            Dictionary<int, Modification> testMods = GetMods_pGlyco(Mod, AllPossibleMods_pGlyco);
-            testMods.Add(pBaseSeq.IndexOf('J') + 1, modification);
-            FullSeq = GetFullSeq(BaseSeq, testMods);
-
-            var AllModsKnownDictionary = new Dictionary<string, Modification>();
-            foreach (Modification mod in testMods.Values)
+            if (glycan !=null)
             {
-                if (!AllModsKnownDictionary.ContainsKey(mod.IdWithMotif))
+                Modification modification = GlycoPeptides.GlycanToModification(glycan);
+
+
+                Dictionary<int, Modification> testMods = GetMods_pGlyco(Mod, AllPossibleMods_pGlyco);
+                testMods.Add(pBaseSeq.IndexOf('J') + 1, modification);
+                FullSeq = GetFullSeq(BaseSeq, testMods);
+
+                var AllModsKnownDictionary = new Dictionary<string, Modification>();
+                foreach (Modification mod in testMods.Values)
                 {
-                    AllModsKnownDictionary.Add(mod.IdWithMotif, mod);
+                    if (!AllModsKnownDictionary.ContainsKey(mod.IdWithMotif))
+                    {
+                        AllModsKnownDictionary.Add(mod.IdWithMotif, mod);
+                    }
+                    // no error thrown if multiple mods with this ID are present - just pick one
                 }
-                // no error thrown if multiple mods with this ID are present - just pick one
+                glycoPwsm = new PeptideWithSetModifications(FullSeq, AllModsKnownDictionary);
             }
-            glycoPwsm = new PeptideWithSetModifications(FullSeq, AllModsKnownDictionary);
 
             QValue = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.QValue]]);
             Decoy = false;

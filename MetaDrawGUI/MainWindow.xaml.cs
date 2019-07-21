@@ -52,14 +52,13 @@ namespace MetaDrawGUI
         public List<ChargeDeconEnvelope> ScanChargeEnvelopes { get; set; } = new List<ChargeDeconEnvelope>();
         public List<NeuCodeIsotopicEnvelop> IsotopicEnvelopes { get; set; } = new List<NeuCodeIsotopicEnvelop>();
         private List<PsmFromTsv> psms = new List<PsmFromTsv>();
-        private List<SimplePsm> simplePsms = new List<SimplePsm>();
 
         //View model
         private MainViewModel mainViewModel;
         public DeconViewModel DeconViewModel { get; set; }
         public PeakViewModel XicViewModel { get; set; }
         public ChargeEnveViewModel ChargeDeconViewModel { get; set; }
-        public PsmAnnotationViewModel psmAnnotationViewModel { get; set; }
+
 
         public Thanos thanos { get; set; }
         public Action action { get; set; }
@@ -110,9 +109,9 @@ namespace MetaDrawGUI
 
             plotViewChargeEnve.DataContext = ChargeDeconViewModel;
 
-            psmAnnotationViewModel = new PsmAnnotationViewModel();
+            thanos.psmAnnotationViewModel = new PsmAnnotationViewModel();
 
-            plotAnnoView.DataContext = psmAnnotationViewModel;
+            plotAnnoView.DataContext = thanos.psmAnnotationViewModel;
 
             dataGridMassSpectraFiles.DataContext = spectraFilesObservableCollection;
 
@@ -554,7 +553,7 @@ namespace MetaDrawGUI
             var sele = (AllScansForDataGrid)dataGridAllScanNums.SelectedItem;
 
             msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
-            psmAnnotationViewModel.DrawPeptideSpectralMatch(msDataScan);
+            thanos.psmAnnotationViewModel.DrawPeptideSpectralMatch(msDataScan);
 
             if (TabDecon.IsSelected)
             {
@@ -730,9 +729,9 @@ namespace MetaDrawGUI
         {
             glyCanvas.Children.Clear();
 
-            if (TxtGlycan.Text != null)
+            if (TxtGlycans.Text != null)
             {
-                GlycanStructureAnnotation.DrawGlycan(glyCanvas, TxtGlycan.Text, 50);
+                GlycanStructureAnnotation.DrawGlycan(glyCanvas, TxtGlycans.Text, 50);
             }
         }
 
@@ -760,33 +759,26 @@ namespace MetaDrawGUI
 
         private void BtnLoadGlycoResults_Click(object sender, RoutedEventArgs e)
         {
-            resultsFilePath = resultFilesObservableCollection.First().FilePath;
-            if (resultsFilePath == null)
-            {
-                MessageBox.Show("Please add a result file.");
-                return;
-            }
-
             // load the spectra file
             (sender as Button).IsEnabled = false;
             BtnAddGlycoResultFiles.IsEnabled = false;
             btnClearGlycoResultFiles.IsEnabled = false;
-            BtnWriteGlycoResults.IsEnabled = true;
 
-            // load the PSMs
-            simplePsms = TsvReader_Glyco.ReadTsv(resultsFilePath);
-            foreach (var psm in simplePsms)
+            foreach (var collection in resultFilesObservableCollection)
             {
-                GlycoStrucureObservableCollection.Add(new GlycoStructureForDataGrid( psm.ScanNum, psm.BaseSeq, psm.glycan.Struc));
+                resultsFilePath = collection.FilePath;
+                if (resultsFilePath == null)
+                {
+                    continue;
+                }
+                // load the PSMs
+                thanos.simplePsms.AddRange(TsvReader_Glyco.ReadTsv(resultsFilePath));
             }
-        }
 
-        private void BtnWriteGlycoResults_Click(object sender, RoutedEventArgs e)
-        {
-
-            var ForderPath = Path.Combine(Path.GetDirectoryName(resultFilesObservableCollection.First().FilePath), "pGlyco.mytsv");
-
-            TsvReader_Glyco.WriteTsv(ForderPath, simplePsms);
+            foreach (var psm in thanos.simplePsms)
+            {
+                GlycoStrucureObservableCollection.Add(new GlycoStructureForDataGrid( psm.ScanNum));
+            }
         }
 
         private void DataGridGlyco_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
@@ -798,9 +790,9 @@ namespace MetaDrawGUI
 
             var sele = (GlycoStructureForDataGrid)dataGridGlyco.SelectedItem;
             msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
-            var selePsm = simplePsms.Where(p => p.ScanNum == sele.ScanNum).First();
+            var selePsm = thanos.simplePsms.Where(p => p.ScanNum == sele.ScanNum).First();
             selePsm.MatchedIons = SimplePsm.GetMatchedIons(selePsm.glycoPwsm, selePsm.PrecursorMass, selePsm.ChargeState, CommonParameters, msDataScan);
-            psmAnnotationViewModel.DrawPeptideSpectralMatch(msDataScan, selePsm);
+            thanos.psmAnnotationViewModel.DrawPeptideSpectralMatch(msDataScan, selePsm);
 
             //Draw Glycan
             glyCanvas.Children.Clear();          
@@ -877,6 +869,15 @@ namespace MetaDrawGUI
                 case Skill.account_scanInfo:
                     action = thanos.ExtractScanInfor;
                     break;
+                case Skill.sweet_pGlcoResult:
+                    action = thanos.WritePGlycoResult;
+                    break;
+                case Skill.plot_glycoFamilcy:
+                    action = thanos.PlotGlycoFamily;
+                    break;
+                case Skill.account_glycoScanInfo:
+                    action = thanos.ExtractGlycoScanInfor;
+                    break;
                 default:
                     break;
             }
@@ -890,6 +891,16 @@ namespace MetaDrawGUI
                 }
 
                 thanos.MsDataFilePaths.Add(aSpectraFilePath);
+            }
+
+            foreach (var aResultfileGrid in resultFilesObservableCollection)
+            {
+                var aResultfilePath = aResultfileGrid.FilePath;
+                if (aResultfilePath == null)
+                {
+                    continue;
+                }
+                thanos.ResultFilePaths.Add(aResultfilePath);
             }
 
             action();
