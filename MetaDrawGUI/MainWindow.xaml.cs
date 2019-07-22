@@ -111,7 +111,7 @@ namespace MetaDrawGUI
 
             thanos.psmAnnotationViewModel = new PsmAnnotationViewModel();
 
-            plotAnnoView.DataContext = thanos.psmAnnotationViewModel;
+            plotAnnoView.DataContext = thanos;
 
             dataGridMassSpectraFiles.DataContext = spectraFilesObservableCollection;
 

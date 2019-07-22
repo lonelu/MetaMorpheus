@@ -13,7 +13,7 @@ using MetaDrawGUI;
 
 namespace ViewModels
 {
-    public class PsmAnnotationViewModel : INotifyPropertyChanged
+    public class PsmAnnotationViewModel
     {
         private const double STROKE_THICKNESS_UNANNOTATED = 0.5;
         private const double STROKE_THICKNESS_ANNOTATED = 2.0;
@@ -39,30 +39,6 @@ namespace ViewModels
           { ProductType.M, OxyColors.LightCoral }
         };
 
-        public PlotModel PsmAnnoModel
-        {
-            get
-            {
-                return this.privateModel;
-            }
-            set
-            {
-                this.privateModel = value;
-                NotifyPropertyChanged("PsmAnnoModel");
-            }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void NotifyPropertyChanged(string propertyName)
-        {
-            PropertyChangedEventHandler handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-
         public PsmAnnotationViewModel()
         {
             // Create and Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
@@ -75,11 +51,11 @@ namespace ViewModels
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
             if (psmToDraw == null)
             {
-                this.PsmAnnoModel = DrawScan(msDataScan);
+                this.privateModel = DrawScan(msDataScan);
             }
             else
             {
-                this.PsmAnnoModel = Draw(msDataScan, psmToDraw);
+                this.privateModel = Draw(msDataScan, psmToDraw);
             }
         }
 

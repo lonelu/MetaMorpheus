@@ -118,7 +118,7 @@ namespace MetaDrawGUI
             parsedHeader.Add(PsmTsvHeader_pGlyco.Mods, Array.IndexOf(spl, PsmTsvHeader_pGlyco.Mods));
             parsedHeader.Add(PsmTsvHeader_pGlyco.PeptideMH, Array.IndexOf(spl, PsmTsvHeader_pGlyco.PeptideMH));
             parsedHeader.Add(PsmTsvHeader_pGlyco.GlycanMass, Array.IndexOf(spl, PsmTsvHeader_pGlyco.GlycanMass));
-            parsedHeader.Add(PsmTsvHeader_pGlyco.Glycan, Array.IndexOf(spl, PsmTsvHeader_pGlyco.Glycan));
+            parsedHeader.Add(PsmTsvHeader_pGlyco.GlycanKind, Array.IndexOf(spl, PsmTsvHeader_pGlyco.GlycanKind));
             parsedHeader.Add(PsmTsvHeader_pGlyco.GlyStruct, Array.IndexOf(spl, PsmTsvHeader_pGlyco.GlyStruct));
             parsedHeader.Add(PsmTsvHeader_pGlyco.ProteinAccession, Array.IndexOf(spl, PsmTsvHeader_pGlyco.ProteinAccession));
             parsedHeader.Add(PsmTsvHeader_pGlyco.GlyQValue, Array.IndexOf(spl, PsmTsvHeader_pGlyco.GlyQValue));
@@ -159,7 +159,7 @@ namespace MetaDrawGUI
         public const string Mods = "Mod";
         public const string PeptideMH = "PeptideMH";
         public const string GlycanMass = "GlyMass";
-        public const string Glycan = "Glycan(H,N,A,G,F)";
+        public const string GlycanKind = "Glycan(H,N,A,G,F)";
         public const string GlyStruct = "PlausibleStruct";
         public const string ProteinAccession = "Proteins";    
         public const string GlyQValue = "GlycanFDR";

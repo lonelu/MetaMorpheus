@@ -257,6 +257,17 @@ namespace EngineLayer
             return kind;
         }
 
+        public static byte[] GetKindFromKindString(string kindString)
+        {
+            var kind = new byte[5];
+            var kinds = kindString.Split(' ');
+            for (int i = 0; i < 5; i++)
+            {
+                kind[i] = byte.Parse(kinds[i]);
+            }
+            return kind;
+        }
+
         public static int GetIonLossMass(byte[] Kind, byte[] ionKind)
         {
             byte[] lossKind = new byte[Kind.Length];

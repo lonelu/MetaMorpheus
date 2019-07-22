@@ -15,6 +15,10 @@ using System.ComponentModel;
 using TaskLayer;
 using System.Threading.Tasks;
 using System.Threading;
+using OxyPlot;
+using OxyPlot.Annotations;
+using OxyPlot.Axes;
+using OxyPlot.Series;
 
 namespace MetaDrawGUI
 {
@@ -33,6 +37,7 @@ namespace MetaDrawGUI
         public Thanos()
         {
             MsDataFilePaths = new List<string>();
+            ResultFilePaths = new List<string>();
             spectraFileManager = new MyFileManager(true);
         }
 
@@ -43,7 +48,7 @@ namespace MetaDrawGUI
             PropertyChangedEventHandler handler = PropertyChanged;
             if (handler != null)
             {
-                handler(this, new PropertyChangedEventArgs(propertyName));
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
             }
         }
 
@@ -53,7 +58,20 @@ namespace MetaDrawGUI
 
         public MyFileManager spectraFileManager { get; set; }
 
-        public PsmAnnotationViewModel psmAnnotationViewModel { get; set; }
+        public PsmAnnotationViewModel psmAnnotationViewModel{ get; set; }
+
+        public PlotModel PsmAnnoModel
+        {
+            get
+            {
+                return psmAnnotationViewModel.privateModel;
+            }
+            set
+            {
+                psmAnnotationViewModel.privateModel = value;
+                NotifyPropertyChanged("PsmAnnoModel");
+            }
+        }
 
         //Accumulate intensities for boxcar range decision.
         public void Accumulate()
@@ -78,8 +96,7 @@ namespace MetaDrawGUI
 
         public void PlotGlycoFamily()
         {
-            psmAnnotationViewModel.privateModel = sweetor.PlotGlycoRT(simplePsms);
-            NotifyPropertyChanged("PsmAnnoModel");
+            PsmAnnoModel = sweetor.PlotGlycoRT(simplePsms.Where(p => p.QValue < 0.01).ToList());
         }
 
         public void ExtractGlycoScanInfor()
