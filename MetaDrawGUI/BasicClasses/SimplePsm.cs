@@ -53,6 +53,7 @@ namespace MetaDrawGUI
         private string GlycanStructure { get; set; }
         public byte[] glycanKind { get; set; }
         public int glycanAGNumber { get; set; }
+        public string glycanString { get; set; }
         public Glycan glycan { get; set; }
         public PeptideWithSetModifications glycoPwsm { get; set; }
         public List<MatchedFragmentIon> MatchedIons { get; set; }
@@ -77,6 +78,8 @@ namespace MetaDrawGUI
 
             glycanKind = Glycan.GetKindFromKindString(spl[parsedHeader[PsmTsvHeader_pGlyco.GlycanKind]]);
             glycanAGNumber = glycanKind[2] + glycanKind[3];
+            glycanString = Glycan.GetKindString(glycanKind);
+
             glycanMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.GlycanMass]]);
             MonoisotopicMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.PeptideMH]]) + glycanMass - 1.0073;
             var pBaseSeq = spl[parsedHeader[PsmTsvHeader_pGlyco.BaseSequence]].Trim();

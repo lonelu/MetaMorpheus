@@ -147,7 +147,6 @@ namespace MetaDrawGUI
             parsedHeader.Add(PsmTsvHeader_GlycReSoft.scan_time, Array.IndexOf(spl, PsmTsvHeader_GlycReSoft.scan_time));
             return parsedHeader;
         }
-
     }
 
     public static class PsmTsvHeader_pGlyco
@@ -185,5 +184,7 @@ namespace MetaDrawGUI
         public const string peptide_end = "peptide_end";
         public const string protein_name = "protein_name";
     }
+
+
 
 }

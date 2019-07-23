@@ -182,6 +182,7 @@
     <Compile Include="BasicClasses\SimplePsm.cs" />
     <Compile Include="BasicClasses\Timepoint.cs" />
     <Compile Include="BasicClasses\TsvReader_Glyco.cs" />
+    <Compile Include="BasicClasses\TsvReader_MsFeature.cs" />
     <Compile Include="BasicClasses\WatchEvaluation.cs" />
     <Compile Include="BoxCar\BoxCarFunctions.cs" />
     <Compile Include="BoxCar\BoxcarRange.cs" />
@@ -195,9 +196,11 @@
     <Compile Include="DataGrids\EnvolopForDataGrid.cs" />
     <Compile Include="DataGrids\GlycanDatabaseForDataGrid.cs" />
     <Compile Include="DataGrids\GlycoStructureForDataGrid.cs" />
+    <Compile Include="DataGrids\MsFeatureForDataGrid.cs" />
     <Compile Include="DataGrids\RawDataForDataGrid.cs" />
     <Compile Include="DataGrids\SpectrumForDataGrid.cs" />
     <Compile Include="MsDataFileDecon.cs" />
+    <Compile Include="MsFeature.cs" />
     <Compile Include="Multiprotease\MultiProteaseCrosslink.cs" />
     <Compile Include="MzSpectrumBU.cs" />
     <Compile Include="Regression\GaussianModel.cs" />

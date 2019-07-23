@@ -68,6 +68,8 @@ namespace MetaDrawGUI
 
         private readonly ObservableCollection<GlycoStructureForDataGrid> GlycoStrucureObservableCollection = new ObservableCollection<GlycoStructureForDataGrid>();
 
+        private readonly ObservableCollection<MsFeatureForDataGrid> MsFeatureObservableCollection = new ObservableCollection<MsFeatureForDataGrid>();
+
         private readonly ObservableCollection<GlycanDatabaseForDataGrid> glycanDatabaseCollection = new ObservableCollection<GlycanDatabaseForDataGrid>();
         private List<Glycan> NGlycans { get; set; }
         //MultiproteaseCrosslink
@@ -135,7 +137,8 @@ namespace MetaDrawGUI
             UpdateFieldsFromPanel();
 
             dataGridGlycoResultFiles.DataContext = resultFilesObservableCollection;
-            dataGridGlyco.DataContext = GlycoStrucureObservableCollection;
+            //dataGridGlyco.DataContext = GlycoStrucureObservableCollection;
+            dataGridGlyco.DataContext = MsFeatureObservableCollection;
             dataGridGlycan.DataContext = glycanDatabaseCollection;
         }
 
@@ -781,6 +784,25 @@ namespace MetaDrawGUI
             }
         }
 
+        private void BtnLoadMsFeatureResults_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (var collection in resultFilesObservableCollection)
+            {
+                resultsFilePath = collection.FilePath;
+                if (resultsFilePath == null)
+                {
+                    continue;
+                }
+                // load the PSMs
+                thanos.msFeatures.AddRange(TsvReader_MsFeature.ReadTsv(resultsFilePath));
+            }
+
+            foreach (var feature in thanos.msFeatures)
+            {
+                MsFeatureObservableCollection.Add(new MsFeatureForDataGrid(feature.MonoMass, feature.Abundance, feature.ApexRT));
+            }
+        }
+
         private void DataGridGlyco_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {       
             if (dataGridGlyco.SelectedItem == null)
@@ -878,6 +900,9 @@ namespace MetaDrawGUI
                 case Skill.account_glycoScanInfo:
                     action = thanos.ExtractGlycoScanInfor;
                     break;
+                case Skill.sweetor_glycoFamily:
+                    action = thanos.BuildGlycoFamily;
+                    break;
                 default:
                     break;
             }
@@ -905,6 +930,5 @@ namespace MetaDrawGUI
 
             action();
         }
-
     }
 }

@@ -81,6 +81,7 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="5*"/>
                                     <RowDefinition Height="1*"/>
+                                    <RowDefinition Height="1*"/>
                                 </Grid.RowDefinitions>
                                 <DataGrid x:Name="dataGridGlycoResultFiles" ItemsSource="{Binding}" Grid.Row="0">
                                     <DataGrid.Resources>
@@ -89,7 +90,10 @@
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
                                     <Button x:Name="BtnAddGlycoResultFiles" Content="Add" Click="BtnAddGlycoResultFiles_Click"  Height="30" VerticalAlignment="Top"/>
                                     <Button x:Name="btnClearGlycoResultFiles" Content="Clear" Click="BtnClearGlycoResultFiles_Click" Height="30" VerticalAlignment="Top"/>
-                                    <Button x:Name="BtnLoadGlycoResults" Content="Load Result" Click="BtnLoadGlycoResults_Click" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="2">
+                                    <Button x:Name="BtnLoadGlycoResults" Content="Load Glyco" Click="BtnLoadGlycoResults_Click" />
+                                    <Button x:Name="BtnLoadMsFeatureResults" Content="Load MsFeature" Click="BtnLoadMsFeatureResults_Click" />
                                 </StackPanel>
                             </Grid>
                         </GroupBox>

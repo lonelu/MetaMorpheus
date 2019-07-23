@@ -34,6 +34,10 @@ namespace MetaDrawGUI
 
         public List<SimplePsm> simplePsms = new List<SimplePsm>();
 
+        public List<MsFeature> msFeatures = new List<MsFeature>();
+
+        public List<HashSet<MsFeature>> familyFeatures = new List<HashSet<MsFeature>>();
+
         public Thanos()
         {
             MsDataFilePaths = new List<string>();
@@ -102,6 +106,12 @@ namespace MetaDrawGUI
         public void ExtractGlycoScanInfor()
         {
             accountant.ExtractScanInfo_Glyco(MsDataFilePaths, spectraFileManager, new Tuple<double, double>(0, 90));
+        }
+
+        public void BuildGlycoFamily()
+        {
+            familyFeatures = Sweetor.GetGlycoFamilies(msFeatures.ToArray());
+            PsmAnnoModel = Sweetor.PlotGlycoFamily(familyFeatures);
         }
     }
 }
