@@ -903,6 +903,9 @@ namespace MetaDrawGUI
                 case Skill.sweetor_glycoFamily:
                     action = thanos.BuildGlycoFamily;
                     break;
+                case Skill.account_ExtractPrecursorInfo:
+                    action = thanos.ExtractPrecursorInfo;
+                    break;
                 default:
                     break;
             }

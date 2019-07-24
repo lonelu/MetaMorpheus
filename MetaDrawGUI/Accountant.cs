@@ -23,7 +23,7 @@ namespace MetaDrawGUI
                 var scanSets = BoxCarFunctions.GenerateScanSet(msDataFile);
 
 
-                var fullNum = scanSets.Where(p=>p.Ms1scans.First().RetentionTime > timeRange.Item1 && p.Ms1scans.First().RetentionTime < timeRange.Item2).Sum(p => p.Ms1scans.Count);
+                var fullNum = scanSets.Where(p => p.Ms1scans.First().RetentionTime > timeRange.Item1 && p.Ms1scans.First().RetentionTime < timeRange.Item2).Sum(p => p.Ms1scans.Count);
                 var msxNum = scanSets.Where(p => p.Ms1scans.First().RetentionTime > timeRange.Item1 && p.Ms1scans.First().RetentionTime < timeRange.Item2).Sum(p => p.BoxcarScans.Count);
                 var MS2Num = scanSets.Where(p => p.Ms1scans.First().RetentionTime > timeRange.Item1 && p.Ms1scans.First().RetentionTime < timeRange.Item2).Sum(p => p.Ms2scans.Count);
 
@@ -33,7 +33,7 @@ namespace MetaDrawGUI
 
                 var times = ExtractTime(scans);
 
-                WriteExtractedTime(filePath, Path.GetFileNameWithoutExtension(filePath)+"_time", times);
+                WriteExtractedTime(filePath, Path.GetFileNameWithoutExtension(filePath) + "_time", times);
 
             }
 
@@ -43,7 +43,7 @@ namespace MetaDrawGUI
         private List<Tuple<double, double, double, double, string, string, string>> ExtractTime(List<MsDataScan> scans)
         {
             List<Tuple<double, double, double, double, string, string, string>> times = new List<Tuple<double, double, double, double, string, string, string>>();
-            
+
 
             for (int i = 1; i < scans.Count - 1; i++)
             {
@@ -202,16 +202,16 @@ namespace MetaDrawGUI
                 {
                     previousScanType = "Full";
                 }
-                else if (scans[i-1].ScanFilter.Contains("hcd") && !scans[i-1].ScanFilter.Contains("etd"))
+                else if (scans[i - 1].ScanFilter.Contains("hcd") && !scans[i - 1].ScanFilter.Contains("etd"))
                 {
                     previousScanType = "hcd";
 
                 }
-                else if (!scans[i-1].ScanFilter.Contains("hcd") && scans[i-1].ScanFilter.Contains("etd"))
+                else if (!scans[i - 1].ScanFilter.Contains("hcd") && scans[i - 1].ScanFilter.Contains("etd"))
                 {
                     previousScanType = "etd";
                 }
-                else if (scans[i-1].ScanFilter.Contains("hcd") && scans[i-1].ScanFilter.Contains("etd"))
+                else if (scans[i - 1].ScanFilter.Contains("hcd") && scans[i - 1].ScanFilter.Contains("etd"))
                 {
                     previousScanType = "ethcd";
                 }
@@ -275,5 +275,42 @@ namespace MetaDrawGUI
             }
         }
 
+
+        //Extract ms2 scans selected mass and charge
+        public void ExtractPrecursorInfo(List<string> MsDataFilePaths, MyFileManager spectraFileManager)
+        {
+            foreach (var filePath in MsDataFilePaths)
+            {
+                var msDataFile = spectraFileManager.LoadFile(filePath, new CommonParameters());
+
+                var ms2Scans = msDataFile.GetAllScansList().Where(p=>p.MsnOrder!=1);
+
+                WriteExtractPrecursorInfo(filePath, Path.GetFileNameWithoutExtension(filePath) + "_PrecursorInfo", ms2Scans);
+            }
+
+        }
+
+        private void WriteExtractPrecursorInfo(string FilePath, string name, IEnumerable<MsDataScan> msDataScans)
+        {
+            var writtenFile = Path.Combine(Path.GetDirectoryName(FilePath), name + ".tsv");
+            using (StreamWriter output = new StreamWriter(writtenFile))
+            {
+                output.WriteLine("ScanNum\tRT\tIsolationMz\tSelectedIonMZ\tMonoisotopicGuessMZ\tChargeStateGuess\tSelectedIonIntensity\tMonoisotopicGuessIntensity");
+                foreach (var s in msDataScans)
+                {
+                    output.WriteLine(
+                        s.OneBasedScanNumber + "\t" +
+                        s.RetentionTime + "\t" +
+                        (s.IsolationMz.HasValue? s.IsolationMz: -1) + "\t" +                    
+                        (s.SelectedIonMZ.HasValue ? s.SelectedIonMZ.Value : -1) + "\t" +                       
+                        (s.SelectedIonMonoisotopicGuessMz.HasValue ? s.SelectedIonMonoisotopicGuessMz : -1) + "\t" +
+                        (s.SelectedIonChargeStateGuess.HasValue ? s.SelectedIonChargeStateGuess.Value : -1) + "\t" +
+                        (s.SelectedIonIntensity.HasValue ? s.SelectedIonIntensity : -1) + "\t" +
+                        (s.SelectedIonMonoisotopicGuessIntensity.HasValue? s.SelectedIonMonoisotopicGuessIntensity: -1)
+                    );
+                }
+
+            }
+        }
     }
 }

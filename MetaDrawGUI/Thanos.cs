@@ -100,6 +100,7 @@ namespace MetaDrawGUI
 
         public void PlotGlycoFamily()
         {
+            //PsmAnnoModel = sweetor.PlotGlycoRT(simplePsms);
             PsmAnnoModel = sweetor.PlotGlycoRT(simplePsms.Where(p => p.QValue < 0.01).ToList());
         }
 
@@ -112,6 +113,11 @@ namespace MetaDrawGUI
         {
             familyFeatures = Sweetor.GetGlycoFamilies(msFeatures.ToArray());
             PsmAnnoModel = Sweetor.PlotGlycoFamily(familyFeatures);
+        }
+
+        public void ExtractPrecursorInfo()
+        {
+            accountant.ExtractPrecursorInfo(MsDataFilePaths, spectraFileManager);
         }
     }
 }

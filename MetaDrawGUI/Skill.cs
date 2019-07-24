@@ -14,6 +14,7 @@ namespace MetaDrawGUI
         sweet_pGlcoResult = 3,
         plot_glycoFamilcy = 4,
         account_glycoScanInfo = 5,
-        sweetor_glycoFamily = 6
+        sweetor_glycoFamily = 6,
+        account_ExtractPrecursorInfo = 7
     }
 }

@@ -114,7 +114,7 @@ namespace MetaDrawGUI
 
         //For simplicity, the A 291.09542 may not be considered.
         static double[] SugarMass = new double[10] { -406.15874, -365.13219, -203.07937, -162.05282, -146.05791, 146.05791, 162.05282, 203.07937, 365.13219, 406.15874 };
-        static Tolerance tolerance = new PpmTolerance(5);
+        static Tolerance tolerance = new PpmTolerance(10);
 
         public static List<HashSet<MsFeature>> GetGlycoFamilies(MsFeature[] msFeatures)
         {
