@@ -906,6 +906,9 @@ namespace MetaDrawGUI
                 case Skill.account_ExtractPrecursorInfo:
                     action = thanos.ExtractPrecursorInfo;
                     break;
+                case Skill.acount_ExtractPrecursorInfo_Decon:
+                    action = thanos.ExtractPrecursorInfo_Decon;
+                    break;
                 default:
                     break;
             }

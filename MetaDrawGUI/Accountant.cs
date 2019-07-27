@@ -133,8 +133,6 @@ namespace MetaDrawGUI
             }
         }
 
-
-
         //For Glyco study, especially HCD triggered methods
         public void ExtractScanInfo_Glyco(List<string> MsDataFilePaths, MyFileManager spectraFileManager, Tuple<double, double> timeRange)
         {
@@ -312,5 +310,35 @@ namespace MetaDrawGUI
 
             }
         }
+
+        public void ExtractPrecursorInfo_Decon(List<string> MsDataFilePaths, MyFileManager spectraFileManager)
+        {
+            foreach (var filePath in MsDataFilePaths)
+            {
+                var msDataFile = spectraFileManager.LoadFile(filePath, new CommonParameters());
+                var commonPara = new CommonParameters();
+                var scans = MetaMorpheusTask.GetMs2Scans(msDataFile, null, commonPara);
+                WriteExtractPrecursorInfo_Decon(filePath, Path.GetFileNameWithoutExtension(filePath) + "_DeconPrecursorInfo", scans);
+            }
+        }
+
+        private void WriteExtractPrecursorInfo_Decon(string FilePath, string name, IEnumerable<Ms2ScanWithSpecificMass> scans)
+        {
+            var writtenFile = Path.Combine(Path.GetDirectoryName(FilePath), name + ".tsv");
+            using (StreamWriter output = new StreamWriter(writtenFile))
+            {
+                output.WriteLine("ScanNum\tRT\tPrecursorMass");
+                foreach (var s in scans)
+                {
+                    output.WriteLine(
+                        s.OneBasedScanNumber + "\t" +
+                        s.RetentionTime + "\t" +
+                        s.PrecursorMass                        
+                    );
+                }
+
+            }
+        }
+
     }
 }

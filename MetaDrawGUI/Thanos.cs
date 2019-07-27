@@ -119,5 +119,10 @@ namespace MetaDrawGUI
         {
             accountant.ExtractPrecursorInfo(MsDataFilePaths, spectraFileManager);
         }
+
+        public void ExtractPrecursorInfo_Decon()
+        {
+            accountant.ExtractPrecursorInfo_Decon(MsDataFilePaths, spectraFileManager);
+        }
     }
 }
