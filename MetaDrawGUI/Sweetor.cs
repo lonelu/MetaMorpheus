@@ -39,7 +39,7 @@ namespace MetaDrawGUI
 
             foreach (var psm in simplePsms)
             {
-                psm.iD = psm.BaseSeq + "_" + psm.Mod;
+                psm.iD = psm.BaseSeq + "_" + psm.PeptideMassNoGlycan.ToString("0.0");
             }
 
             var psms_byId = simplePsms.GroupBy(p=>p.iD);
@@ -111,6 +111,34 @@ namespace MetaDrawGUI
 
             return model;
         }
+
+        public void extractGsmInfo(List<SimplePsm> simplePsms)
+        {
+            var psms = simplePsms.ToDictionary(p => p.FullSeq, p=>p).Select(p=>p.Value).ToList();
+
+            foreach (var psm in simplePsms)
+            {
+                psm.iD = psm.BaseSeq + "_" + psm.PeptideMassNoGlycan.ToString("0.0");
+            }
+
+            var psms_byId = simplePsms.GroupBy(p => p.iD);
+
+            foreach (var id_psms in psms_byId)
+            {
+
+                var psms_byAG = id_psms.GroupBy(p => p.glycanAGNumber);
+
+                foreach (var ag_psms in psms_byAG)
+                {
+                    foreach (var psm in ag_psms.OrderBy(p => p.MonoisotopicMass))
+                    {
+
+                    }
+
+                }
+            }
+        }
+
 
         //For simplicity, the A 291.09542 may not be considered.
         static double[] SugarMass = new double[10] { -406.15874, -365.13219, -203.07937, -162.05282, -146.05791, 146.05791, 162.05282, 203.07937, 365.13219, 406.15874 };
@@ -303,6 +331,7 @@ namespace MetaDrawGUI
 
             return model;
         }
+
 
     }
 }

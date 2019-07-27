@@ -49,7 +49,7 @@ namespace MetaDrawGUI
                         tsvType = TsvType.GlycReSoft;
                         Split = new char[] { ',' };
                     }
-                    else if (line.StartsWith("something"))
+                    else if (line.StartsWith("SequenceOnly"))
                     {
                         tsvType = TsvType.Byonic;
                     }
@@ -63,6 +63,7 @@ namespace MetaDrawGUI
                             parsedHeader = ParseHeader_GlycReSoft(line, Split);
                             break;
                         case TsvType.Byonic:
+                            parsedHeader = ParseHeader_Byonic(line, Split);
                             break;
                         default:
                             break;
@@ -147,6 +148,21 @@ namespace MetaDrawGUI
             parsedHeader.Add(PsmTsvHeader_GlycReSoft.scan_time, Array.IndexOf(spl, PsmTsvHeader_GlycReSoft.scan_time));
             return parsedHeader;
         }
+
+        private static Dictionary<string, int> ParseHeader_Byonic(string header, char[] Split)
+        {
+            var parsedHeader = new Dictionary<string, int>();
+            var spl = header.Split(Split);
+            parsedHeader.Add(PsmTsvHeader_Byonic.FileName, Array.IndexOf(spl, PsmTsvHeader_Byonic.FileName));
+            parsedHeader.Add(PsmTsvHeader_Byonic.Ms2ScanRetentionTime, Array.IndexOf(spl, PsmTsvHeader_Byonic.Ms2ScanRetentionTime));
+            parsedHeader.Add(PsmTsvHeader_Byonic.PrecursorMH, Array.IndexOf(spl, PsmTsvHeader_Byonic.PrecursorMH));
+            parsedHeader.Add(PsmTsvHeader_Byonic.BaseSequence, Array.IndexOf(spl, PsmTsvHeader_Byonic.BaseSequence));
+            parsedHeader.Add(PsmTsvHeader_Byonic.Mods, Array.IndexOf(spl, PsmTsvHeader_Byonic.Mods));
+            parsedHeader.Add(PsmTsvHeader_Byonic.PeptideMH, Array.IndexOf(spl, PsmTsvHeader_Byonic.PeptideMH));
+            parsedHeader.Add(PsmTsvHeader_Byonic.GlycanKind, Array.IndexOf(spl, PsmTsvHeader_Byonic.GlycanKind));
+            parsedHeader.Add(PsmTsvHeader_Byonic.FullSeq, Array.IndexOf(spl, PsmTsvHeader_Byonic.FullSeq));
+            return parsedHeader;
+        }
     }
 
     public static class PsmTsvHeader_pGlyco
@@ -185,6 +201,15 @@ namespace MetaDrawGUI
         public const string protein_name = "protein_name";
     }
 
-
-
+    public static class PsmTsvHeader_Byonic
+    {
+        public const string FileName = "Fraction";
+        public const string Ms2ScanRetentionTime = "scanTime";
+        public const string PrecursorMH = "calcMH";
+        public const string BaseSequence = "SequenceOnly";
+        public const string Mods = "Mods";
+        public const string PeptideMH = "PepMassNoMod";
+        public const string GlycanKind = "Glycans";
+        public const string FullSeq = "seqWithMods";
+    }
 }

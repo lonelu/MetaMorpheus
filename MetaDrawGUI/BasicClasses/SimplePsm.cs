@@ -25,6 +25,7 @@ namespace MetaDrawGUI
                     generateSimplePsm_GlycReSoft(line, split, parsedHeader);
                     break;
                 case TsvType.Byonic:
+                    generateSimplePsm_Byonic(line, split, parsedHeader);
                     break;
                 default:
                     break;
@@ -38,7 +39,8 @@ namespace MetaDrawGUI
         public double RT { get; set; }
         public double PrecursorMass { get; set; }
         public int ChargeState { get; set; }
-        public double MonoisotopicMass { get; set; }     
+        public double MonoisotopicMass { get; set; }  
+        public double PeptideMassNoGlycan { get; set; }
         public string BaseSeq { get; set; }
         public string FullSeq { get; set; }
         public string Mod { get; set; }
@@ -79,8 +81,9 @@ namespace MetaDrawGUI
             glycanKind = Glycan.GetKindFromKindString(spl[parsedHeader[PsmTsvHeader_pGlyco.GlycanKind]]);
             glycanAGNumber = glycanKind[2] + glycanKind[3];
             glycanString = Glycan.GetKindString(glycanKind);
-
             glycanMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.GlycanMass]]);
+            PeptideMassNoGlycan = MonoisotopicMass - glycanMass;
+
             MonoisotopicMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.PeptideMH]]) + glycanMass - 1.0073;
             var pBaseSeq = spl[parsedHeader[PsmTsvHeader_pGlyco.BaseSequence]].Trim();
             StringBuilder sb = new StringBuilder(pBaseSeq);
@@ -157,6 +160,28 @@ namespace MetaDrawGUI
             ProteinAccess = spl[parsedHeader[PsmTsvHeader_GlycReSoft.protein_name]].Split('|')[1]; //Only works for uniprot fasta
             ProteinName = spl[parsedHeader[PsmTsvHeader_GlycReSoft.protein_name]].Split('|')[2].Split('_')[0]; //Only works for uniprot fasta
             ProteinStartEnd = "[" + spl[parsedHeader[PsmTsvHeader_GlycReSoft.peptide_start]] + " to " + spl[parsedHeader[PsmTsvHeader_GlycReSoft.peptide_end]] + "]";
+
+        }
+
+        private void generateSimplePsm_Byonic(string line, char[] split, Dictionary<string, int> parsedHeader)
+        {
+            var spl = line.Split(split);
+
+            //this is special for pGlyco
+            FileName = spl[parsedHeader[PsmTsvHeader_Byonic.FileName]];
+            RT = double.Parse(spl[parsedHeader[PsmTsvHeader_Byonic.Ms2ScanRetentionTime]]);
+            MonoisotopicMass = double.Parse(spl[parsedHeader[PsmTsvHeader_Byonic.PrecursorMH]]) - 1.0073;
+
+            glycanKind = Glycan.GetKindFromByonic(spl[parsedHeader[PsmTsvHeader_Byonic.GlycanKind]]);
+            glycanAGNumber = glycanKind[2] + glycanKind[3];
+            glycanString = Glycan.GetKindString(glycanKind);
+            glycanMass = Glycan.GetMass(glycanKind);
+            PeptideMassNoGlycan = MonoisotopicMass - glycanMass/1E5;
+
+            BaseSeq = spl[parsedHeader[PsmTsvHeader_Byonic.BaseSequence]];
+            Mod = spl[parsedHeader[PsmTsvHeader_Byonic.Mods]];
+            FullSeq = spl[parsedHeader[PsmTsvHeader_Byonic.FullSeq]];
+            int peptideLength = BaseSeq.Count();
 
         }
 
