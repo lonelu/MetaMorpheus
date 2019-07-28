@@ -327,13 +327,16 @@ namespace MetaDrawGUI
             var writtenFile = Path.Combine(Path.GetDirectoryName(FilePath), name + ".tsv");
             using (StreamWriter output = new StreamWriter(writtenFile))
             {
-                output.WriteLine("ScanNum\tRT\tPrecursorMass");
+                output.WriteLine("ScanNum\tRT\tPrecursorMass\tPrecursorMz\tCharge");
                 foreach (var s in scans)
                 {
                     output.WriteLine(
                         s.OneBasedScanNumber + "\t" +
                         s.RetentionTime + "\t" +
-                        s.PrecursorMass                        
+                        s.PrecursorMass + "\t" +
+                        s.PrecursorMonoisotopicPeakMz + "\t" +
+                        s.PrecursorCharge
+                        
                     );
                 }
 

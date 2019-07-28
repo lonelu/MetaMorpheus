@@ -82,9 +82,9 @@ namespace MetaDrawGUI
             glycanAGNumber = glycanKind[2] + glycanKind[3];
             glycanString = Glycan.GetKindString(glycanKind);
             glycanMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.GlycanMass]]);
-            PeptideMassNoGlycan = MonoisotopicMass - glycanMass;
-
+           
             MonoisotopicMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.PeptideMH]]) + glycanMass - 1.0073;
+            PeptideMassNoGlycan = MonoisotopicMass - glycanMass;
             var pBaseSeq = spl[parsedHeader[PsmTsvHeader_pGlyco.BaseSequence]].Trim();
             StringBuilder sb = new StringBuilder(pBaseSeq);
             sb[pBaseSeq.IndexOf('J')] = 'N';
