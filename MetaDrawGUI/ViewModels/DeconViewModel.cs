@@ -9,34 +9,9 @@ using System.Collections.Generic;
 
 namespace ViewModels
 {
-    public class DeconViewModel : INotifyPropertyChanged
+    public class DeconViewModel
     {
-        private PlotModel deconModel;
-
-        public PlotModel DeconModel
-        {
-            get
-            {
-                return this.deconModel;
-            }
-            set
-            {
-                this.deconModel = value;
-                NotifyPropertyChanged("DeconModel");
-            }
-        }
-
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void NotifyPropertyChanged(string propertyName)
-        {
-            PropertyChangedEventHandler handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
+        public PlotModel privateModel;
 
         public DeconViewModel()
         {
@@ -44,12 +19,12 @@ namespace ViewModels
             var tmp = new PlotModel { Title = "Decon Spectrum Annotation", Subtitle = "using OxyPlot" };
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            this.DeconModel = tmp;
+            this.privateModel = tmp;
         }
 
         public void UpdataModelForDecon(MsDataScan MsScanForDraw, IsotopicEnvelope isotopicEnvelope)
         {
-            this.DeconModel = DrawDecon(MsScanForDraw, isotopicEnvelope);
+            this.privateModel = DrawDecon(MsScanForDraw, isotopicEnvelope);
         }
 
         public PlotModel DrawDecon(MsDataScan MsScanForDraw, IsotopicEnvelope isotopicEnvelope)
@@ -144,7 +119,7 @@ namespace ViewModels
                     model.Series.Add(line);
                 }
             }
-            this.DeconModel = model;
+            this.privateModel = model;
         }
 
         public void ResetDeconModel()
@@ -153,25 +128,25 @@ namespace ViewModels
             var tmp = new PlotModel { Title = "Decon Spectrum Annotation", Subtitle = "using OxyPlot" };
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            this.DeconModel = tmp;
+            this.privateModel = tmp;
         }
 
         private void XAxisChanged(object sender, AxisChangedEventArgs e)
         {
-            double fold = (this.DeconModel.Axes[0].ActualMaximum - this.DeconModel.Axes[0].ActualMinimum) / (this.DeconModel.Axes[0].AbsoluteMaximum - this.DeconModel.Axes[0].AbsoluteMinimum);
-            this.DeconModel.Axes[1].Minimum = 0;
-            this.DeconModel.Axes[1].Maximum = this.DeconModel.Axes[1].AbsoluteMaximum * 0.6 * fold;
+            double fold = (this.privateModel.Axes[0].ActualMaximum - this.privateModel.Axes[0].ActualMinimum) / (this.privateModel.Axes[0].AbsoluteMaximum - this.privateModel.Axes[0].AbsoluteMinimum);
+            this.privateModel.Axes[1].Minimum = 0;
+            this.privateModel.Axes[1].Maximum = this.privateModel.Axes[1].AbsoluteMaximum * 0.6 * fold;
 
-            foreach (var series in this.DeconModel.Series)
+            foreach (var series in this.privateModel.Series)
             {
                 if (series is LineSeries)
                 {
                     var x = (LineSeries)series;
-                    if (x.Points[1].X >= this.DeconModel.Axes[0].ActualMinimum && x.Points[1].X <= this.DeconModel.Axes[0].ActualMaximum)
+                    if (x.Points[1].X >= this.privateModel.Axes[0].ActualMinimum && x.Points[1].X <= this.privateModel.Axes[0].ActualMaximum)
                     {
-                        if (x.Points[1].Y > this.DeconModel.Axes[1].Maximum)
+                        if (x.Points[1].Y > this.privateModel.Axes[1].Maximum)
                         {
-                            this.DeconModel.Axes[1].Maximum = x.Points[1].Y * 1.2;
+                            this.privateModel.Axes[1].Maximum = x.Points[1].Y * 1.2;
                         }
                     }
 

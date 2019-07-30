@@ -269,8 +269,6 @@ namespace EngineLayer.CrosslinkSearch
             return modification;
         }
 
-
-
         //<modSites, >
         public static IEnumerable<Tuple<int[] , Tuple<int[], List<Product>>>> OGlyGetTheoreticalFragments(DissociationType dissociationType, 
             List<int> possibleModPositions, PeptideWithSetModifications peptide, GlycanBox glycanBox)

@@ -25,7 +25,7 @@ namespace MetaDrawGUI
                     MzSpectrumBU mzSpectrumTD = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
                     if (msDataScan.MsnOrder == 1)
                     {
-                        var isotopicEnvelopes = mzSpectrumTD.DeconvoluteBU(msDataScan.ScanWindowRange, deconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+                        var isotopicEnvelopes = mzSpectrumTD.Deconvolute(msDataScan.ScanWindowRange, deconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
 
                         var selectedMS2 = msDataScanList.Where(p => p.OneBasedPrecursorScanNumber == msDataScan.OneBasedScanNumber).Select(p => p.SelectedIonMZ).ToList();
 
@@ -284,7 +284,7 @@ namespace MetaDrawGUI
                 if (aPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Min() <= bPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Max()
                     && bPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Min() <= aPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Max())
                 {
-                    if (deconvolutionParameter.DeconvolutionMassTolerance.Within(aPeak.Identifications.First().monoisotopicMass,
+                    if (deconvolutionParameter.DeconvolutionAcceptor.Within(aPeak.Identifications.First().monoisotopicMass,
                         bPeak.Identifications.First().monoisotopicMass - deconvolutionParameter.NeuCodeMassDefect * i / 1000))
                     {
                         return true;

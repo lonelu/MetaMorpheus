@@ -24,6 +24,7 @@ namespace MetaDrawGUI
 {
     public class Thanos:INotifyPropertyChanged
     {
+        //Thanos' subordinate
         public Accumulator accumulator = new Accumulator();
 
         public BoxMerger boxMerger = new BoxMerger();
@@ -32,11 +33,16 @@ namespace MetaDrawGUI
 
         public Sweetor sweetor = new Sweetor();
 
+        public Deconvolutor deconvolutor = new Deconvolutor();
+
+
+        //Thanos' resource
+        
         public List<SimplePsm> simplePsms = new List<SimplePsm>();
 
         public List<MsFeature> msFeatures = new List<MsFeature>();
 
-        public List<HashSet<MsFeature>> familyFeatures = new List<HashSet<MsFeature>>();
+        public List<HashSet<MsFeature>> familyFeatures = new List<HashSet<MsFeature>>();       
 
         public Thanos()
         {

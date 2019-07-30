@@ -55,12 +55,12 @@ namespace MetaDrawGUI
 
         //View model
         private MainViewModel mainViewModel;
-        public DeconViewModel DeconViewModel { get; set; }
+        
         public PeakViewModel XicViewModel { get; set; }
         public ChargeEnveViewModel ChargeDeconViewModel { get; set; }
 
 
-        public Thanos thanos { get; set; }
+        public Thanos thanos = new Thanos();
         public Action action { get; set; }
 
         //Glyco
@@ -88,10 +88,8 @@ namespace MetaDrawGUI
         }
 
         public MainWindow()
-        {
+        {           
             InitializeComponent();
-
-            thanos = new Thanos();
 
             PopulateChoice();
 
@@ -99,9 +97,9 @@ namespace MetaDrawGUI
 
             plotView.DataContext = mainViewModel;
 
-            DeconViewModel = new DeconViewModel();
+            thanos.deconvolutor.deconViewModel= new DeconViewModel();
 
-            plotViewDecon.DataContext = DeconViewModel;
+            plotViewDecon.DataContext = thanos.deconvolutor;
 
             XicViewModel = new PeakViewModel();
 
@@ -148,6 +146,13 @@ namespace MetaDrawGUI
             {
                 {
                     cmbAction.Items.Add(aSkill);
+                }
+            }
+
+            foreach (string aSkill in Enum.GetNames(typeof(DeconvolutorSkill)))
+            {
+                {
+                    cmbDeconAction.Items.Add(aSkill);
                 }
             }
         }
@@ -290,7 +295,7 @@ namespace MetaDrawGUI
             //productMassToleranceComboBox.SelectedIndex = CommonParameters.ProductMassTolerance is AbsoluteTolerance ? 0 : 1;
             txtMinAssumedChargeState.Text = DeconvolutionParameter.DeconvolutionMinAssumedChargeState.ToString();
             txtMaxAssumedChargeState.Text = DeconvolutionParameter.DeconvolutionMaxAssumedChargeState.ToString();
-            txtDeconvolutionToleranc.Text = DeconvolutionParameter.DeconvolutionMassTolerance.Value.ToString();
+            txtDeconvolutionToleranc.Text = DeconvolutionParameter.DeconvolutionMassTolerance.ToString();
             txtIntensityRatioLimit.Text = DeconvolutionParameter.DeconvolutionIntensityRatio.ToString();
             TxtNeuCodeMassDefect.Text = DeconvolutionParameter.NeuCodeMassDefect.ToString();
             TxtNeuCodeMaxNum.Text = DeconvolutionParameter.MaxmiumNeuCodeNumber.ToString();
@@ -472,65 +477,6 @@ namespace MetaDrawGUI
 
         }
 
-        //Calculate instrument scan time of all scans
-        private void BtnPerScanTime_Click(object sender, RoutedEventArgs e)
-        {
-            double[] scanTimes = new double[msDataScans.Count];
-            for (int i = 0; i < msDataScans.Count; i++)
-            {
-                if (i == 0)
-                {
-                    scanTimes[i] = msDataScans[i].RetentionTime * 60 * 1000;
-                }
-                else
-                {
-                    scanTimes[i] = (msDataScans[i].RetentionTime - msDataScans[i - 1].RetentionTime) *60 * 1000;
-                }
-            }
-
-            var writtenFile = Path.Combine(Path.GetDirectoryName(spectraFilesObservableCollection.First().FilePath), "timesOfMs1.mytsv");
-            using (StreamWriter output = new StreamWriter(writtenFile))
-            {
-                output.WriteLine("ScanNum\tRT\tscanTime");
-                for (int i = 0; i < msDataScans.Count; i++)
-                {
-                    if (msDataScans[i].MsnOrder == 1)
-                    {
-                        output.WriteLine(msDataScans[i].OneBasedScanNumber.ToString() + "\t" + msDataScans[i].RetentionTime.ToString() + "\t" + scanTimes[i].ToString());
-                    }
-                }
-            }
-
-            var writtenFile2 = Path.Combine(Path.GetDirectoryName(spectraFilesObservableCollection.First().FilePath), "timesOfMs2.mytsv");
-            using (StreamWriter output = new StreamWriter(writtenFile2))
-            {
-                output.WriteLine("ScanNum\tRT\tscanTime");
-                for (int i = 0; i < msDataScans.Count; i++)
-                {
-                    if (msDataScans[i].MsnOrder == 2)
-                    {
-                        output.WriteLine(msDataScans[i].OneBasedScanNumber.ToString() + "\t" + msDataScans[i].RetentionTime.ToString() + "\t" + scanTimes[i].ToString());
-                    }
-                }
-            }
-        }
-
-        //Generate deconvolution model
-        private void BtnDeconModel_Click(object sender, RoutedEventArgs e)
-        {
-            if (msDataScan != null)
-            {
-                MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
-                DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, Convert.ToInt32(TxtDeconModel.Text));
-            }
-            else
-            {
-
-                var mzSpectrumBU = new MzSpectrumBU(new double[] { 1 }, new double[] { 1 }, true);
-                DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, Convert.ToInt32(TxtDeconModel.Text));
-            }
-        }
-
         private void btnResetDecon_Click(object sender, RoutedEventArgs e)
         {
             ResetDataGridAndModel();
@@ -539,7 +485,7 @@ namespace MetaDrawGUI
         private void ResetDataGridAndModel()
         {
             envolopObservableCollection.Clear();
-            DeconViewModel.ResetDeconModel();
+            thanos.deconvolutor.deconViewModel.ResetDeconModel();
             mainViewModel.ResetViewModel();
             chargeEnvelopesObservableCollection.Clear();
             ChargeDeconViewModel.ResetDeconModel();
@@ -639,7 +585,7 @@ namespace MetaDrawGUI
             msDataScan = msDataScans.Where(p => p.OneBasedScanNumber == sele.PrecursorScanNum).First();
 
             MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
-            IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+            IsotopicEnvelopes = mzSpectrumBU.Deconvolute(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
 
             int i = 1;
             foreach (var item in IsotopicEnvelopes)
@@ -659,7 +605,7 @@ namespace MetaDrawGUI
         private void UpdateDeconModel(int x, MsDataScan msDataScan)
         {
             var envo = IsotopicEnvelopes[x - 1];
-            DeconViewModel.UpdataModelForDecon(msDataScan, envo);
+            thanos.deconvolutor.deconViewModel.UpdataModelForDecon(msDataScan, envo);
             //mainViewModel.UpdateDecon(mainViewModel.Model, envo);
         }
 
@@ -682,22 +628,12 @@ namespace MetaDrawGUI
 
         private void TxtDeconvolutionToleranc_TextChanged(object sender, TextChangedEventArgs e)
         {
-            this.DeconvolutionParameter.DeconvolutionMassTolerance = new PpmTolerance(double.Parse(txtDeconvolutionToleranc.Text));
+            this.DeconvolutionParameter.DeconvolutionMassTolerance = double.Parse(txtDeconvolutionToleranc.Text);
         }
 
         private void TxtIntensityRatioLimit_TextChanged(object sender, TextChangedEventArgs e)
         {
             this.DeconvolutionParameter.DeconvolutionIntensityRatio = double.Parse(txtIntensityRatioLimit.Text);
-        }
-
-        private void CbCheckNeuCode_Checked(object sender, RoutedEventArgs e)
-        {
-            this.DeconvolutionParameter.CheckNeuCode = true;
-        }
-
-        private void CbCheckNeuCode_Unchecked(object sender, RoutedEventArgs e)
-        {
-            this.DeconvolutionParameter.CheckNeuCode = false;
         }
 
         private void TxtNeuCodeMassDefect_TextChanged(object sender, TextChangedEventArgs e)
@@ -708,6 +644,16 @@ namespace MetaDrawGUI
         private void TxtNeuCodeMaxNum_TextChanged(object sender, TextChangedEventArgs e)
         {
             this.DeconvolutionParameter.MaxmiumNeuCodeNumber = int.Parse(TxtNeuCodeMaxNum.Text);
+        }
+
+        private void TxtNeuCodeRatio_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            this.DeconvolutionParameter.NeuCodePairRatio = int.Parse(TxtNeuCodeRatio.Text);
+        }
+
+        private void TxtDeconModel_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            thanos.deconvolutor.modelStartNum = int.Parse(TxtDeconModel.Text);
         }
 
         private void BtnDeconQuant_Click(object sender, RoutedEventArgs e)
@@ -932,6 +878,29 @@ namespace MetaDrawGUI
                     continue;
                 }
                 thanos.ResultFilePaths.Add(aResultfilePath);
+            }
+
+            action();
+        }
+
+        private void BtnDeconStart_Click(object sender, RoutedEventArgs e)
+        {
+            DeconvolutorSkill deconvolutorSkills = ((DeconvolutorSkill)cmbDeconAction.SelectedIndex);
+
+            switch (deconvolutorSkills)
+            {
+                case DeconvolutorSkill.DeconSeleScan:
+                    
+                    break;
+                case DeconvolutorSkill.PlotAvaragineModel:
+                    action = thanos.deconvolutor.Deconvolute;
+                    break;
+                case DeconvolutorSkill.DeconQuant:
+                    break;
+                case DeconvolutorSkill.DeconChargeParsi:
+                    break;
+                default:
+                    break;
             }
 
             action();
