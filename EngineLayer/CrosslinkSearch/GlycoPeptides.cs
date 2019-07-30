@@ -41,9 +41,16 @@ namespace EngineLayer.CrosslinkSearch
          return oxoniumIonsIntensities.Select(p => p / largest).ToArray();
         }
 
-        public static void OxoniumIonsAnalysis(double[] vs)
+        public static bool OxoniumIonsAnalysis(double[] vs)
         {
-
+            if (vs[9]!=0)
+            {
+                if (vs.Where(p=>p!=0).ToList().Count >=2)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public static int ScanOxoniumIonFilter(Ms2ScanWithSpecificMass theScan, MassDiffAcceptor massDiffAcceptor, DissociationType dissociationType)

@@ -10,6 +10,8 @@ using OxyPlot.Annotations;
 using OxyPlot.Axes;
 using OxyPlot.Series;
 using MzLibUtil;
+using TaskLayer;
+using EngineLayer;
 
 namespace MetaDrawGUI
 {
@@ -332,6 +334,28 @@ namespace MetaDrawGUI
             return model;
         }
 
+        //Extract precursor info with deconvolution from all ms2Scans. Calculate oxinium-ion-containing-ms2sancs.
+        //TO DO: not finished
+        public void DeconPrecursorGlycoFamily(List<string> MsDataFilePaths, MyFileManager spectraFileManager)
+        {
+            MassDiffAcceptor massDiffAcceptor_oxiniumIons = new SinglePpmAroundZeroSearchMode(5);
+            foreach (var filePath in MsDataFilePaths)
+            {
+                var msDataFile = spectraFileManager.LoadFile(filePath, new CommonParameters());
+                var commonPara = new CommonParameters(deconvolutionMaxAssumedChargeState: 6);
+                var scans = MetaMorpheusTask.GetMs2Scans(msDataFile, null, commonPara).Where(p => p.PrecursorCharge > 1).ToArray();
 
+                MsFeature[] msFeatures = new MsFeature[scans.Length];
+                for (int i = 0; i < scans.Length; i++)
+                {
+                    var oxi = EngineLayer.CrosslinkSearch.GlycoPeptides.ScanGetOxoniumIons(scans[i], massDiffAcceptor_oxiniumIons);
+                    msFeatures[i] = new MsFeature(i, scans[i].PrecursorMass, scans[i].TotalIonCurrent, scans[i].RetentionTime);
+                    msFeatures[i].ContainOxiniumIon = EngineLayer.CrosslinkSearch.GlycoPeptides.OxoniumIonsAnalysis(oxi);
+                }
+
+                var glycoFamily = GetGlycoFamilies(msFeatures);
+
+            }
+        }
     }
 }

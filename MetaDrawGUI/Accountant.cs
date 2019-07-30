@@ -274,7 +274,7 @@ namespace MetaDrawGUI
         }
 
 
-        //Extract ms2 scans selected mass and charge
+        //Extract precursor from all ms2Scans
         public void ExtractPrecursorInfo(List<string> MsDataFilePaths, MyFileManager spectraFileManager)
         {
             foreach (var filePath in MsDataFilePaths)
@@ -311,13 +311,17 @@ namespace MetaDrawGUI
             }
         }
 
+        //Extract precursor info with deconvolution from all ms2Scans
         public void ExtractPrecursorInfo_Decon(List<string> MsDataFilePaths, MyFileManager spectraFileManager)
         {
             foreach (var filePath in MsDataFilePaths)
             {
                 var msDataFile = spectraFileManager.LoadFile(filePath, new CommonParameters());
-                var commonPara = new CommonParameters();
-                var scans = MetaMorpheusTask.GetMs2Scans(msDataFile, null, commonPara);
+                var commonPara = new CommonParameters(deconvolutionMaxAssumedChargeState: 6);
+                var scans = MetaMorpheusTask.GetMs2Scans(msDataFile, null, commonPara).Where(p=>p.PrecursorCharge>1);
+
+
+
                 WriteExtractPrecursorInfo_Decon(filePath, Path.GetFileNameWithoutExtension(filePath) + "_DeconPrecursorInfo", scans);
             }
         }
