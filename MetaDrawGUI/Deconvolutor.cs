@@ -132,11 +132,8 @@ namespace MetaDrawGUI
             }
         }
 
-        //TO DO: how to bind data back to MainWindow.
         public void Decon()
         {
-            //ResetDataGridAndModel();
-            //int x = Convert.ToInt32(txtDeconScanNum.Text);
             _thanos.msDataScan = _thanos.msDataScans.Where(p => p.OneBasedScanNumber == deconScanNum).First();
             MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(_thanos.msDataScan.MassSpectrum.XArray, _thanos.msDataScan.MassSpectrum.YArray, true);
 
@@ -151,8 +148,8 @@ namespace MetaDrawGUI
                 envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
                 i++;
             }
-            mainViewModel.UpdateScanModel(_thanos.msDataScan);
-            Model = mainViewModel.privateModel;
+
+            Model = MainViewModel.UpdateScanModel(_thanos.msDataScan);
 
             var ScanChargeEnvelopes = mzSpectrumBU.ChargeDeconvolution(deconScanNum, _thanos.msDataScan.RetentionTime, IsotopicEnvelopes, _thanos.msDataScans.Where(p => p.OneBasedPrecursorScanNumber == deconScanNum).Select(p => p.SelectedIonMZ).ToList());
             int ind = 1;

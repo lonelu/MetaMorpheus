@@ -48,12 +48,13 @@ namespace ViewModels
         }
 
         //Just draw an scan w/o annotation
-        public void UpdateScanModel(MsDataScan MsScanForDraw)
+        public static PlotModel UpdateScanModel(MsDataScan MsScanForDraw)
         {
-            this.privateModel = DrawScan(MsScanForDraw);
+            var model = DrawScan(MsScanForDraw);
+            return model;
         }
 
-        public PlotModel DrawScan(MsDataScan MsScanForDraw)
+        public static PlotModel DrawScan(MsDataScan MsScanForDraw)
         {
             var x = MsScanForDraw.MassSpectrum.XArray;
             var y = MsScanForDraw.MassSpectrum.YArray;
@@ -93,20 +94,21 @@ namespace ViewModels
                 s0[i].Points.Add(new DataPoint(x[i], y[i]));
                 model.Series.Add(s0[i]);
             }
-            model.Axes[0].AxisChanged += XAxisChanged;
+            //model.Axes[0].AxisChanged += XAxisChanged;
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
             return model;
 
         }
 
         // single peptides (not crosslink)
-        public void DrawPeptideSpectralMatch(MsDataScan msDataScan, PsmFromTsv psmToDraw)
+        public static PlotModel DrawPeptideSpectralMatch(MsDataScan msDataScan, PsmFromTsv psmToDraw)
         {
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            privateModel = Draw(msDataScan, psmToDraw);
+            var model = Draw(msDataScan, psmToDraw);
+            return model;
         }
 
-        private PlotModel Draw(MsDataScan msDataScan, PsmFromTsv psmToDraw)
+        private static PlotModel Draw(MsDataScan msDataScan, PsmFromTsv psmToDraw)
         {
             // x is m/z, y is intensity
             var spectrumMzs = msDataScan.MassSpectrum.XArray;
@@ -240,13 +242,13 @@ namespace ViewModels
             return model;
         }
 
-        public void ResetViewModel()
+        public static PlotModel ResetViewModel()
         {
             // Create the plot model
             var tmp = new PlotModel { Title = "Spectrum Annotation", Subtitle = "using OxyPlot" };
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            this.privateModel = tmp;
+            return tmp;
         }
 
         private void XAxisChanged(object sender, AxisChangedEventArgs e)

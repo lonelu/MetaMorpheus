@@ -36,11 +36,7 @@ namespace MetaDrawGUI
         private string spectraFilePath;
         private MyFileManager spectraFileManager = new MyFileManager(true);
         private MsDataFile MsDataFile = null;
-        private string resultsFilePath;
-               
-        private CommonParameters CommonParameters = new CommonParameters();
-        private DeconvolutionParameter DeconvolutionParameter = new DeconvolutionParameter();
-
+        private string resultsFilePath;            
 
         private List<PsmFromTsv> psms = new List<PsmFromTsv>();
 
@@ -166,6 +162,19 @@ namespace MetaDrawGUI
             }
         }
 
+        private void UpdateFieldsFromPanel()
+        {
+            //productMassToleranceTextBox.Text = CommonParameters.ProductMassTolerance.Value.ToString(CultureInfo.InvariantCulture);
+            //productMassToleranceComboBox.SelectedIndex = CommonParameters.ProductMassTolerance is AbsoluteTolerance ? 0 : 1;
+            txtMinAssumedChargeState.Text = thanos.DeconvolutionParameter.DeconvolutionMinAssumedChargeState.ToString();
+            txtMaxAssumedChargeState.Text = thanos.DeconvolutionParameter.DeconvolutionMaxAssumedChargeState.ToString();
+            txtDeconvolutionToleranc.Text = thanos.DeconvolutionParameter.DeconvolutionMassTolerance.ToString();
+            txtIntensityRatioLimit.Text = thanos.DeconvolutionParameter.DeconvolutionIntensityRatio.ToString();
+            TxtNeuCodeMassDefect.Text = thanos.DeconvolutionParameter.NeuCodeMassDefect.ToString();
+            TxtNeuCodeMaxNum.Text = thanos.DeconvolutionParameter.MaxmiumNeuCodeNumber.ToString();
+            TxtNeuCodeRatio.Text = thanos.DeconvolutionParameter.NeuCodePairRatio.ToString();
+        }
+
         private void btnClearFiles_Click(object sender, RoutedEventArgs e)
         {
             if ((sender as Button).Name == "btnClearResultFiles")
@@ -190,6 +199,7 @@ namespace MetaDrawGUI
                 }
             dataGridMassSpectraFiles.Items.Refresh();
         }
+
         private void btnAddResults_Click(object sender, RoutedEventArgs e)
         {
             Microsoft.Win32.OpenFileDialog openFileDialog1 = new Microsoft.Win32.OpenFileDialog
@@ -255,31 +265,7 @@ namespace MetaDrawGUI
             spectrumNumsObservableCollection.Clear();
 
             thanos.deconvolutor.mainViewModel = new MainViewModel();
-        }
-
-        private void productMassToleranceTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (productMassToleranceComboBox.SelectedIndex == 0)
-            {
-                CommonParameters.ProductMassTolerance = new AbsoluteTolerance(double.Parse(productMassToleranceTextBox.Text, CultureInfo.InvariantCulture));
-            }
-            else
-            {
-                CommonParameters.ProductMassTolerance = new PpmTolerance(double.Parse(productMassToleranceTextBox.Text, CultureInfo.InvariantCulture));
-            }
-        }
-
-        private void UpdateFieldsFromPanel()
-        {
-            //productMassToleranceTextBox.Text = CommonParameters.ProductMassTolerance.Value.ToString(CultureInfo.InvariantCulture);
-            //productMassToleranceComboBox.SelectedIndex = CommonParameters.ProductMassTolerance is AbsoluteTolerance ? 0 : 1;
-            txtMinAssumedChargeState.Text = DeconvolutionParameter.DeconvolutionMinAssumedChargeState.ToString();
-            txtMaxAssumedChargeState.Text = DeconvolutionParameter.DeconvolutionMaxAssumedChargeState.ToString();
-            txtDeconvolutionToleranc.Text = DeconvolutionParameter.DeconvolutionMassTolerance.ToString();
-            txtIntensityRatioLimit.Text = DeconvolutionParameter.DeconvolutionIntensityRatio.ToString();
-            TxtNeuCodeMassDefect.Text = DeconvolutionParameter.NeuCodeMassDefect.ToString();
-            TxtNeuCodeMaxNum.Text = DeconvolutionParameter.MaxmiumNeuCodeNumber.ToString();
-        }
+        } 
     
         private void btnLoadData_Click(object sender, RoutedEventArgs e)
         {
@@ -350,52 +336,6 @@ namespace MetaDrawGUI
             }
         }
 
-        //Calculate Deconvolution time of each scan of all scans
-        private void BtnDeconWatch_Click(object sender, RoutedEventArgs e)
-        {
-            var MS1Scans = thanos.msDataScans.Where(p => p.MsnOrder == 1).ToList();
-            List<WatchEvaluation> evalution = new List<WatchEvaluation>();
-            int i = 0;
-            while (i < MS1Scans.Count)
-            {
-                var theScanNum = MS1Scans[i].OneBasedScanNumber;
-                var theRT = MS1Scans[i].RetentionTime;
-                MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(MS1Scans[i].MassSpectrum.XArray, MS1Scans[i].MassSpectrum.YArray, true);
-
-                var watch = System.Diagnostics.Stopwatch.StartNew();
-
-                var isotopicEnvelopes = mzSpectrumBU.Deconvolute(MS1Scans[i].ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
-                watch.Stop();
-
-                var watch0 = System.Diagnostics.Stopwatch.StartNew();
-
-                var isotopicEnvelopesByParallel = mzSpectrumBU.ParallelDeconvolute(MS1Scans[i].ScanWindowRange, DeconvolutionParameter, 8).OrderBy(p => p.monoisotopicMass).ToList();
-                watch0.Stop();
-
-                var watch1 = System.Diagnostics.Stopwatch.StartNew();
-
-                var chargeDecon = mzSpectrumBU.ChargeDeconvolution(MS1Scans[i].OneBasedScanNumber, MS1Scans[i].RetentionTime, isotopicEnvelopes, new List<double?>());
-
-                watch1.Stop();
-
-                var theEvaluation = new WatchEvaluation(theScanNum, theRT, watch.ElapsedMilliseconds, watch0.ElapsedMilliseconds, watch1.ElapsedMilliseconds);
-                evalution.Add(theEvaluation);
-                i++;
-
-            }
-
-            var writtenFile = Path.Combine(Path.GetDirectoryName(spectraFilesObservableCollection.First().FilePath), "watches.mytsv");
-            using (StreamWriter output = new StreamWriter(writtenFile))
-            {
-                output.WriteLine("ScanNum\tRT\tIsotopicDecon\tIsoTopicDeconByParallel\tChargeDecon");
-                foreach (var theEvaluation in evalution)
-                {
-                    output.WriteLine(theEvaluation.TheScanNumber.ToString() + "\t" + theEvaluation.TheRT + "\t" + theEvaluation.WatchIsoDecon.ToString() + "\t" + theEvaluation.WatchIsoDeconByParallel.ToString() + "\t" + theEvaluation.WatchChaDecon.ToString());
-                }
-            }
-
-        }
-
         private void btnResetDecon_Click(object sender, RoutedEventArgs e)
         {
             ResetDataGridAndModel();
@@ -404,11 +344,11 @@ namespace MetaDrawGUI
         private void ResetDataGridAndModel()
         {
             thanos.deconvolutor.envolopObservableCollection.Clear();
-            DeconViewModel.ResetDeconModel();
-            thanos.deconvolutor.mainViewModel.ResetViewModel();
+            thanos.deconvolutor.DeconModel = DeconViewModel.ResetDeconModel();
+            thanos.deconvolutor.Model = MainViewModel.ResetViewModel();
             thanos.deconvolutor.chargeEnvelopesObservableCollection.Clear();
             thanos.deconvolutor.chargeDeconViewModel.ResetDeconModel();
-            PeakViewModel.ResetViewModel();
+            thanos.deconvolutor.XicModel = PeakViewModel.ResetViewModel();
         }
 
         private void DataGridAllScanNums_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
@@ -425,23 +365,23 @@ namespace MetaDrawGUI
 
             if (TabDecon.IsSelected)
             {
-                //ResetDataGridAndModel();
+                ResetDataGridAndModel();
 
                 if (sele.MsOrder == 2)
                 {
                     var ms2DataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
-                    thanos.deconvolutor.mainViewModel.UpdateScanModel(ms2DataScan);
+                    thanos.deconvolutor.Model = MainViewModel.UpdateScanModel(ms2DataScan);
                     thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.PrecursorScanNum).First();
 
                 }
                 else
                 {
                     thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
-                    thanos.deconvolutor.mainViewModel.UpdateScanModel(thanos.msDataScan);
+                    thanos.deconvolutor.Model = MainViewModel.UpdateScanModel(thanos.msDataScan);
                 }
 
                 MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(thanos.msDataScan.MassSpectrum.XArray, thanos.msDataScan.MassSpectrum.YArray, true);
-                thanos.deconvolutor.IsotopicEnvelopes = mzSpectrumBU.Deconvolute(thanos.msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+                thanos.deconvolutor.IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU_NeuCode(thanos.msDataScan.ScanWindowRange, thanos.DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
 
 
                 int i = 1;
@@ -472,8 +412,7 @@ namespace MetaDrawGUI
             var sele = (EnvolopForDataGrid)dataGridDeconNums.SelectedItem;
 
             var envo = thanos.deconvolutor.IsotopicEnvelopes[sele.Ind - 1];
-            thanos.deconvolutor.DeconModel = DeconViewModel.UpdataModelForDecon(thanos.msDataScan, envo);
-            
+            thanos.deconvolutor.DeconModel = DeconViewModel.UpdataModelForDecon(thanos.msDataScan, envo);           
             thanos.deconvolutor.XicModel = PeakViewModel.DrawXic(envo.monoisotopicMass, envo.charge, thanos.msDataScan.RetentionTime, MsDataFile, new PpmTolerance(5), 5.0, 3, "");
         }
 
@@ -484,7 +423,8 @@ namespace MetaDrawGUI
                 return;
             }
             var sele = (ChargeEnvelopesForDataGrid)dataGridChargeEnves.SelectedItem;
-            UpdateChargeDeconModel(sele.Ind, thanos.msDataScan);
+            var envo = thanos.deconvolutor.ScanChargeEnvelopes[sele.Ind - 1];
+            thanos.deconvolutor.chargeDeconViewModel.UpdataModelForChargeEnve(thanos.msDataScan, envo);
         }
 
         private void DataGridScanNums_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
@@ -500,11 +440,11 @@ namespace MetaDrawGUI
 
             var ms2DataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
             var psm = psms.Where(p => p.Ms2ScanNumber == sele.ScanNum).First();
-            thanos.deconvolutor.mainViewModel.DrawPeptideSpectralMatch(ms2DataScan, psm);
+            thanos.deconvolutor.Model = MainViewModel.DrawPeptideSpectralMatch(ms2DataScan, psm);
             thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.PrecursorScanNum).First();
 
             MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(thanos.msDataScan.MassSpectrum.XArray, thanos.msDataScan.MassSpectrum.YArray, true);
-            thanos.deconvolutor.IsotopicEnvelopes = mzSpectrumBU.Deconvolute(thanos.msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+            thanos.deconvolutor.IsotopicEnvelopes = mzSpectrumBU.Deconvolute(thanos.msDataScan.ScanWindowRange, thanos.DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
 
             int i = 1;
             foreach (var item in thanos.deconvolutor.IsotopicEnvelopes)
@@ -519,12 +459,6 @@ namespace MetaDrawGUI
                 thanos.deconvolutor.chargeEnvelopesObservableCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
                 ind++;
             }
-        }
-
-        private void UpdateChargeDeconModel(int ind, MsDataScan msDataScan)
-        {
-            var envo = thanos.deconvolutor.ScanChargeEnvelopes[ind - 1];
-            thanos.deconvolutor.chargeDeconViewModel.UpdataModelForChargeEnve(msDataScan, envo);
         }
 
         private void BtnDrawGlycan_Click(object sender, RoutedEventArgs e)
@@ -612,7 +546,7 @@ namespace MetaDrawGUI
             var sele = (GlycoStructureForDataGrid)dataGridGlyco.SelectedItem;
             thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
             var selePsm = thanos.simplePsms.Where(p => p.ScanNum == sele.ScanNum).First();
-            selePsm.MatchedIons = SimplePsm.GetMatchedIons(selePsm.glycoPwsm, selePsm.PrecursorMass, selePsm.ChargeState, CommonParameters, thanos.msDataScan);
+            selePsm.MatchedIons = SimplePsm.GetMatchedIons(selePsm.glycoPwsm, selePsm.PrecursorMass, selePsm.ChargeState, thanos.CommonParameters, thanos.msDataScan);
             thanos.psmAnnotationViewModel.DrawPeptideSpectralMatch(thanos.msDataScan, selePsm);
 
             //Draw Glycan

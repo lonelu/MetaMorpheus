@@ -22,13 +22,13 @@ namespace ViewModels
             this.privateModel = tmp;
         }
 
-        public static PlotModel UpdataModelForDecon(MsDataScan MsScanForDraw, IsotopicEnvelope isotopicEnvelope)
+        public static PlotModel UpdataModelForDecon(MsDataScan MsScanForDraw, NeuCodeIsotopicEnvelop isotopicEnvelope)
         {
             var model = DrawDecon(MsScanForDraw, isotopicEnvelope);
             return model;
         }
 
-        public static PlotModel DrawDecon(MsDataScan MsScanForDraw, IsotopicEnvelope isotopicEnvelope)
+        public static PlotModel DrawDecon(MsDataScan MsScanForDraw, NeuCodeIsotopicEnvelop isotopicEnvelope)
         {
             var x = MsScanForDraw.MassSpectrum.XArray;
             var y = MsScanForDraw.MassSpectrum.YArray;
@@ -56,11 +56,24 @@ namespace ViewModels
             foreach (var peak in isotopicEnvelope.peaks)
             {
                 var sPeak = new LineSeries();
-                sPeak.Color = OxyColors.Red;
-                sPeak.StrokeThickness = 2;
+                sPeak.Color = OxyColors.OrangeRed;
+                sPeak.StrokeThickness = 2.5;
                 sPeak.Points.Add(new DataPoint(peak.mz, 0));
                 sPeak.Points.Add(new DataPoint(peak.mz, peak.intensity));
                 model.Series.Add(sPeak);
+            }
+
+            if (isotopicEnvelope.Partner!=null)
+            {
+                foreach (var peak in isotopicEnvelope.Partner.peaks)
+                {
+                    var sPeak = new LineSeries();
+                    sPeak.Color = OxyColors.Yellow;
+                    sPeak.StrokeThickness = 2.5;
+                    sPeak.Points.Add(new DataPoint(peak.mz, 0));
+                    sPeak.Points.Add(new DataPoint(peak.mz, peak.intensity));
+                    model.Series.Add(sPeak);
+                }
             }
 
             var peakAnno = new TextAnnotation();

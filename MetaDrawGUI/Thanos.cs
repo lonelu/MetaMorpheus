@@ -39,10 +39,10 @@ namespace MetaDrawGUI
 
         //Thanos' control setting
         public CommonParameters CommonParameters = new CommonParameters();
+
         public DeconvolutionParameter DeconvolutionParameter = new DeconvolutionParameter();
 
         //Thanos' resource
-
         public List<SimplePsm> simplePsms = new List<SimplePsm>();
 
         public List<MsFeature> msFeatures = new List<MsFeature>();
