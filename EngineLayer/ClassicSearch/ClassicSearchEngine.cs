@@ -55,6 +55,19 @@ namespace EngineLayer.ClassicSearch
             {
                 int maxThreadsPerFile = CommonParameters.MaxThreadsToUsePerFile;
                 int[] threads = Enumerable.Range(0, maxThreadsPerFile).ToArray();
+
+                ModificationMotif.TryGetMotif("X", out ModificationMotif motifX);
+                Modification mod1 = new Modification(_originalId: "mdDileu", _modificationType: "Multiplex Label", _target: motifX, _locationRestriction: "Peptide N-terminal.", _monoisotopicMass: 150.17186);
+                ModificationMotif.TryGetMotif("K", out ModificationMotif motifK);
+                Modification mod2 = new Modification(_originalId: "mdDileuK", _modificationType: "Multiplex Label", _target: motifK, _locationRestriction: "Anywhere.", _monoisotopicMass: 150.17186);
+                List<Modification> FixedModificationForYeast = new List<Modification>();
+                foreach (var m in FixedModifications)
+                {
+                    FixedModificationForYeast.Add(m);
+                }
+                FixedModificationForYeast.Add(mod1);
+                FixedModificationForYeast.Add(mod2);
+
                 Parallel.ForEach(threads, (i) =>
                 {
                     for (; i < Proteins.Count; i += maxThreadsPerFile)
@@ -62,8 +75,20 @@ namespace EngineLayer.ClassicSearch
                         // Stop loop if canceled
                         if (GlobalVariables.StopLoops) { return; }
 
-                        // digest each protein into peptides and search for each peptide in all spectra within precursor mass tolerance
-                        foreach (PeptideWithSetModifications peptide in Proteins[i].Digest(CommonParameters.DigestionParams, FixedModifications, VariableModifications, SilacLabels))
+                        List<PeptideWithSetModifications> peps = new List<PeptideWithSetModifications>(); 
+
+                        if (Proteins[i].Organism != null && Proteins[i].Organism.Contains("Saccharomyces cerevisiae"))
+                        {                      
+                            peps = Proteins[i].Digest(CommonParameters.DigestionParams, FixedModificationForYeast, VariableModifications, SilacLabels).ToList();
+                        }
+                        else
+                        {
+                            peps = Proteins[i].Digest(CommonParameters.DigestionParams, FixedModifications, VariableModifications, SilacLabels).ToList();
+                        }
+                        
+                        // digest each protein into peptides and search for each peptide in all spectra within precursor mass tolerance                      
+                        foreach (PeptideWithSetModifications peptide in peps)
+                        //foreach (PeptideWithSetModifications peptide in Proteins[i].Digest(CommonParameters.DigestionParams, FixedModifications, VariableModifications, SilacLabels))
                         {
                             List<Product> peptideTheorProducts = peptide.Fragment(CommonParameters.DissociationType, CommonParameters.DigestionParams.FragmentationTerminus).ToList();
 
