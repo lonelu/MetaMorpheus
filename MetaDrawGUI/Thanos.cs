@@ -33,7 +33,7 @@ namespace MetaDrawGUI
 
         public Sweetor sweetor = new Sweetor();
 
-        public Deconvolutor deconvolutor = new Deconvolutor();
+        public Deconvolutor deconvolutor = new Deconvolutor();        
 
         public MsDataFileDecon msDataFileDecon = new MsDataFileDecon(); //For charge decovolution
 
@@ -54,6 +54,8 @@ namespace MetaDrawGUI
             MsDataFilePaths = new List<string>();
             ResultFilePaths = new List<string>();
             spectraFileManager = new MyFileManager(true);
+
+            deconvolutor._thanos = this;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -76,6 +78,8 @@ namespace MetaDrawGUI
         public MyFileManager spectraFileManager { get; set; }
 
         public List<MsDataScan> msDataScans { get; set; }
+
+        public MsDataScan msDataScan { get; set; }
 
         public PsmAnnotationViewModel psmAnnotationViewModel{ get; set; }
 

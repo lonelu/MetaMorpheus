@@ -22,12 +22,13 @@ namespace ViewModels
             this.privateModel = tmp;
         }
 
-        public void UpdataModelForDecon(MsDataScan MsScanForDraw, IsotopicEnvelope isotopicEnvelope)
+        public static PlotModel UpdataModelForDecon(MsDataScan MsScanForDraw, IsotopicEnvelope isotopicEnvelope)
         {
-            this.privateModel = DrawDecon(MsScanForDraw, isotopicEnvelope);
+            var model = DrawDecon(MsScanForDraw, isotopicEnvelope);
+            return model;
         }
 
-        public PlotModel DrawDecon(MsDataScan MsScanForDraw, IsotopicEnvelope isotopicEnvelope)
+        public static PlotModel DrawDecon(MsDataScan MsScanForDraw, IsotopicEnvelope isotopicEnvelope)
         {
             var x = MsScanForDraw.MassSpectrum.XArray;
             var y = MsScanForDraw.MassSpectrum.YArray;
@@ -84,12 +85,12 @@ namespace ViewModels
             }
 
             model.Annotations.Add(peakAnno);
-            model.Axes[0].AxisChanged += XAxisChanged;
+            //model.Axes[0].AxisChanged += XAxisChanged;
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
             return model;
         }
 
-        public void UpdateModelForDeconModel(MzSpectrumBU mzSpectrumBU, int ind)
+        public static PlotModel UpdateModelForDeconModel(MzSpectrumBU mzSpectrumBU, int ind)
         {
             PlotModel model = new PlotModel { Title = "Decon Model", DefaultFontSize = 15 };
             model.Axes.Add(new LinearAxis {
@@ -119,16 +120,16 @@ namespace ViewModels
                     model.Series.Add(line);
                 }
             }
-            this.privateModel = model;
+            return model;
         }
 
-        public void ResetDeconModel()
+        public static PlotModel ResetDeconModel()
         {
             // Create the plot model
             var tmp = new PlotModel { Title = "Decon Spectrum Annotation", Subtitle = "using OxyPlot" };
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            this.privateModel = tmp;
+            return tmp;
         }
 
         private void XAxisChanged(object sender, AxisChangedEventArgs e)

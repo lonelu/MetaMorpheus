@@ -21,13 +21,13 @@ namespace MetaDrawGUI
             privateModel = new PlotModel { Title = "Peak Annotation", Subtitle = "using OxyPlot" };
         }
 
-        public void DrawPeak(ChromatographicPeak peak)
+        public static PlotModel DrawPeak(ChromatographicPeak peak)
         {
             PlotModel model = new PlotModel { Title = peak.Sequence + "; " + peak.PrecursorZ };
 
             if (!peak.Timepoints.Any())
             {
-                return;
+                return null;
             }
 
             var groupedByCharge = peak.Timepoints.GroupBy(p => p.Charge);
@@ -70,10 +70,10 @@ namespace MetaDrawGUI
                 model.Annotations.Add(Line);
             }
 
-            privateModel = model;
+            return model;
         }
 
-        public void DrawXic(double mass, int charge, double rt, MsDataFile file, Tolerance massTolerance, double rtTol, int numPeaks, string filename)
+        public static PlotModel DrawXic(double mass, int charge, double rt, MsDataFile file, Tolerance massTolerance, double rtTol, int numPeaks, string filename)
         {
             PlotModel model = new PlotModel { Title = filename + "rt" + rt.ToString("F2") + "m/z " + mass.ToMz(charge).ToString("F3") + "; z=" + charge };
 
@@ -133,16 +133,16 @@ namespace MetaDrawGUI
                 model.Annotations.Add(Line);
             }
 
-            privateModel = model;
+            return model;
         }
 
-        public void ResetViewModel()
+        public static PlotModel ResetViewModel()
         {
             // Create the plot model
             var tmp = new PlotModel { Title = "XIC" };
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            privateModel = tmp;
+            return tmp;
         }
 
     }
