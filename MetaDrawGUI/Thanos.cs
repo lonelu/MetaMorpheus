@@ -35,9 +35,14 @@ namespace MetaDrawGUI
 
         public Deconvolutor deconvolutor = new Deconvolutor();
 
+        public MsDataFileDecon msDataFileDecon = new MsDataFileDecon(); //For charge decovolution
+
+        //Thanos' control setting
+        public CommonParameters CommonParameters = new CommonParameters();
+        public DeconvolutionParameter DeconvolutionParameter = new DeconvolutionParameter();
 
         //Thanos' resource
-        
+
         public List<SimplePsm> simplePsms = new List<SimplePsm>();
 
         public List<MsFeature> msFeatures = new List<MsFeature>();
@@ -62,11 +67,15 @@ namespace MetaDrawGUI
             }
         }
 
+        //Thanos' resource
+
         public List<string> MsDataFilePaths { get; set; }
 
         public List<string> ResultFilePaths { get; set; }
 
         public MyFileManager spectraFileManager { get; set; }
+
+        public List<MsDataScan> msDataScans { get; set; }
 
         public PsmAnnotationViewModel psmAnnotationViewModel{ get; set; }
 
@@ -83,6 +92,7 @@ namespace MetaDrawGUI
             }
         }
 
+        //Thanos' action
         //Accumulate intensities for boxcar range decision.
         public void Accumulate()
         {
@@ -96,7 +106,7 @@ namespace MetaDrawGUI
 
         public void ExtractScanInfor()
         {
-            accountant.ExtractScanNumTime(MsDataFilePaths, spectraFileManager, new Tuple<double, double>(45, 115));
+            accountant.ExtractScanNumTime(MsDataFilePaths, spectraFileManager, new Tuple<double, double>(0, 150));
         }
 
         public void WritePGlycoResult()

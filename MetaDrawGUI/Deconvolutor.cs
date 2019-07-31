@@ -10,6 +10,9 @@ using OxyPlot.Annotations;
 using OxyPlot.Axes;
 using OxyPlot.Series;
 using MassSpectrometry;
+using System.IO;
+using EngineLayer;
+using System.Collections.ObjectModel;
 
 namespace MetaDrawGUI
 {
@@ -18,16 +21,70 @@ namespace MetaDrawGUI
         DeconSeleScan = 0,
         PlotAvaragineModel = 1,
         DeconQuant = 2,
-        DeconChargeParsi = 3
+        DeconAllChargeParsi = 3,
+        DeconWatch = 4
     }
 
     public class Deconvolutor: INotifyPropertyChanged
     {
-        public DeconViewModel deconViewModel { get; set; }
+        private Thanos _thanos;
+
+        //Deconvolution envolop Data Grid
+        public ObservableCollection<EnvolopForDataGrid> envolopObservableCollection;
+
+        public ObservableCollection<EnvolopForDataGrid> envolopCollection
+        {
+            get
+            {
+                return envolopObservableCollection;
+            }
+            set
+            {
+                envolopObservableCollection = value;
+                NotifyPropertyChanged("envolopCollection");
+            }
+        }
+
+        //Charge Deconvolution envolop Data Grid
+        public ObservableCollection<ChargeEnvelopesForDataGrid> chargeEnvelopesObservableCollection;
+
+        public ObservableCollection<ChargeEnvelopesForDataGrid> chargeEnvelopesCollection
+        {
+            get
+            {
+                return chargeEnvelopesObservableCollection;
+            }
+            set
+            {
+                chargeEnvelopesObservableCollection = value;
+                NotifyPropertyChanged("chargeEnvelopesCollection");
+            }
+        }
+
 
         public MsDataScan msDataScan { get; set; }
+
+        public int deconScanNum { get; set; }
+
         public int modelStartNum { get; set; }
 
+
+        //View model
+        public MainViewModel mainViewModel { get; set; }
+        public PlotModel Model
+        {
+            get
+            {
+                return mainViewModel.privateModel;
+            }
+            set
+            {
+                mainViewModel.privateModel = value;
+                NotifyPropertyChanged("Model");
+            }
+        }
+
+        public DeconViewModel deconViewModel { get; set; }
         public PlotModel DeconModel
         {
             get
@@ -38,6 +95,34 @@ namespace MetaDrawGUI
             {
                 deconViewModel.privateModel = value;
                 NotifyPropertyChanged("DeconModel");
+            }
+        }
+
+        public PeakViewModel peakViewModel { get; set; }
+        public PlotModel XicModel
+        {
+            get
+            {
+                return peakViewModel.privateModel;
+            }
+            set
+            {
+                peakViewModel.privateModel = value;
+                NotifyPropertyChanged("XicModel");
+            }
+        }
+
+        public ChargeEnveViewModel chargeDeconViewModel { get; set; }
+        public PlotModel ChargeEnveModel
+        {
+            get
+            {
+                return chargeDeconViewModel.privateModel;
+            }
+            set
+            {
+                chargeDeconViewModel.privateModel = value;
+                NotifyPropertyChanged("ChargeEnveModel");
             }
         }
 
@@ -52,8 +137,37 @@ namespace MetaDrawGUI
             }
         }
 
+        //TO DO: how to bind data back to MainWindow.
+        public void Decon()
+        {
+            //ResetDataGridAndModel();
+            //int x = Convert.ToInt32(txtDeconScanNum.Text);
+            msDataScan = _thanos.msDataScans.Where(p => p.OneBasedScanNumber == deconScanNum).First();
+            MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(msDataScan.MassSpectrum.XArray, msDataScan.MassSpectrum.YArray, true);
 
-        public void Deconvolute()
+            //IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+            var IsotopicEnvelopes = mzSpectrumBU.Deconvolute(msDataScan.ScanWindowRange, _thanos.DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+            //IsotopicEnvelopes = mzSpectrumBU.ParallelDeconvolute(msDataScan.ScanWindowRange, DeconvolutionParameter, 8).OrderBy(p => p.monoisotopicMass).ToList();
+
+            int i = 1;
+            foreach (var item in IsotopicEnvelopes)
+            {
+                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
+                i++;
+            }
+            mainViewModel.UpdateScanModel(msDataScan);
+
+            var ScanChargeEnvelopes = mzSpectrumBU.ChargeDeconvolution(deconScanNum, msDataScan.RetentionTime, IsotopicEnvelopes, _thanos.msDataScans.Where(p => p.OneBasedPrecursorScanNumber == deconScanNum).Select(p => p.SelectedIonMZ).ToList());
+            int ind = 1;
+            foreach (var theScanChargeEvelope in ScanChargeEnvelopes)
+            {
+                chargeEnvelopesObservableCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
+                ind++;
+            }
+            chargeEnvelopesCollection = chargeEnvelopesObservableCollection;
+        }
+
+        public void PlotDeconModel()
         {
             if (msDataScan != null)
             {
@@ -69,6 +183,98 @@ namespace MetaDrawGUI
                 DeconModel = deconViewModel.privateModel;
             }
         }
-    
+        
+        public void DeconQuant()
+        {         
+            var ms1ScanForDecon = new List<MsDataScan>();
+            foreach (var scan in _thanos.msDataScans.Where(p => p.MsnOrder == 1))
+            {
+                //if (scan.OneBasedScanNumber >= 2 && msDataScans.ElementAt(scan.OneBasedScanNumber-2).MsnOrder == 1)
+                //if (scan.ScanWindowRange.Minimum == 349) //TO DO: this is temp special for the coon lab neocode data.              
+                ms1ScanForDecon.Add(scan);
+
+            }
+            //var a = ms1ScanForDecon.Count();
+            //var b = msDataScans.Where(p => p.MsnOrder == 1).Count();
+            //var c = msDataScans.Where(p => p.MsnOrder == 2).Count();
+            _thanos.msDataFileDecon.DeconQuantFile(ms1ScanForDecon, _thanos.MsDataFilePaths.First(), _thanos.CommonParameters, _thanos.DeconvolutionParameter);
+        }
+
+        public void DeconAllChargeParsi()
+        {
+            var chargeDeconPerMS1Scans = _thanos.msDataFileDecon.ChargeDeconvolutionFile(_thanos.msDataScans, _thanos.CommonParameters, _thanos.DeconvolutionParameter);
+            List<ChargeParsi> chargeParsis = _thanos.msDataFileDecon.ChargeParsimony(chargeDeconPerMS1Scans, new SingleAbsoluteAroundZeroSearchMode(2.2), new SingleAbsoluteAroundZeroSearchMode(5));
+
+            var total = _thanos.msDataScans.Where(p => p.MsnOrder == 2).Count();
+            int ms2ScanBeAssigned = chargeParsis.Sum(p => p.MS2ScansCount);
+            int a0 = chargeParsis.Where(p => p.MS2ScansCount == 0).Count();
+            int a1 = chargeParsis.Where(p => p.MS2ScansCount == 1).Count();
+            int a2 = chargeParsis.Where(p => p.MS2ScansCount == 2).Count();
+            int a3 = chargeParsis.Where(p => p.MS2ScansCount == 3).Count();
+            int a4 = chargeParsis.Where(p => p.MS2ScansCount == 4).Count();
+            int a5 = chargeParsis.Where(p => p.MS2ScansCount == 5).Count();
+            int a6 = chargeParsis.Where(p => p.MS2ScansCount == 6).Count();
+            int a7 = chargeParsis.Where(p => p.MS2ScansCount == 7).Count();
+            int a8 = chargeParsis.Where(p => p.MS2ScansCount == 8).Count();
+            int a9 = chargeParsis.Where(p => p.MS2ScansCount == 9).Count();
+            int a10 = chargeParsis.Where(p => p.MS2ScansCount == 10).Count();
+            int a11 = chargeParsis.Where(p => p.MS2ScansCount == 11).Count();
+            int a12 = chargeParsis.Where(p => p.MS2ScansCount == 12).Count();
+            int a13 = chargeParsis.Where(p => p.MS2ScansCount == 13).Count();
+            int a14 = chargeParsis.Where(p => p.MS2ScansCount == 14).Count();
+            int a15 = chargeParsis.Where(p => p.MS2ScansCount == 15).Count();
+            int a16 = chargeParsis.Where(p => p.MS2ScansCount == 16).Count();
+            int a17 = chargeParsis.Where(p => p.MS2ScansCount == 17).Count();
+            int a18 = chargeParsis.Where(p => p.MS2ScansCount == 18).Count();
+            int a19 = chargeParsis.Where(p => p.MS2ScansCount == 19).Count();
+            int a20 = chargeParsis.Where(p => p.MS2ScansCount == 20).Count();
+            var test = chargeParsis.Where(p => p.ExsitedMS1Scans.Contains(2076)).ToList();
+            _thanos.msDataFileDecon.ChargeDeconWriteToTSV(chargeDeconPerMS1Scans, Path.GetDirectoryName(_thanos.MsDataFilePaths.First()), "ChargeDecon");
+        }
+
+        public void DeconWatch()
+        {
+            var MS1Scans = _thanos.msDataScans.Where(p => p.MsnOrder == 1).ToList();
+            List<WatchEvaluation> evalution = new List<WatchEvaluation>();
+            int i = 0;
+            while (i < MS1Scans.Count)
+            {
+                var theScanNum = MS1Scans[i].OneBasedScanNumber;
+                var theRT = MS1Scans[i].RetentionTime;
+                MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(MS1Scans[i].MassSpectrum.XArray, MS1Scans[i].MassSpectrum.YArray, true);
+
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+
+                var isotopicEnvelopes = mzSpectrumBU.Deconvolute(MS1Scans[i].ScanWindowRange, _thanos.DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+                watch.Stop();
+
+                var watch0 = System.Diagnostics.Stopwatch.StartNew();
+
+                var isotopicEnvelopesByParallel = mzSpectrumBU.ParallelDeconvolute(MS1Scans[i].ScanWindowRange, _thanos.DeconvolutionParameter, 8).OrderBy(p => p.monoisotopicMass).ToList();
+                watch0.Stop();
+
+                var watch1 = System.Diagnostics.Stopwatch.StartNew();
+
+                var chargeDecon = mzSpectrumBU.ChargeDeconvolution(MS1Scans[i].OneBasedScanNumber, MS1Scans[i].RetentionTime, isotopicEnvelopes, new List<double?>());
+
+                watch1.Stop();
+
+                var theEvaluation = new WatchEvaluation(theScanNum, theRT, watch.ElapsedMilliseconds, watch0.ElapsedMilliseconds, watch1.ElapsedMilliseconds);
+                evalution.Add(theEvaluation);
+                i++;
+
+            }
+
+            var writtenFile = Path.Combine(Path.GetDirectoryName(_thanos.MsDataFilePaths.First()), "watches.mytsv");
+            using (StreamWriter output = new StreamWriter(writtenFile))
+            {
+                output.WriteLine("ScanNum\tRT\tIsotopicDecon\tIsoTopicDeconByParallel\tChargeDecon");
+                foreach (var theEvaluation in evalution)
+                {
+                    output.WriteLine(theEvaluation.TheScanNumber.ToString() + "\t" + theEvaluation.TheRT + "\t" + theEvaluation.WatchIsoDecon.ToString() + "\t" + theEvaluation.WatchIsoDeconByParallel.ToString() + "\t" + theEvaluation.WatchChaDecon.ToString());
+                }
+            }
+        }
+
     }
 }

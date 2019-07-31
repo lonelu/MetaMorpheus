@@ -235,46 +235,41 @@
                                 <StackPanel Orientation="Vertical">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
                                         <Label Content="MinAssumedChargeState"/>
-                                        <TextBox x:Name="txtMinAssumedChargeState"  Width="50" TextChanged="TxtMinAssumedChargeState_TextChanged"/>
+                                        <TextBox x:Name="txtMinAssumedChargeState"  Width="50" />
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
                                         <Label Content="MaxAssumedChargeState"/>
-                                        <TextBox x:Name="txtMaxAssumedChargeState" Width="50" TextChanged="TxtMaxAssumedChargeState_TextChanged"/>
+                                        <TextBox x:Name="txtMaxAssumedChargeState" Width="50" />
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
                                         <Label Content="Deconvolution Tolerance"/>
-                                        <TextBox x:Name="txtDeconvolutionToleranc" Width="50" TextChanged="TxtDeconvolutionToleranc_TextChanged"/>
+                                        <TextBox x:Name="txtDeconvolutionToleranc" Width="50" />
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
                                         <Label Content="IntensityRatioLimit"/>
-                                        <TextBox x:Name="txtIntensityRatioLimit" Width="50" TextChanged="TxtIntensityRatioLimit_TextChanged"/>
+                                        <TextBox x:Name="txtIntensityRatioLimit" Width="50" />
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
                                         <Label Content="NeuCode Mass Defect"/>
-                                        <TextBox x:Name="TxtNeuCodeMassDefect" Width="50" TextChanged="TxtNeuCodeMassDefect_TextChanged"/>
+                                        <TextBox x:Name="TxtNeuCodeMassDefect" Width="50" />
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
                                         <Label Content="NeuCode Max Num"/>
-                                        <TextBox x:Name="TxtNeuCodeMaxNum" Width="50" TextChanged="TxtNeuCodeMaxNum_TextChanged"/>
+                                        <TextBox x:Name="TxtNeuCodeMaxNum" Width="50" />
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
                                         <Label Content="NeuCode Max Num"/>
-                                        <TextBox x:Name="TxtNeuCodeRatio" Width="50" TextChanged="TxtNeuCodeRatio_TextChanged"/>
+                                        <TextBox x:Name="TxtNeuCodeRatio" Width="50" />
                                     </StackPanel>
                                 </StackPanel>
                                 <StackPanel Orientation="Vertical" Grid.Row="1">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
                                         <Label Content="Scan number:"/>
                                         <TextBox x:Name="txtDeconScanNum" Text="2076"  Width="50"/>
-                                        <Button x:Name="btnDecon" Content="Decon" Click="btnDecon_Click"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
                                         <Label Content="Model Number from:"/>
-                                        <TextBox x:Name="TxtDeconModel" Text="0"  Width="30" TextChanged="TxtDeconModel_TextChanged"/>
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
-                                        <Button x:Name="BtnDeconQuant" Content="Decon Quant" Click="BtnDeconQuant_Click"/>
-                                        <Button x:Name="btnDeconAll" Content="DeconAllChargeParsi" Click="btnDeconAll_Click"/>
+                                        <TextBox x:Name="TxtDeconModel" Text="0"  Width="30" />
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
                                         <Button x:Name="btnResetDecon" Content="Reset" Click="btnResetDecon_Click"/>
@@ -349,7 +344,7 @@
                           Width="5"/>
                     <Grid Grid.Column="4">
                         <GroupBox Header="Decon Numbers">
-                            <DataGrid x:Name="dataGridDeconNums" VerticalAlignment="Stretch" ItemsSource="{Binding}" 
+                            <DataGrid x:Name="dataGridDeconNums" VerticalAlignment="Stretch" ItemsSource="{Binding envolopCollection}" 
                               IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0"
                               SelectedCellsChanged ="DataGridDeconNums_SelectedCellsChanged" CanUserDeleteRows="false" CanUserAddRows="false">
                                 <!--<DataGrid.Columns>
@@ -369,7 +364,7 @@
                           Width="5"/>
                     <Grid Grid.Column="6">
                         <GroupBox Header="ChargeEnve Numbers" >
-                            <DataGrid x:Name="dataGridChargeEnves" VerticalAlignment="Stretch" ItemsSource="{Binding}" 
+                            <DataGrid x:Name="dataGridChargeEnves" VerticalAlignment="Stretch" ItemsSource="{Binding chargeEnvelopesCollection}" 
                               IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0"
                               SelectedCellsChanged ="DataGridChargeEnves_SelectedCellsChanged" CanUserDeleteRows="false" CanUserAddRows="false">
                                 <!--<DataGrid.Columns>

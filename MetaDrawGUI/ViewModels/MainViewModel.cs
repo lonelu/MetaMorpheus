@@ -3,7 +3,6 @@ using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
 using OxyPlot.Annotations;
-using System.ComponentModel;
 using MassSpectrometry;
 using System.Collections.Generic;
 using Proteomics.Fragmentation;
@@ -12,9 +11,9 @@ using Chemistry;
 
 namespace ViewModels
 {
-    public class MainViewModel : INotifyPropertyChanged
+    public class MainViewModel
     {
-        private PlotModel privateModel;
+        public PlotModel privateModel;
 
         private const double STROKE_THICKNESS_UNANNOTATED = 0.5;
         private const double STROKE_THICKNESS_ANNOTATED = 2.0;
@@ -39,44 +38,19 @@ namespace ViewModels
           { ProductType.M, OxyColors.LightCoral }
         };
 
-        public PlotModel Model
-        {
-            get
-            {
-                return this.privateModel;
-            }
-            set
-            {
-                this.privateModel = value;
-                NotifyPropertyChanged("Model");
-            }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void NotifyPropertyChanged(string propertyName)
-        {
-            PropertyChangedEventHandler handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-    
-
         public MainViewModel()
         {
             // Create the plot model
             var tmp = new PlotModel { Title = "Spectrum Annotation", Subtitle = "using OxyPlot" };
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            this.Model = tmp;
+            this.privateModel = tmp;
         }
 
         //Just draw an scan w/o annotation
         public void UpdateScanModel(MsDataScan MsScanForDraw)
         {
-            this.Model = DrawScan(MsScanForDraw);
+            this.privateModel = DrawScan(MsScanForDraw);
         }
 
         public PlotModel DrawScan(MsDataScan MsScanForDraw)
@@ -129,7 +103,7 @@ namespace ViewModels
         public void DrawPeptideSpectralMatch(MsDataScan msDataScan, PsmFromTsv psmToDraw)
         {
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            this.Model = Draw(msDataScan, psmToDraw);
+            privateModel = Draw(msDataScan, psmToDraw);
         }
 
         private PlotModel Draw(MsDataScan msDataScan, PsmFromTsv psmToDraw)
@@ -272,25 +246,25 @@ namespace ViewModels
             var tmp = new PlotModel { Title = "Spectrum Annotation", Subtitle = "using OxyPlot" };
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            this.Model = tmp;
+            this.privateModel = tmp;
         }
 
         private void XAxisChanged(object sender, AxisChangedEventArgs e)
         {
-            double fold = (this.Model.Axes[0].ActualMaximum - this.Model.Axes[0].ActualMinimum) / (this.Model.Axes[0].AbsoluteMaximum - this.Model.Axes[0].AbsoluteMinimum);
-            this.Model.Axes[1].Minimum = 0;
-            this.Model.Axes[1].Maximum = this.Model.Axes[1].AbsoluteMaximum * 0.6 * fold;
+            double fold = (this.privateModel.Axes[0].ActualMaximum - this.privateModel.Axes[0].ActualMinimum) / (this.privateModel.Axes[0].AbsoluteMaximum - this.privateModel.Axes[0].AbsoluteMinimum);
+            this.privateModel.Axes[1].Minimum = 0;
+            this.privateModel.Axes[1].Maximum = this.privateModel.Axes[1].AbsoluteMaximum * 0.6 * fold;
 
-            foreach (var series in this.Model.Series)
+            foreach (var series in this.privateModel.Series)
             {
                 if (series is LineSeries)
                 {
                     var x = (LineSeries)series;
-                    if (x.Points[1].X >= this.Model.Axes[0].ActualMinimum && x.Points[1].X <= this.Model.Axes[0].ActualMaximum)
+                    if (x.Points[1].X >= this.privateModel.Axes[0].ActualMinimum && x.Points[1].X <= this.privateModel.Axes[0].ActualMaximum)
                     {
-                        if (x.Points[1].Y > this.Model.Axes[1].Maximum)
+                        if (x.Points[1].Y > this.privateModel.Axes[1].Maximum)
                         {
-                            this.Model.Axes[1].Maximum = x.Points[1].Y * 1.2;
+                            this.privateModel.Axes[1].Maximum = x.Points[1].Y * 1.2;
                         }
                     }
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using Chemistry;
@@ -12,22 +11,9 @@ using OxyPlot.Series;
 
 namespace MetaDrawGUI
 {
-    public class PeakViewModel : INotifyPropertyChanged
+    public class PeakViewModel
     {
-        private PlotModel privateModel;
-        
-        public PlotModel XicModel
-        {
-            get
-            {
-                return this.privateModel;
-            }
-            set
-            {
-                this.privateModel = value;
-                NotifyPropertyChanged("XicModel");
-            }
-        }
+        public PlotModel privateModel;      
 
         public PeakViewModel()
         {
@@ -84,7 +70,7 @@ namespace MetaDrawGUI
                 model.Annotations.Add(Line);
             }
 
-            this.XicModel = model;
+            privateModel = model;
         }
 
         public void DrawXic(double mass, int charge, double rt, MsDataFile file, Tolerance massTolerance, double rtTol, int numPeaks, string filename)
@@ -147,7 +133,7 @@ namespace MetaDrawGUI
                 model.Annotations.Add(Line);
             }
 
-            this.XicModel = model;
+            privateModel = model;
         }
 
         public void ResetViewModel()
@@ -156,18 +142,8 @@ namespace MetaDrawGUI
             var tmp = new PlotModel { Title = "XIC" };
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            this.XicModel = tmp;
+            privateModel = tmp;
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void NotifyPropertyChanged(string propertyName)
-        {
-            PropertyChangedEventHandler handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
     }
 }

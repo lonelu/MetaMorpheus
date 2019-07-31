@@ -9,23 +9,9 @@ using MetaDrawGUI;
 
 namespace ViewModels
 {
-    public class ChargeEnveViewModel : INotifyPropertyChanged
+    public class ChargeEnveViewModel
     {
-        private PlotModel chargeEnveModel;
-
-        public PlotModel ChargeEnveModel
-        {
-            get
-            {
-                return this.chargeEnveModel;
-            }
-            set
-            {
-                this.chargeEnveModel = value;
-                NotifyPropertyChanged("ChargeEnveModel");
-            }
-        }
-
+        public PlotModel privateModel;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -44,7 +30,7 @@ namespace ViewModels
             var tmp = new PlotModel { Title = "ChargeEnve Spectrum Annotation", Subtitle = "using OxyPlot" };
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            this.ChargeEnveModel = tmp;
+            this.privateModel = tmp;
         }
 
         public void UpdataModelForChargeEnve(MsDataScan MsScanForDraw, ChargeDeconEnvelope chargeDeconEnvelope)
@@ -126,7 +112,7 @@ namespace ViewModels
             }
             model.Axes[0].AxisChanged += XAxisChanged;
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            this.ChargeEnveModel = model;
+            this.privateModel = model;
         }
 
         public void ResetDeconModel()
@@ -135,25 +121,25 @@ namespace ViewModels
             var tmp = new PlotModel { Title = "ChargeEnve Spectrum Annotation", Subtitle = "using OxyPlot" };
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            this.ChargeEnveModel = tmp;
+            this.privateModel = tmp;
         }
 
         private void XAxisChanged(object sender, AxisChangedEventArgs e)
         {
-            double fold = (this.ChargeEnveModel.Axes[0].ActualMaximum - this.ChargeEnveModel.Axes[0].ActualMinimum) / (this.ChargeEnveModel.Axes[0].AbsoluteMaximum - this.ChargeEnveModel.Axes[0].AbsoluteMinimum);
-            this.ChargeEnveModel.Axes[1].Minimum = 0;
-            this.ChargeEnveModel.Axes[1].Maximum = this.ChargeEnveModel.Axes[1].AbsoluteMaximum * 0.6 * fold;
+            double fold = (this.privateModel.Axes[0].ActualMaximum - this.privateModel.Axes[0].ActualMinimum) / (this.privateModel.Axes[0].AbsoluteMaximum - this.privateModel.Axes[0].AbsoluteMinimum);
+            this.privateModel.Axes[1].Minimum = 0;
+            this.privateModel.Axes[1].Maximum = this.privateModel.Axes[1].AbsoluteMaximum * 0.6 * fold;
 
-            foreach (var series in this.ChargeEnveModel.Series)
+            foreach (var series in this.privateModel.Series)
             {
                 if (series is LineSeries)
                 {
                     var x = (LineSeries)series;
-                    if (x.Points[1].X >= this.ChargeEnveModel.Axes[0].ActualMinimum && x.Points[1].X <= this.ChargeEnveModel.Axes[0].ActualMaximum)
+                    if (x.Points[1].X >= this.privateModel.Axes[0].ActualMinimum && x.Points[1].X <= this.privateModel.Axes[0].ActualMaximum)
                     {
-                        if (x.Points[1].Y > this.ChargeEnveModel.Axes[1].Maximum)
+                        if (x.Points[1].Y > this.privateModel.Axes[1].Maximum)
                         {
-                            this.ChargeEnveModel.Axes[1].Maximum = x.Points[1].Y * 1.2;
+                            this.privateModel.Axes[1].Maximum = x.Points[1].Y * 1.2;
                         }
                     }
 

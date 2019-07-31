@@ -1,7 +1,7 @@
 ﻿//
 namespace MetaDrawGUI
 {
-    class ChargeEnvelopesForDataGrid
+    public class ChargeEnvelopesForDataGrid
     {
         public ChargeEnvelopesForDataGrid(int ind, double deconMass, double mse)
         {
