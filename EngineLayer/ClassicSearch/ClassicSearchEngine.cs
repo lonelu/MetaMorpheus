@@ -57,9 +57,9 @@ namespace EngineLayer.ClassicSearch
                 int[] threads = Enumerable.Range(0, maxThreadsPerFile).ToArray();
 
                 ModificationMotif.TryGetMotif("X", out ModificationMotif motifX);
-                Modification mod1 = new Modification(_originalId: "mdDileu", _modificationType: "Multiplex Label", _target: motifX, _locationRestriction: "Peptide N-terminal.", _monoisotopicMass: 150.17186);
+                Modification mod1 = new Modification(_originalId: "mdDileu", _modificationType: "Multiplex Label", _target: motifX, _locationRestriction: "Peptide N-terminal.", _monoisotopicMass: 145.14047); //145.14047 or 150.17186
                 ModificationMotif.TryGetMotif("K", out ModificationMotif motifK);
-                Modification mod2 = new Modification(_originalId: "mdDileuK", _modificationType: "Multiplex Label", _target: motifK, _locationRestriction: "Anywhere.", _monoisotopicMass: 150.17186);
+                Modification mod2 = new Modification(_originalId: "mdDileuK", _modificationType: "Multiplex Label", _target: motifK, _locationRestriction: "Anywhere.", _monoisotopicMass: 145.14047);
                 List<Modification> FixedModificationForYeast = new List<Modification>();
                 foreach (var m in FixedModifications)
                 {
