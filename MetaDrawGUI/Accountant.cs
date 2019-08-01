@@ -12,10 +12,10 @@ namespace MetaDrawGUI
     public class Accountant
     {
         //For BoxCar study
-        public void ExtractScanNumTime(List<string> MsDataFilePaths, MyFileManager spectraFileManager, Tuple<double, double> timeRange)
+        public void ExtractBoxCarScanNumTime(List<string> MsDataFilePaths, MyFileManager spectraFileManager, Tuple<double, double> timeRange)
         {
             //fullNum, msxNum, MS2Num
-            List<Tuple<int, int, int>> tuples = new List<Tuple<int, int, int>>();
+            List<Tuple<string, int, int, int>> tuples = new List<Tuple<string, int, int, int>>();
 
             foreach (var filePath in MsDataFilePaths)
             {
@@ -27,7 +27,7 @@ namespace MetaDrawGUI
                 var msxNum = scanSets.Where(p => p.Ms1scans.First().RetentionTime > timeRange.Item1 && p.Ms1scans.First().RetentionTime < timeRange.Item2).Sum(p => p.BoxcarScans.Count);
                 var MS2Num = scanSets.Where(p => p.Ms1scans.First().RetentionTime > timeRange.Item1 && p.Ms1scans.First().RetentionTime < timeRange.Item2).Sum(p => p.Ms2scans.Count);
 
-                tuples.Add(new Tuple<int, int, int>(fullNum, msxNum, MS2Num));
+                tuples.Add(new Tuple<string, int, int, int>(filePath, fullNum, msxNum, MS2Num));
 
                 var scans = msDataFile.GetAllScansList();
 
@@ -120,24 +120,24 @@ namespace MetaDrawGUI
             }
         }
 
-        private void WriteExtractedNum(string FilePath, string name, List<Tuple<int, int, int>> tuples)
+        private void WriteExtractedNum(string FilePath, string name, List<Tuple<string, int, int, int>> tuples)
         {
             var writtenFile = Path.Combine(Path.GetDirectoryName(FilePath), name + ".tsv");
             using (StreamWriter output = new StreamWriter(writtenFile))
             {
-                output.WriteLine("FullTotal\tMsxTotal\tMS2Total");
+                output.WriteLine("File\tFullTotal\tMsxTotal\tMS2Total");
                 for (int i = 0; i < tuples.Count; i++)
                 {
-                    output.WriteLine(tuples[i].Item1 + "\t" + tuples[i].Item2 + "\t" + tuples[i].Item3);
+                    output.WriteLine(tuples[i].Item1 + "\t" + tuples[i].Item2 + "\t" + tuples[i].Item3 + "\t" + tuples[i].Item4);
                 }
             }
         }
 
         //For Glyco study, especially HCD triggered methods
-        public void ExtractScanInfo_Glyco(List<string> MsDataFilePaths, MyFileManager spectraFileManager, Tuple<double, double> timeRange)
+        public void ExtractNumTime_ShotgunScan(List<string> MsDataFilePaths, MyFileManager spectraFileManager, Tuple<double, double> timeRange)
         {
             //fullNum, MS2Num, HCDNum, ETDNum
-            List<Tuple<int, int, int, int, int>> tuples = new List<Tuple<int, int, int, int, int>>();
+            List<Tuple<string, int, int, int, int, int>> tuples = new List<Tuple<string, int, int, int, int, int>>();
 
             foreach (var filePath in MsDataFilePaths)
             {
@@ -153,17 +153,17 @@ namespace MetaDrawGUI
                 var EThcD_Num = scanSets.Where(p => p.Ms1scans.First().RetentionTime > timeRange.Item1 && p.Ms1scans.First().RetentionTime < timeRange.Item2).Sum(p => p.Ms2scans.Where(k => k.ScanFilter.Contains("etd") && k.ScanFilter.Contains("hcd")).Count());
 
 
-                tuples.Add(new Tuple<int, int, int, int, int>(fullNum, MS2_Num, HCD_Num, ETD_Num, EThcD_Num));
+                tuples.Add(new Tuple<string, int, int, int, int, int>(filePath, fullNum, MS2_Num, HCD_Num, ETD_Num, EThcD_Num));
 
                 var scans = msDataFile.GetAllScansList();
 
                 var times = ExtractTime_Glyco(scans);
 
-                WriteExtractedTime_Glyco(filePath, Path.GetFileNameWithoutExtension(filePath) + "_time", times);
+                WriteExtractedTime_Shotgun(filePath, Path.GetFileNameWithoutExtension(filePath) + "_time", times);
 
             }
 
-            WriteExtractedNum_Glyco(MsDataFilePaths.First(), "scan_count", tuples);
+            WriteExtractedNum_Shotgun(MsDataFilePaths.First(), "scan_count", tuples);
         }
 
         private List<Tuple<double, double, double, double, string, string, string>> ExtractTime_Glyco(List<MsDataScan> scans)
@@ -247,7 +247,7 @@ namespace MetaDrawGUI
             return times;
         }
 
-        private void WriteExtractedTime_Glyco(string FilePath, string name, List<Tuple<double, double, double, double, string, string, string>> times)
+        private void WriteExtractedTime_Shotgun(string FilePath, string name, List<Tuple<double, double, double, double, string, string, string>> times)
         {
             var writtenFile = Path.Combine(Path.GetDirectoryName(FilePath), name + ".tsv");
             using (StreamWriter output = new StreamWriter(writtenFile))
@@ -260,15 +260,15 @@ namespace MetaDrawGUI
             }
         }
 
-        private void WriteExtractedNum_Glyco(string FilePath, string name, List<Tuple<int, int, int, int, int>> tuples)
+        private void WriteExtractedNum_Shotgun(string FilePath, string name, List<Tuple<string, int, int, int, int, int>> tuples)
         {
             var writtenFile = Path.Combine(Path.GetDirectoryName(FilePath), name + ".tsv");
             using (StreamWriter output = new StreamWriter(writtenFile))
             {
-                output.WriteLine("FullTotal\tMs2Total\tHcdTotal\tEtdTotal\tEThcDTotal");
+                output.WriteLine("File\tFullTotal\tMs2Total\tHcdTotal\tEtdTotal\tEThcDTotal");
                 for (int i = 0; i < tuples.Count; i++)
                 {
-                    output.WriteLine(tuples[i].Item1 + "\t" + tuples[i].Item2 + "\t" + tuples[i].Item3 + "\t" + tuples[i].Item4 + "\t" + tuples[i].Item5);
+                    output.WriteLine(tuples[i].Item1 + "\t" + tuples[i].Item2 + "\t" + tuples[i].Item3 + "\t" + tuples[i].Item4 + "\t" + tuples[i].Item5 + "\t" + tuples[i].Item5);
                 }
             }
         }
