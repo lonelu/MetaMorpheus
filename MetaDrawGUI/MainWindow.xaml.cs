@@ -415,7 +415,7 @@ namespace MetaDrawGUI
             var sele = (EnvolopForDataGrid)dataGridDeconNums.SelectedItem;
 
             var envo = thanos.deconvolutor.IsotopicEnvelopes[sele.Ind - 1];
-            thanos.deconvolutor.DeconModel = DeconViewModel.UpdataModelForDecon(thanos.msDataScan, envo);           
+            thanos.deconvolutor.DeconModel = DeconViewModel.UpdataModelForDecon(thanos.msDataScan, envo);
             thanos.deconvolutor.XicModel = PeakViewModel.DrawXic(envo.monoisotopicMass, envo.charge, thanos.msDataScan.RetentionTime, thanos.msDataFile, new PpmTolerance(5), 5.0, 3, "");
         }
 
@@ -694,11 +694,17 @@ namespace MetaDrawGUI
                 case DeconvolutorSkill.DeconAllChargeParsi:
                     action = thanos.deconvolutor.DeconAllChargeParsi;
                     break;
+                case DeconvolutorSkill.DeconPeak_Neucode:
+                    action = thanos.deconvolutor.DeconPeak_NeuCode;
+                    break;
                 default:
                     break;
             }
 
-            action();
+            if (action != null)
+            {
+                action();
+            }
         }
     }
 }

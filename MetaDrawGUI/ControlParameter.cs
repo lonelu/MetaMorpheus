@@ -13,5 +13,6 @@ namespace MetaDrawGUI
         public int deconScanNum { get; set; } = new int();
 
         public int modelStartNum { get; set; } = new int();
+
     }
 }

@@ -16,7 +16,8 @@ namespace MetaDrawGUI
         PlotAvaragineModel = 1,
         DeconQuant = 2,
         DeconAllChargeParsi = 3,
-        DeconWatch = 4
+        DeconWatch = 4,
+        DeconPeak_Neucode = 5
     }
 
     public class Deconvolutor: INotifyPropertyChanged
@@ -58,7 +59,6 @@ namespace MetaDrawGUI
 
         public List<ChargeDeconEnvelope> ScanChargeEnvelopes { get; set; } = new List<ChargeDeconEnvelope>();
         public List<NeuCodeIsotopicEnvelop> IsotopicEnvelopes { get; set; } = new List<NeuCodeIsotopicEnvelop>();
-
 
         //View model
         public MainViewModel mainViewModel { get; set; } 
@@ -128,6 +128,27 @@ namespace MetaDrawGUI
             }
         }
 
+        public MzSpectrumBU mzSpectrumBU
+        {
+            get
+            {
+                return new MzSpectrumBU(_thanos.msDataScan.MassSpectrum.XArray, _thanos.msDataScan.MassSpectrum.YArray, true);
+            }
+        }
+
+        public int[] indexByY
+        {
+            get
+            {
+                return mzSpectrumBU.ExtractIndicesByY().ToArray();
+            }
+        }
+
+        //TO DO:this need to be change when the mzSpectrumBU change.
+        public int DeconPeakInd { get; set; } = 0;
+
+        public HashSet<double> seenPeaks { get; set; } = new HashSet<double>();
+
         public void Decon()
         {
             _thanos.msDataScan = _thanos.msDataScans.Where(p => p.OneBasedScanNumber == _thanos.ControlParameter.deconScanNum).First();
@@ -155,6 +176,31 @@ namespace MetaDrawGUI
                 ind++;
             }
             chargeEnvelopesCollection = chargeEnvelopesObservableCollection;
+        }
+
+        public void DeconPeak_NeuCode()
+        {
+            if (DeconPeakInd < mzSpectrumBU.Size)
+            {
+                var envo = mzSpectrumBU.DeconvolutePeak_NeuCode(indexByY[DeconPeakInd], _thanos.DeconvolutionParameter);
+                if (envo!=null)
+                {
+                    foreach (var p in envo.peaks)
+                    {
+                        seenPeaks.Add(p.mz);
+                    }
+                    if (envo.Partner!=null)
+                    {
+                        foreach (var p in envo.Partner.peaks)
+                        {
+                            seenPeaks.Add(p.mz);
+                        }
+                    }
+                    _thanos.deconvolutor.DeconModel = DeconViewModel.UpdataModelForDecon(_thanos.msDataScan, envo);
+
+                }
+            }
+            DeconPeakInd++;
         }
 
         public void PlotDeconModel()
