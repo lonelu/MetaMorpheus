@@ -26,33 +26,16 @@ namespace MetaDrawGUI
         private readonly ObservableCollection<RawDataForDataGrid> spectraFilesObservableCollection = new ObservableCollection<RawDataForDataGrid>();
         private readonly ObservableCollection<RawDataForDataGrid> resultFilesObservableCollection = new ObservableCollection<RawDataForDataGrid>();
 
-
         //All Scan Data Grid
         private readonly ObservableCollection<AllScansForDataGrid> allScansObservableCollection = new ObservableCollection<AllScansForDataGrid>();
         private readonly ObservableCollection<SpectrumForDataGrid> spectrumNumsObservableCollection = new ObservableCollection<SpectrumForDataGrid>();
-
-
-        //File path and file manage
-        private string spectraFilePath;
-        private MyFileManager spectraFileManager = new MyFileManager(true);
-        private MsDataFile MsDataFile = null;
+    
         private string resultsFilePath;            
 
         private List<PsmFromTsv> psms = new List<PsmFromTsv>();
-
-
         public Thanos thanos = new Thanos();
         public Action action { get; set; }
 
-        //Glyco
-        private readonly ObservableCollection<RawDataForDataGrid> GlycoResultObservableCollection = new ObservableCollection<RawDataForDataGrid>();
-
-        private readonly ObservableCollection<GlycoStructureForDataGrid> GlycoStrucureObservableCollection = new ObservableCollection<GlycoStructureForDataGrid>();
-
-        private readonly ObservableCollection<MsFeatureForDataGrid> MsFeatureObservableCollection = new ObservableCollection<MsFeatureForDataGrid>();
-
-        private readonly ObservableCollection<GlycanDatabaseForDataGrid> glycanDatabaseCollection = new ObservableCollection<GlycanDatabaseForDataGrid>();
-        private List<Glycan> NGlycans { get; set; }
         //MultiproteaseCrosslink
         private readonly ObservableCollection<RawDataForDataGrid> MutiProteaseCrosslinkResultFilesObservableCollection = new ObservableCollection<RawDataForDataGrid>();
 
@@ -101,19 +84,22 @@ namespace MetaDrawGUI
 
             dataGridAllScanNums.DataContext = allScansObservableCollection;
 
-            dataGridMutiproteaseCrosslink.DataContext = resultFilesObservableCollection;
+            dataGridGlycoResultFiles.DataContext = resultFilesObservableCollection;
+
+            dataGridGlyco.DataContext = thanos.sweetor;
+
+            dataGridGlyco.DataContext = thanos.sweetor;
+
+            dataGridGlycan.DataContext = thanos.sweetor;
 
             Title = "MetaDraw" + GlobalVariables.MetaMorpheusVersion;
 
             //CommonParameters = new CommonParameters();
             productMassToleranceComboBox.Items.Add("Da");
             productMassToleranceComboBox.Items.Add("ppm");
-            UpdateFieldsFromPanel();
+            UpdatePanel();
 
-            dataGridGlycoResultFiles.DataContext = resultFilesObservableCollection;
-            //dataGridGlyco.DataContext = GlycoStrucureObservableCollection;
-            dataGridGlyco.DataContext = MsFeatureObservableCollection;
-            dataGridGlycan.DataContext = glycanDatabaseCollection;
+
         }
 
         private void PopulateChoice()
@@ -131,6 +117,36 @@ namespace MetaDrawGUI
                     cmbDeconAction.Items.Add(aSkill);
                 }
             }
+        }
+
+        private void UpdatePanel()
+        {
+            //productMassToleranceTextBox.Text = CommonParameters.ProductMassTolerance.Value.ToString(CultureInfo.InvariantCulture);
+            //productMassToleranceComboBox.SelectedIndex = CommonParameters.ProductMassTolerance is AbsoluteTolerance ? 0 : 1;
+            txtMinAssumedChargeState.Text = thanos.DeconvolutionParameter.DeconvolutionMinAssumedChargeState.ToString();
+            txtMaxAssumedChargeState.Text = thanos.DeconvolutionParameter.DeconvolutionMaxAssumedChargeState.ToString();
+            txtDeconvolutionToleranc.Text = thanos.DeconvolutionParameter.DeconvolutionMassTolerance.ToString();
+            txtIntensityRatioLimit.Text = thanos.DeconvolutionParameter.DeconvolutionIntensityRatio.ToString();
+            TxtNeuCodeMassDefect.Text = thanos.DeconvolutionParameter.NeuCodeMassDefect.ToString();
+            TxtNeuCodeMaxNum.Text = thanos.DeconvolutionParameter.MaxmiumNeuCodeNumber.ToString();
+            TxtNeuCodeRatio.Text = thanos.DeconvolutionParameter.NeuCodePairRatio.ToString();
+            TxtScanNumCountRangeLow.Text = thanos.ControlParameter.LCTimeRange.Item1.ToString();
+            TxtScanNumCountRangeHigh.Text = thanos.ControlParameter.LCTimeRange.Item2.ToString();
+        }
+
+        private void UpdateField()
+        {
+            thanos.DeconvolutionParameter.DeconvolutionMinAssumedChargeState = int.Parse(txtMinAssumedChargeState.Text);
+            thanos.DeconvolutionParameter.DeconvolutionMaxAssumedChargeState = int.Parse(txtMaxAssumedChargeState.Text);
+            thanos.DeconvolutionParameter.DeconvolutionMassTolerance = double.Parse(txtDeconvolutionToleranc.Text);
+            thanos.DeconvolutionParameter.DeconvolutionIntensityRatio = double.Parse(txtIntensityRatioLimit.Text);
+            thanos.DeconvolutionParameter.NeuCodeMassDefect = double.Parse(TxtNeuCodeMassDefect.Text);
+            thanos.DeconvolutionParameter.MaxmiumNeuCodeNumber = int.Parse(TxtNeuCodeMaxNum.Text);
+            thanos.DeconvolutionParameter.NeuCodePairRatio = double.Parse(TxtNeuCodeRatio.Text);
+
+            thanos.ControlParameter.LCTimeRange = new Tuple<double, double>(  double.Parse(TxtScanNumCountRangeLow.Text), double.Parse(TxtScanNumCountRangeHigh.Text));
+            thanos.ControlParameter.deconScanNum = Convert.ToInt32(txtDeconScanNum.Text);
+            thanos.ControlParameter.modelStartNum = Convert.ToInt32(TxtDeconModel.Text);
         }
 
         private void Window_Drop(object sender, DragEventArgs e)
@@ -160,19 +176,6 @@ namespace MetaDrawGUI
                 }
 
             }
-        }
-
-        private void UpdateFieldsFromPanel()
-        {
-            //productMassToleranceTextBox.Text = CommonParameters.ProductMassTolerance.Value.ToString(CultureInfo.InvariantCulture);
-            //productMassToleranceComboBox.SelectedIndex = CommonParameters.ProductMassTolerance is AbsoluteTolerance ? 0 : 1;
-            txtMinAssumedChargeState.Text = thanos.DeconvolutionParameter.DeconvolutionMinAssumedChargeState.ToString();
-            txtMaxAssumedChargeState.Text = thanos.DeconvolutionParameter.DeconvolutionMaxAssumedChargeState.ToString();
-            txtDeconvolutionToleranc.Text = thanos.DeconvolutionParameter.DeconvolutionMassTolerance.ToString();
-            txtIntensityRatioLimit.Text = thanos.DeconvolutionParameter.DeconvolutionIntensityRatio.ToString();
-            TxtNeuCodeMassDefect.Text = thanos.DeconvolutionParameter.NeuCodeMassDefect.ToString();
-            TxtNeuCodeMaxNum.Text = thanos.DeconvolutionParameter.MaxmiumNeuCodeNumber.ToString();
-            TxtNeuCodeRatio.Text = thanos.DeconvolutionParameter.NeuCodePairRatio.ToString();
         }
 
         private void btnClearFiles_Click(object sender, RoutedEventArgs e)
@@ -269,7 +272,7 @@ namespace MetaDrawGUI
     
         private void btnLoadData_Click(object sender, RoutedEventArgs e)
         {
-            spectraFilePath = spectraFilesObservableCollection.First().FilePath;
+            var spectraFilePath = spectraFilesObservableCollection.First().FilePath;
             if (spectraFilePath == null)
             {
                 MessageBox.Show("Please add a spectra file.");
@@ -280,8 +283,8 @@ namespace MetaDrawGUI
             (sender as Button).IsEnabled = false;
             btnAddFiles.IsEnabled = false;
             btnClearFiles.IsEnabled = false;
-            MsDataFile = spectraFileManager.LoadFile(spectraFilePath, new CommonParameters());
-            thanos.msDataScans = MsDataFile.GetAllScansList();
+            thanos.msDataFile = thanos.spectraFileManager.LoadFile(spectraFilePath, new CommonParameters());
+            thanos.msDataScans = thanos.msDataFile.GetAllScansList();
 
             foreach (var iScan in thanos.msDataScans)
             {
@@ -343,10 +346,10 @@ namespace MetaDrawGUI
 
         private void ResetDataGridAndModel()
         {
-            thanos.deconvolutor.envolopObservableCollection.Clear();
+            thanos.deconvolutor.envolopCollection.Clear();
             thanos.deconvolutor.DeconModel = DeconViewModel.ResetDeconModel();
             thanos.deconvolutor.Model = MainViewModel.ResetViewModel();
-            thanos.deconvolutor.chargeEnvelopesObservableCollection.Clear();
+            thanos.deconvolutor.chargeEnvelopesCollection.Clear();
             thanos.deconvolutor.chargeDeconViewModel.ResetDeconModel();
             thanos.deconvolutor.XicModel = PeakViewModel.ResetViewModel();
         }
@@ -390,14 +393,14 @@ namespace MetaDrawGUI
                     thanos.deconvolutor.IsotopicEnvelopes[i - 1].ScanNum = thanos.msDataScan.OneBasedScanNumber;
                     thanos.deconvolutor.IsotopicEnvelopes[i - 1].RT = thanos.msDataScan.RetentionTime;
                     thanos.deconvolutor.IsotopicEnvelopes[i - 1].ScanTotalIntensity = thanos.msDataScan.TotalIonCurrent;
-                    thanos.deconvolutor.envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
+                    thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
                     i++;
                 }
 
                 int ind = 1;
                 foreach (var theScanChargeEvelope in thanos.deconvolutor.ScanChargeEnvelopes)
                 {
-                    thanos.deconvolutor.chargeEnvelopesObservableCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
+                    thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
                     ind++;
                 }
             }
@@ -413,7 +416,7 @@ namespace MetaDrawGUI
 
             var envo = thanos.deconvolutor.IsotopicEnvelopes[sele.Ind - 1];
             thanos.deconvolutor.DeconModel = DeconViewModel.UpdataModelForDecon(thanos.msDataScan, envo);           
-            thanos.deconvolutor.XicModel = PeakViewModel.DrawXic(envo.monoisotopicMass, envo.charge, thanos.msDataScan.RetentionTime, MsDataFile, new PpmTolerance(5), 5.0, 3, "");
+            thanos.deconvolutor.XicModel = PeakViewModel.DrawXic(envo.monoisotopicMass, envo.charge, thanos.msDataScan.RetentionTime, thanos.msDataFile, new PpmTolerance(5), 5.0, 3, "");
         }
 
         private void DataGridChargeEnves_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
@@ -449,14 +452,14 @@ namespace MetaDrawGUI
             int i = 1;
             foreach (var item in thanos.deconvolutor.IsotopicEnvelopes)
             {
-                thanos.deconvolutor.envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
+                thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
                 i++;
             }
 
             int ind = 1;
             foreach (var theScanChargeEvelope in thanos.deconvolutor.ScanChargeEnvelopes)
             {
-                thanos.deconvolutor.chargeEnvelopesObservableCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
+                thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
                 ind++;
             }
         }
@@ -490,7 +493,7 @@ namespace MetaDrawGUI
 
         private void BtnClearGlycoResultFiles_Click(object sender, RoutedEventArgs e)
         {
-            GlycoResultObservableCollection.Clear();
+            thanos.sweetor.GlycoResultCollection.Clear();
         }
 
         private void BtnLoadGlycoResults_Click(object sender, RoutedEventArgs e)
@@ -513,7 +516,7 @@ namespace MetaDrawGUI
 
             foreach (var psm in thanos.simplePsms)
             {
-                GlycoStrucureObservableCollection.Add(new GlycoStructureForDataGrid( psm.ScanNum));
+                thanos.sweetor.GlycoStrucureCollection.Add(new GlycoStructureForDataGrid( psm.ScanNum));
             }
         }
 
@@ -532,7 +535,7 @@ namespace MetaDrawGUI
 
             foreach (var feature in thanos.msFeatures)
             {
-                MsFeatureObservableCollection.Add(new MsFeatureForDataGrid(feature.MonoMass, feature.Abundance, feature.ApexRT));
+                thanos.sweetor.MsFeatureCollection.Add(new MsFeatureForDataGrid(feature.MonoMass, feature.Abundance, feature.ApexRT));
             }
         }
 
@@ -572,10 +575,10 @@ namespace MetaDrawGUI
 
         private void BtnLoadGlycans_Click(object sender, RoutedEventArgs e)
         {
-            NGlycans = Glycan.LoadGlycan(GlobalVariables.NGlycanLocation).ToList();
-            foreach (var glycan in NGlycans)
+            thanos.sweetor.NGlycans = Glycan.LoadGlycan(GlobalVariables.NGlycanLocation).ToList();
+            foreach (var glycan in thanos.sweetor.NGlycans)
             {
-                glycanDatabaseCollection.Add(new GlycanDatabaseForDataGrid(glycan.GlyId, Glycan.GetKindString(glycan.Kind), glycan.Struc));
+                thanos.sweetor.glycanDatabaseCollection.Add(new GlycanDatabaseForDataGrid(glycan.GlyId, Glycan.GetKindString(glycan.Kind), glycan.Struc));
             }
         }
 
@@ -583,14 +586,14 @@ namespace MetaDrawGUI
         {
             if (TxtGlycanKind.Text != null)
             {
-                var x = NGlycans.Where(p => Glycan.GetKindString(p.Kind) == TxtGlycanKind.Text).ToList();
+                var x = thanos.sweetor.NGlycans.Where(p => Glycan.GetKindString(p.Kind) == TxtGlycanKind.Text).ToList();
 
                 if (x.Count > 0)
                 {
-                    glycanDatabaseCollection.Clear();
+                    thanos.sweetor.glycanDatabaseCollection.Clear();
                     foreach (var glycan in x)
                     {
-                        glycanDatabaseCollection.Add(new GlycanDatabaseForDataGrid(glycan.GlyId, Glycan.GetKindString(glycan.Kind), glycan.Struc));
+                        thanos.sweetor.glycanDatabaseCollection.Add(new GlycanDatabaseForDataGrid(glycan.GlyId, Glycan.GetKindString(glycan.Kind), glycan.Struc));
                     }
                 }
                 
@@ -611,6 +614,7 @@ namespace MetaDrawGUI
 
         private void BtnStart_Click(object sender, RoutedEventArgs e)
         {
+            UpdateField();
             Skill skill = ((Skill)cmbAction.SelectedIndex);
 
             switch (skill)
@@ -672,16 +676,7 @@ namespace MetaDrawGUI
 
         private void BtnDeconStart_Click(object sender, RoutedEventArgs e)
         {
-            thanos.DeconvolutionParameter.DeconvolutionMinAssumedChargeState = int.Parse(txtMinAssumedChargeState.Text);
-            thanos.DeconvolutionParameter.DeconvolutionMaxAssumedChargeState = int.Parse(txtMaxAssumedChargeState.Text);
-            thanos.DeconvolutionParameter.DeconvolutionMassTolerance = double.Parse(txtDeconvolutionToleranc.Text);
-            thanos.DeconvolutionParameter.DeconvolutionIntensityRatio = double.Parse(txtIntensityRatioLimit.Text);
-            thanos.DeconvolutionParameter.MaxmiumNeuCodeNumber = int.Parse(TxtNeuCodeMaxNum.Text);
-            thanos.DeconvolutionParameter.NeuCodeMassDefect = double.Parse(TxtNeuCodeMassDefect.Text);
-            thanos.DeconvolutionParameter.NeuCodePairRatio = int.Parse(TxtNeuCodeRatio.Text);
-
-            thanos.deconvolutor.deconScanNum = Convert.ToInt32(txtDeconScanNum.Text);
-            thanos.deconvolutor.modelStartNum = Convert.ToInt32(TxtDeconModel.Text);
+            UpdateField();
 
             DeconvolutorSkill deconvolutorSkills = ((DeconvolutorSkill)cmbDeconAction.SelectedIndex);
 

@@ -12,11 +12,85 @@ using OxyPlot.Series;
 using MzLibUtil;
 using TaskLayer;
 using EngineLayer;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 namespace MetaDrawGUI
 {
-    public class Sweetor
+    public class Sweetor:INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void NotifyPropertyChanged(string propertyName)
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+            if (handler != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+        //Glyco
+        private ObservableCollection<RawDataForDataGrid> GlycoResultObservableCollection = new ObservableCollection<RawDataForDataGrid>();
+        public ObservableCollection<RawDataForDataGrid> GlycoResultCollection
+        {
+            get
+            {
+                return GlycoResultObservableCollection;
+            }
+            set
+            {
+                GlycoResultObservableCollection = value;
+                NotifyPropertyChanged("envolopCollection");
+            }
+        }
+
+        private  ObservableCollection<GlycoStructureForDataGrid> GlycoStrucureObservableCollection = new ObservableCollection<GlycoStructureForDataGrid>();
+        public ObservableCollection<GlycoStructureForDataGrid> GlycoStrucureCollection
+        {
+            get
+            {
+                return GlycoStrucureObservableCollection;
+            }
+            set
+            {
+                GlycoStrucureObservableCollection = value;
+                NotifyPropertyChanged("envolopCollection");
+            }
+        }
+
+        private ObservableCollection<MsFeatureForDataGrid> MsFeatureObservableCollection = new ObservableCollection<MsFeatureForDataGrid>();
+        public ObservableCollection<MsFeatureForDataGrid> MsFeatureCollection
+        {
+            get
+            {
+                return MsFeatureObservableCollection;
+            }
+            set
+            {
+                MsFeatureObservableCollection = value;
+                NotifyPropertyChanged("envolopCollection");
+            }
+        }
+
+        private ObservableCollection<GlycanDatabaseForDataGrid> glycanDatabaseObervableCollection = new ObservableCollection<GlycanDatabaseForDataGrid>();
+        public ObservableCollection<GlycanDatabaseForDataGrid> glycanDatabaseCollection
+        {
+            get
+            {
+                return glycanDatabaseObervableCollection;
+            }
+            set
+            {
+                glycanDatabaseObervableCollection = value;
+                NotifyPropertyChanged("envolopCollection");
+            }
+        }
+
+        public List<Glycan> NGlycans { get; set; }
+
+
+        //Write pGlyco result into out format.
         public void WritePGlycoResult(List<string> ResultFilePaths, List<SimplePsm> simplePsms)
         {
             foreach (var filepath in ResultFilePaths)
@@ -27,6 +101,7 @@ namespace MetaDrawGUI
             }
         }
 
+        //To plot identified glycopeptide family mass vs retention time
         public PlotModel PlotGlycoRT(List<SimplePsm> simplePsms)
         {
             if (simplePsms.Count <= 0)
@@ -114,6 +189,7 @@ namespace MetaDrawGUI
             return model;
         }
 
+        //TO DO: not finished
         public void extractGsmInfo(List<SimplePsm> simplePsms)
         {
             var psms = simplePsms.ToDictionary(p => p.FullSeq, p=>p).Select(p=>p.Value).ToList();
@@ -357,5 +433,8 @@ namespace MetaDrawGUI
 
             }
         }
+
+        //
+
     }
 }

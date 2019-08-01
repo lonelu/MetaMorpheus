@@ -22,7 +22,7 @@ using OxyPlot.Series;
 
 namespace MetaDrawGUI
 {
-    public class Thanos:INotifyPropertyChanged
+    public class Thanos : INotifyPropertyChanged
     {
         //Thanos' subordinate
         public Accumulator accumulator = new Accumulator();
@@ -33,22 +33,18 @@ namespace MetaDrawGUI
 
         public Sweetor sweetor = new Sweetor();
 
-        public Deconvolutor deconvolutor = new Deconvolutor();        
+        public Deconvolutor deconvolutor = new Deconvolutor();
 
         public MsDataFileDecon msDataFileDecon = new MsDataFileDecon(); //For charge decovolution
 
         //Thanos' control setting
+        public ControlParameter ControlParameter = new ControlParameter();
+
         public CommonParameters CommonParameters = new CommonParameters();
 
         public DeconvolutionParameter DeconvolutionParameter = new DeconvolutionParameter();
 
-        //Thanos' resource
-        public List<SimplePsm> simplePsms = new List<SimplePsm>();
-
-        public List<MsFeature> msFeatures = new List<MsFeature>();
-
-        public List<HashSet<MsFeature>> familyFeatures = new List<HashSet<MsFeature>>();       
-
+        //Constructor
         public Thanos()
         {
             MsDataFilePaths = new List<string>();
@@ -71,11 +67,19 @@ namespace MetaDrawGUI
 
         //Thanos' resource
 
+        public List<SimplePsm> simplePsms = new List<SimplePsm>();
+
+        public List<MsFeature> msFeatures = new List<MsFeature>();
+
+        public List<HashSet<MsFeature>> familyFeatures = new List<HashSet<MsFeature>>();
+
         public List<string> MsDataFilePaths { get; set; }
 
         public List<string> ResultFilePaths { get; set; }
 
         public MyFileManager spectraFileManager { get; set; }
+
+        public MsDataFile msDataFile { get; set;}
 
         public List<MsDataScan> msDataScans { get; set; }
 
@@ -110,7 +114,7 @@ namespace MetaDrawGUI
 
         public void ExtractScanInfo_BoxCar()
         {
-            accountant.ExtractBoxCarScanNumTime(MsDataFilePaths, spectraFileManager, new Tuple<double, double>(0, 150));
+            accountant.ExtractBoxCarScanNumTime(MsDataFilePaths, spectraFileManager, ControlParameter.LCTimeRange);
         }
 
         public void WritePGlycoResult()
@@ -126,7 +130,7 @@ namespace MetaDrawGUI
 
         public void ExtractScanInfo_Shotgun()
         {
-            accountant.ExtractNumTime_ShotgunScan(MsDataFilePaths, spectraFileManager, new Tuple<double, double>(0, 90));
+            accountant.ExtractNumTime_ShotgunScan(MsDataFilePaths, spectraFileManager, ControlParameter.LCTimeRange);
         }
 
         public void BuildGlycoFamily()

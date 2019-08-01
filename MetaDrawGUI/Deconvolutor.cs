@@ -25,7 +25,7 @@ namespace MetaDrawGUI
         public Thanos _thanos { get; set; }
 
         //Deconvolution envolop Data Grid
-        public ObservableCollection<EnvolopForDataGrid> envolopObservableCollection = new ObservableCollection<EnvolopForDataGrid>();
+        private ObservableCollection<EnvolopForDataGrid> envolopObservableCollection = new ObservableCollection<EnvolopForDataGrid>();
 
         public ObservableCollection<EnvolopForDataGrid> envolopCollection
         {
@@ -41,7 +41,7 @@ namespace MetaDrawGUI
         }
 
         //Charge Deconvolution envolop Data Grid
-        public ObservableCollection<ChargeEnvelopesForDataGrid> chargeEnvelopesObservableCollection = new ObservableCollection<ChargeEnvelopesForDataGrid>();
+        private ObservableCollection<ChargeEnvelopesForDataGrid> chargeEnvelopesObservableCollection = new ObservableCollection<ChargeEnvelopesForDataGrid>();
 
         public ObservableCollection<ChargeEnvelopesForDataGrid> chargeEnvelopesCollection
         {
@@ -58,10 +58,6 @@ namespace MetaDrawGUI
 
         public List<ChargeDeconEnvelope> ScanChargeEnvelopes { get; set; } = new List<ChargeDeconEnvelope>();
         public List<NeuCodeIsotopicEnvelop> IsotopicEnvelopes { get; set; } = new List<NeuCodeIsotopicEnvelop>();
-
-        public int deconScanNum { get; set; }
-
-        public int modelStartNum { get; set; }
 
 
         //View model
@@ -134,7 +130,7 @@ namespace MetaDrawGUI
 
         public void Decon()
         {
-            _thanos.msDataScan = _thanos.msDataScans.Where(p => p.OneBasedScanNumber == deconScanNum).First();
+            _thanos.msDataScan = _thanos.msDataScans.Where(p => p.OneBasedScanNumber == _thanos.ControlParameter.deconScanNum).First();
             MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(_thanos.msDataScan.MassSpectrum.XArray, _thanos.msDataScan.MassSpectrum.YArray, true);
 
             //IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
@@ -151,7 +147,7 @@ namespace MetaDrawGUI
 
             Model = MainViewModel.UpdateScanModel(_thanos.msDataScan);
 
-            var ScanChargeEnvelopes = mzSpectrumBU.ChargeDeconvolution(deconScanNum, _thanos.msDataScan.RetentionTime, IsotopicEnvelopes, _thanos.msDataScans.Where(p => p.OneBasedPrecursorScanNumber == deconScanNum).Select(p => p.SelectedIonMZ).ToList());
+            var ScanChargeEnvelopes = mzSpectrumBU.ChargeDeconvolution(_thanos.ControlParameter.deconScanNum, _thanos.msDataScan.RetentionTime, IsotopicEnvelopes, _thanos.msDataScans.Where(p => p.OneBasedPrecursorScanNumber == _thanos.ControlParameter.deconScanNum).Select(p => p.SelectedIonMZ).ToList());
             int ind = 1;
             foreach (var theScanChargeEvelope in ScanChargeEnvelopes)
             {
@@ -166,13 +162,13 @@ namespace MetaDrawGUI
             if (_thanos.msDataScan != null)
             {
                 MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(_thanos.msDataScan.MassSpectrum.XArray, _thanos.msDataScan.MassSpectrum.YArray, true);                
-                DeconModel = DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, modelStartNum);
+                DeconModel = DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, _thanos.ControlParameter.modelStartNum);
             }
             else
             {
 
                 var mzSpectrumBU = new MzSpectrumBU(new double[] { 1 }, new double[] { 1 }, true);                
-                DeconModel = DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, modelStartNum);
+                DeconModel = DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, _thanos.ControlParameter.modelStartNum);
             }
         }
         

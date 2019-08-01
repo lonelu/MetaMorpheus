@@ -2,7 +2,7 @@
 
 namespace MetaDrawGUI
 {
-    class RawDataForDataGrid
+    public class RawDataForDataGrid
     {
         #region Public Constructors
 
