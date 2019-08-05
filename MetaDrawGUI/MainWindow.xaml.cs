@@ -393,7 +393,7 @@ namespace MetaDrawGUI
                     thanos.deconvolutor.IsotopicEnvelopes[i - 1].ScanNum = thanos.msDataScan.OneBasedScanNumber;
                     thanos.deconvolutor.IsotopicEnvelopes[i - 1].RT = thanos.msDataScan.RetentionTime;
                     thanos.deconvolutor.IsotopicEnvelopes[i - 1].ScanTotalIntensity = thanos.msDataScan.TotalIonCurrent;
-                    thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
+                    thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.peaks.First().intensity));
                     i++;
                 }
 
@@ -446,8 +446,7 @@ namespace MetaDrawGUI
             thanos.deconvolutor.Model = MainViewModel.DrawPeptideSpectralMatch(ms2DataScan, psm);
             thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.PrecursorScanNum).First();
 
-            MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(thanos.msDataScan.MassSpectrum.XArray, thanos.msDataScan.MassSpectrum.YArray, true);
-            thanos.deconvolutor.IsotopicEnvelopes = mzSpectrumBU.Deconvolute(thanos.msDataScan.ScanWindowRange, thanos.DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+            thanos.deconvolutor.IsotopicEnvelopes = thanos.deconvolutor.mzSpectrumBU.DeconvoluteBU_NeuCode(thanos.msDataScan.ScanWindowRange, thanos.DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
 
             int i = 1;
             foreach (var item in thanos.deconvolutor.IsotopicEnvelopes)
@@ -671,7 +670,10 @@ namespace MetaDrawGUI
                 thanos.ResultFilePaths.Add(aResultfilePath);
             }
 
-            action();
+            if (action != null)
+            {
+                action();
+            }
         }
 
         private void BtnDeconStart_Click(object sender, RoutedEventArgs e)

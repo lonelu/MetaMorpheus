@@ -182,22 +182,25 @@ namespace MetaDrawGUI
         {
             if (DeconPeakInd < mzSpectrumBU.Size)
             {
-                var envo = mzSpectrumBU.DeconvolutePeak_NeuCode(indexByY[DeconPeakInd], _thanos.DeconvolutionParameter);
-                if (envo!=null)
+                if (!seenPeaks.Contains(mzSpectrumBU.XArray[indexByY[DeconPeakInd]]))
                 {
-                    foreach (var p in envo.peaks)
+                    var envo = mzSpectrumBU.DeconvolutePeak_NeuCode(indexByY[DeconPeakInd], _thanos.DeconvolutionParameter);
+                    if (envo != null)
                     {
-                        seenPeaks.Add(p.mz);
-                    }
-                    if (envo.Partner!=null)
-                    {
-                        foreach (var p in envo.Partner.peaks)
+                        foreach (var p in envo.peaks)
                         {
                             seenPeaks.Add(p.mz);
                         }
-                    }
-                    _thanos.deconvolutor.DeconModel = DeconViewModel.UpdataModelForDecon(_thanos.msDataScan, envo);
+                        if (envo.Partner != null)
+                        {
+                            foreach (var p in envo.Partner.peaks)
+                            {
+                                seenPeaks.Add(p.mz);
+                            }
+                        }
+                        _thanos.deconvolutor.DeconModel = DeconViewModel.UpdataModelForDecon(_thanos.msDataScan, envo);
 
+                    }
                 }
             }
             DeconPeakInd++;

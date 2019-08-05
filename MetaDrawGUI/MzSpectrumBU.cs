@@ -372,7 +372,10 @@ namespace MassSpectrometry
             if (bestIsotopeEnvelopeForThisPeak != null)
             {
                 var pairEnvelop = GetNeucodeEnvelopForThisEnvelop(bestIsotopeEnvelopeForThisPeak, deconvolutionParameter);
-                bestIsotopeEnvelopeForThisPeak.Partner = pairEnvelop;
+                if (bestIsotopeEnvelopeForThisPeak.IsNeuCode)
+                {
+                    bestIsotopeEnvelopeForThisPeak.Partner = pairEnvelop;
+                }
             }
 
             return bestIsotopeEnvelopeForThisPeak;
@@ -389,7 +392,7 @@ namespace MassSpectrometry
             var isolatedMassesAndCharges = new List<NeuCodeIsotopicEnvelop>();
 
             HashSet<double> seenPeaks = new HashSet<double>();
-            int cut = 50;
+            //int cut = 50;
 
             ////Deconvolution by Intensity decending order
             foreach (var candidateForMostIntensePeak in ExtractIndicesByY())
@@ -427,10 +430,10 @@ namespace MassSpectrometry
                     isolatedMassesAndCharges.Add(bestIsotopeEnvelopeForThisPeak);
                 }
 
-                if (isolatedMassesAndCharges.Count > cut * 2)
-                {
-                    break;
-                }
+                //if (isolatedMassesAndCharges.Count > cut * 2)
+                //{
+                //    break;
+                //}
             }
 
             HashSet<double> seen = new HashSet<double>();
