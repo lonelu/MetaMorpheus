@@ -621,7 +621,7 @@ namespace MassSpectrometry
         }
 
         //ChargeState
-        public List<ChargeDeconEnvelope> ChargeDeconvolution(int OneBasedScanNumber, double rt, List<NeuCodeIsotopicEnvelop> isotopicEnvelopes, List<double?> selectedMs2)
+        public List<ChargeDeconEnvelope> ChargeDeconvolution(List<NeuCodeIsotopicEnvelop> isotopicEnvelopes)
         {
             List<ChargeDeconEnvelope> chargeDeconEnvelopes = new List<ChargeDeconEnvelope>();
             SingleAbsoluteAroundZeroSearchMode massAccept = new SingleAbsoluteAroundZeroSearchMode(2.2);
@@ -658,7 +658,7 @@ namespace MassSpectrometry
                     //Decide the charge deconvolution distribution, need better algorithm
                     if (chargeDecon.Count >= 3)
                     {
-                        chargeDeconEnvelopes.Add(new ChargeDeconEnvelope(OneBasedScanNumber, rt, chargeDecon, selectedMs2));
+                        chargeDeconEnvelopes.Add(new ChargeDeconEnvelope(chargeDecon));
                     }
                 }
                 else

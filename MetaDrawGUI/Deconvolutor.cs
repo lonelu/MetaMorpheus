@@ -168,7 +168,7 @@ namespace MetaDrawGUI
 
             Model = MainViewModel.UpdateScanModel(_thanos.msDataScan);
 
-            var ScanChargeEnvelopes = mzSpectrumBU.ChargeDeconvolution(_thanos.ControlParameter.deconScanNum, _thanos.msDataScan.RetentionTime, IsotopicEnvelopes, _thanos.msDataScans.Where(p => p.OneBasedPrecursorScanNumber == _thanos.ControlParameter.deconScanNum).Select(p => p.SelectedIonMZ).ToList());
+            _thanos.deconvolutor.ScanChargeEnvelopes = mzSpectrumBU.ChargeDeconvolution(IsotopicEnvelopes);
             int ind = 1;
             foreach (var theScanChargeEvelope in ScanChargeEnvelopes)
             {
@@ -292,7 +292,7 @@ namespace MetaDrawGUI
 
                 var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
-                var chargeDecon = mzSpectrumBU.ChargeDeconvolution(MS1Scans[i].OneBasedScanNumber, MS1Scans[i].RetentionTime, isotopicEnvelopes, new List<double?>());
+                var chargeDecon = mzSpectrumBU.ChargeDeconvolution(isotopicEnvelopes);
 
                 watch1.Stop();
 

@@ -29,7 +29,7 @@ namespace MetaDrawGUI
 
                         var selectedMS2 = msDataScanList.Where(p => p.OneBasedPrecursorScanNumber == msDataScan.OneBasedScanNumber).Select(p => p.SelectedIonMZ).ToList();
 
-                        var chargeDecon = mzSpectrumTD.ChargeDeconvolution(msDataScan.OneBasedScanNumber, msDataScan.RetentionTime, isotopicEnvelopes, selectedMS2);
+                        var chargeDecon = mzSpectrumTD.ChargeDeconvolution(isotopicEnvelopes);
 
                         lock (chargeDeconPerMS1Scans)
                         {

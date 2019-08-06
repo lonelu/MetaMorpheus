@@ -13,19 +13,10 @@ namespace MetaDrawGUI
     {
         //private List<IsotopicEnvelope> isotopicEnvelopes;
 
-        public ChargeDeconEnvelope(int oneBasedScanNumber, double rt, List<IsotopicEnvelope> iso, List<double?> selectedMs2s)
-        {
-            
-            SelectedMs2s = new List<double?>();
-            OneBasedScanNumber = oneBasedScanNumber;
-            RT = rt;
+        public ChargeDeconEnvelope(List<IsotopicEnvelope> iso)
+        {         
             isotopicEnvelopes = iso;
             chargeStates = new List<int>();
-            foreach (var item in isotopicEnvelopes)
-            {
-                chargeStates.Add(item.charge);
-                findSelectedMs2InEnvelopes(item, selectedMs2s);
-            }
 
             chargeStatesFit = new double[isotopicEnvelopes.Count];
             intensitiesFit = new double[isotopicEnvelopes.Count];

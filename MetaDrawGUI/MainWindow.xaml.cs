@@ -356,6 +356,7 @@ namespace MetaDrawGUI
 
         private void DataGridAllScanNums_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
+            UpdateField();
             if (dataGridAllScanNums.SelectedItem == null)
             {
                 return;
@@ -408,6 +409,7 @@ namespace MetaDrawGUI
 
         private void DataGridDeconNums_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
+            UpdateField();
             if (dataGridDeconNums.SelectedItem == null)
             {
                 return;
@@ -421,6 +423,7 @@ namespace MetaDrawGUI
 
         private void DataGridChargeEnves_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
+            UpdateField();
             if (dataGridChargeEnves.SelectedItem == null)
             {
                 return;
@@ -432,6 +435,7 @@ namespace MetaDrawGUI
 
         private void DataGridScanNums_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
+            UpdateField();
             if (dataGridPsms.SelectedItem == null)
             {
                 return;
@@ -448,6 +452,7 @@ namespace MetaDrawGUI
 
             thanos.deconvolutor.IsotopicEnvelopes = thanos.deconvolutor.mzSpectrumBU.DeconvoluteBU_NeuCode(thanos.msDataScan.ScanWindowRange, thanos.DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
 
+            thanos.deconvolutor.ScanChargeEnvelopes = thanos.deconvolutor.mzSpectrumBU.ChargeDeconvolution(thanos.deconvolutor.IsotopicEnvelopes);
             int i = 1;
             foreach (var item in thanos.deconvolutor.IsotopicEnvelopes)
             {
