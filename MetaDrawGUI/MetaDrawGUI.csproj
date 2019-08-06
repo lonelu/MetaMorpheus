@@ -175,7 +175,7 @@
     <Compile Include="Accountant.cs" />
     <Compile Include="Accumulator.cs" />
     <Compile Include="BasicClasses\ChromatographicPeak.cs" />
-    <Compile Include="BasicClasses\DeconvolutionParameter.cs" />
+    <Compile Include="Deconvolution\DeconvolutionParameter.cs" />
     <Compile Include="BasicClasses\GlycanStructureAnnotation.cs" />
     <Compile Include="BasicClasses\NeucodeDoublet.cs" />
     <Compile Include="BasicClasses\NeuCodeIsotopicEnvelop.cs" />
@@ -200,11 +200,12 @@
     <Compile Include="DataGrids\MsFeatureForDataGrid.cs" />
     <Compile Include="DataGrids\RawDataForDataGrid.cs" />
     <Compile Include="DataGrids\SpectrumForDataGrid.cs" />
+    <Compile Include="Deconvolution\ChargeDecon.cs" />
     <Compile Include="Deconvolutor.cs" />
-    <Compile Include="MsDataFileDecon.cs" />
+    <Compile Include="ChargeDecon\MsDataFileDecon.cs" />
     <Compile Include="MsFeature.cs" />
     <Compile Include="Multiprotease\MultiProteaseCrosslink.cs" />
-    <Compile Include="MzSpectrumBU.cs" />
+    <Compile Include="Deconvolution\MzSpectrumBU.cs" />
     <Compile Include="Regression\GaussianModel.cs" />
     <Compile Include="Regression\LevenbergMarquardtSolver.cs" />
     <Compile Include="Regression\Model.cs" />
