@@ -59,6 +59,7 @@ namespace MetaDrawGUI
 
         public List<ChargeDeconEnvelope> ScanChargeEnvelopes { get; set; } = new List<ChargeDeconEnvelope>();
         public List<NeuCodeIsotopicEnvelop> IsotopicEnvelopes { get; set; } = new List<NeuCodeIsotopicEnvelop>();
+        public Dictionary<int, MzPeak> Mz_zs { get; set; } = new Dictionary<int, MzPeak>();
 
         //View model
         public MainViewModel mainViewModel { get; set; } 
@@ -168,11 +169,23 @@ namespace MetaDrawGUI
 
             Model = MainViewModel.UpdateScanModel(_thanos.msDataScan);
 
-            _thanos.deconvolutor.ScanChargeEnvelopes = mzSpectrumBU.ChargeDeconvolution(IsotopicEnvelopes);
+            //_thanos.deconvolutor.ScanChargeEnvelopes = mzSpectrumBU.ChargeDeconvolution(IsotopicEnvelopes);
+            //int ind = 1;
+            //foreach (var theScanChargeEvelope in _thanos.deconvolutor.ScanChargeEnvelopes)
+            //{
+            //    chargeEnvelopesObservableCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
+            //    ind++;
+            //}
+            //chargeEnvelopesCollection = chargeEnvelopesObservableCollection;
+
+            double max = _thanos.deconvolutor.mzSpectrumBU.YArray.Max();
+            int indexMax = _thanos.deconvolutor.mzSpectrumBU.YArray.ToList().IndexOf(max);
+
+            _thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(_thanos.deconvolutor.mzSpectrumBU, indexMax);
             int ind = 1;
-            foreach (var theScanChargeEvelope in ScanChargeEnvelopes)
+            foreach (var mz_z in _thanos.deconvolutor.Mz_zs)
             {
-                chargeEnvelopesObservableCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
+                _thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.Value.Mz, mz_z.Key, mz_z.Value.Intensity));
                 ind++;
             }
             chargeEnvelopesCollection = chargeEnvelopesObservableCollection;

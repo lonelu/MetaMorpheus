@@ -354,6 +354,7 @@ namespace MetaDrawGUI
             thanos.deconvolutor.XicModel = PeakViewModel.ResetViewModel();
         }
 
+        //From raw file
         private void DataGridAllScanNums_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
             UpdateField();
@@ -398,12 +399,71 @@ namespace MetaDrawGUI
                     i++;
                 }
 
+                //int ind = 1;
+                //foreach (var theScanChargeEvelope in thanos.deconvolutor.ScanChargeEnvelopes)
+                //{
+                //    thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
+                //    ind++;
+                //}
+
+                double max = thanos.deconvolutor.mzSpectrumBU.YArray.Max();
+                int indexMax = thanos.deconvolutor.mzSpectrumBU.YArray.ToList().IndexOf(max);
+
+                thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(thanos.deconvolutor.mzSpectrumBU, indexMax);
                 int ind = 1;
-                foreach (var theScanChargeEvelope in thanos.deconvolutor.ScanChargeEnvelopes)
+                foreach (var mz_z in thanos.deconvolutor.Mz_zs)
                 {
-                    thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
+                    thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.Value.Mz, mz_z.Key, mz_z.Value.Intensity));
                     ind++;
                 }
+            }
+        }
+
+        //From result file
+        private void DataGridScanNums_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+        {
+            UpdateField();
+            if (dataGridPsms.SelectedItem == null)
+            {
+                return;
+            }
+
+            ResetDataGridAndModel();
+
+            var sele = (SpectrumForDataGrid)dataGridPsms.SelectedItem;
+
+            var ms2DataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
+            var psm = psms.Where(p => p.Ms2ScanNumber == sele.ScanNum).First();
+            thanos.deconvolutor.Model = MainViewModel.DrawPeptideSpectralMatch(ms2DataScan, psm);
+            thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.PrecursorScanNum).First();
+
+            thanos.deconvolutor.IsotopicEnvelopes = thanos.deconvolutor.mzSpectrumBU.DeconvoluteBU_NeuCode(thanos.msDataScan.ScanWindowRange, thanos.DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+
+            int i = 1;
+            foreach (var item in thanos.deconvolutor.IsotopicEnvelopes)
+            {
+                thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
+                i++;
+            }
+
+
+            //thanos.deconvolutor.ScanChargeEnvelopes = thanos.deconvolutor.mzSpectrumBU.ChargeDeconvolution(thanos.deconvolutor.IsotopicEnvelopes);
+            //int ind = 1;
+            //foreach (var theScanChargeEvelope in thanos.deconvolutor.ScanChargeEnvelopes)
+            //{
+            //    thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
+            //    ind++;
+            //}
+
+            double max = thanos.deconvolutor.mzSpectrumBU.YArray.Max();
+            int indexMax = thanos.deconvolutor.mzSpectrumBU.YArray.ToList().IndexOf(max);
+
+            thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(thanos.deconvolutor.mzSpectrumBU, indexMax);
+            int ind = 1;
+            foreach (var mz_z in thanos.deconvolutor.Mz_zs)
+            {
+                thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.Value.Mz, mz_z.Key, mz_z.Value.Intensity));
+                ind++;
             }
         }
 
@@ -429,43 +489,8 @@ namespace MetaDrawGUI
                 return;
             }
             var sele = (ChargeEnvelopesForDataGrid)dataGridChargeEnves.SelectedItem;
-            var envo = thanos.deconvolutor.ScanChargeEnvelopes[sele.Ind - 1];
-            thanos.deconvolutor.chargeDeconViewModel.UpdataModelForChargeEnve(thanos.msDataScan, envo);
-        }
-
-        private void DataGridScanNums_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
-        {
-            UpdateField();
-            if (dataGridPsms.SelectedItem == null)
-            {
-                return;
-            }
-
-            ResetDataGridAndModel();
-
-            var sele = (SpectrumForDataGrid)dataGridPsms.SelectedItem;
-
-            var ms2DataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
-            var psm = psms.Where(p => p.Ms2ScanNumber == sele.ScanNum).First();
-            thanos.deconvolutor.Model = MainViewModel.DrawPeptideSpectralMatch(ms2DataScan, psm);
-            thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.PrecursorScanNum).First();
-
-            thanos.deconvolutor.IsotopicEnvelopes = thanos.deconvolutor.mzSpectrumBU.DeconvoluteBU_NeuCode(thanos.msDataScan.ScanWindowRange, thanos.DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
-
-            thanos.deconvolutor.ScanChargeEnvelopes = thanos.deconvolutor.mzSpectrumBU.ChargeDeconvolution(thanos.deconvolutor.IsotopicEnvelopes);
-            int i = 1;
-            foreach (var item in thanos.deconvolutor.IsotopicEnvelopes)
-            {
-                thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
-                i++;
-            }
-
-            int ind = 1;
-            foreach (var theScanChargeEvelope in thanos.deconvolutor.ScanChargeEnvelopes)
-            {
-                thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
-                ind++;
-            }
+            
+            thanos.deconvolutor.ChargeEnveModel = ChargeEnveViewModel.UpdataModelForChargeEnve(thanos.msDataScan, thanos.deconvolutor.Mz_zs);
         }
 
         private void BtnDrawGlycan_Click(object sender, RoutedEventArgs e)

@@ -12,7 +12,7 @@ namespace MetaDrawGUI
 {
     public class ChargeDecon
     {
-        static Tolerance tolerance = new PpmTolerance(3);
+        static Tolerance tolerance = new PpmTolerance(5);
 
         private static int GetCloestIndex(double x, double[] array)
         {
@@ -104,11 +104,11 @@ namespace MetaDrawGUI
 
         }
 
-        public static Dictionary<int, double> FindChargesForPeak(MzSpectrumBU mzSpectrumBU, int index)
+        public static Dictionary<int, MzPeak> FindChargesForPeak(MzSpectrumBU mzSpectrumBU, int index)
         {
             var mz = mzSpectrumBU.XArray[index];
 
-            Dictionary<int, double> matched_mz_z = new Dictionary<int, double>();
+            Dictionary<int, MzPeak> matched_mz_z = new Dictionary<int, MzPeak>();
 
             double score = 1;
 
@@ -138,7 +138,7 @@ namespace MetaDrawGUI
                     matched_mz_z.Clear();
                     for (int j = 0; j < matchedIndexes.Count(); j++)
                     {
-                        matched_mz_z.Add(matchedCharges[j], mzSpectrumBU.XArray[matchedIndexes[j]]);
+                        matched_mz_z.Add(matchedCharges[j], new MzPeak(mzSpectrumBU.XArray[matchedIndexes[j]], mzSpectrumBU.YArray[matchedIndexes[j]]));
                     }
                     score = theScore;
                 }
@@ -146,5 +146,6 @@ namespace MetaDrawGUI
 
             return matched_mz_z;
         }
+
     }
 }

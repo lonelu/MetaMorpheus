@@ -6,6 +6,7 @@ using OxyPlot.Annotations;
 using System.ComponentModel;
 using MassSpectrometry;
 using MetaDrawGUI;
+using System.Collections.Generic;
 
 namespace ViewModels
 {
@@ -33,7 +34,7 @@ namespace ViewModels
             this.privateModel = tmp;
         }
 
-        public void UpdataModelForChargeEnve(MsDataScan MsScanForDraw, ChargeDeconEnvelope chargeDeconEnvelope)
+        public void UpdataModelForChargeEnve_old(MsDataScan MsScanForDraw, ChargeDeconEnvelope chargeDeconEnvelope)
         {
             var x = chargeDeconEnvelope.mzFit;
             var y = chargeDeconEnvelope.intensitiesFit;
@@ -113,6 +114,61 @@ namespace ViewModels
             model.Axes[0].AxisChanged += XAxisChanged;
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
             this.privateModel = model;
+        }
+
+        public static PlotModel UpdataModelForChargeEnve(MsDataScan msDataScan, Dictionary<int, MzPeak> mz_zs)
+        {
+            // x is m/z, y is intensity
+            var spectrumMzs = msDataScan.MassSpectrum.XArray;
+            var spectrumIntensities = msDataScan.MassSpectrum.YArray;
+
+
+            PlotModel model = new PlotModel { Title = "Spectrum Annotation of Scan #" + msDataScan.OneBasedScanNumber, DefaultFontSize = 15 };
+            model.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom, Title = "m/z", Minimum = 0, Maximum = spectrumMzs.Max() * 1.02, AbsoluteMinimum = 0, AbsoluteMaximum = spectrumMzs.Max() * 5 });
+            model.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Title = "Intensity", Minimum = 0, Maximum = spectrumIntensities.Max() * 1.2, AbsoluteMinimum = 0, AbsoluteMaximum = spectrumIntensities.Max() * 1.3 });
+            model.Axes[1].Zoom(0, spectrumIntensities.Max() * 1.1);
+
+            LineSeries[] allIons = new LineSeries[spectrumMzs.Length];
+
+            // draw the remaining unmatched peaks
+            for (int i = 0; i < spectrumMzs.Length; i++)
+            {
+                // peak has already been drawn (it is a matched peak)
+                if (allIons[i] != null)
+                {
+                    continue;
+                }
+
+                allIons[i] = new LineSeries();
+                allIons[i].Color = OxyColors.DimGray;
+                allIons[i].StrokeThickness = 1;
+                allIons[i].Points.Add(new DataPoint(spectrumMzs[i], 0));
+                allIons[i].Points.Add(new DataPoint(spectrumMzs[i], spectrumIntensities[i]));
+                model.Series.Add(allIons[i]);
+            }
+
+            foreach (var mzz in mz_zs)
+            {
+                var mzzLine = new LineSeries();
+                mzzLine.Color = OxyColors.Red;
+                mzzLine.StrokeThickness = 3;
+                mzzLine.Points.Add( new DataPoint( mzz.Value.Mz, 0));
+                mzzLine.Points.Add(new DataPoint(mzz.Value.Mz, mzz.Value.Intensity));
+                model.Series.Add(mzzLine);
+
+                var peakAnno = new TextAnnotation();
+                peakAnno.TextRotation = 90;
+                peakAnno.Font = "Arial";
+                peakAnno.FontSize = 12;
+                peakAnno.TextColor = OxyColors.Red;
+                peakAnno.StrokeThickness = 0;
+                peakAnno.TextPosition = new DataPoint(mzz.Value.Mz, mzz.Value.Intensity);
+                peakAnno.Text = mzz.Key.ToString() + "+";
+                model.Annotations.Add(peakAnno);
+            }
+
+            // Axes are created automatically if they are not defined      
+            return model;
         }
 
         public void ResetDeconModel()
