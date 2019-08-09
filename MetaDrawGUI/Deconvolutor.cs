@@ -17,7 +17,9 @@ namespace MetaDrawGUI
         DeconQuant = 2,
         DeconAllChargeParsi = 3,
         DeconWatch = 4,
-        DeconPeak_Neucode = 5
+        DeconPeak_Neucode = 5,
+        DeconChargeByPeak = 6,
+        DeconDrawTwoScan = 7
     }
 
     public class Deconvolutor: INotifyPropertyChanged
@@ -60,9 +62,10 @@ namespace MetaDrawGUI
         public List<ChargeDeconEnvelope> ScanChargeEnvelopes { get; set; } = new List<ChargeDeconEnvelope>();
         public List<NeuCodeIsotopicEnvelop> IsotopicEnvelopes { get; set; } = new List<NeuCodeIsotopicEnvelop>();
         public Dictionary<int, MzPeak> Mz_zs { get; set; } = new Dictionary<int, MzPeak>();
+        public List<Dictionary<int, MzPeak>> Mz_zs_list { get; set; } = new List<Dictionary<int, MzPeak>>();
 
         //View model
-        public MainViewModel mainViewModel { get; set; } 
+        private MainViewModel mainViewModel = new MainViewModel();
         public PlotModel Model
         {
             get
@@ -101,20 +104,6 @@ namespace MetaDrawGUI
             {
                 peakViewModel.privateModel = value;
                 NotifyPropertyChanged("XicModel");
-            }
-        }
-
-        public ChargeEnveViewModel chargeDeconViewModel { get; set; }
-        public PlotModel ChargeEnveModel
-        {
-            get
-            {
-                return chargeDeconViewModel.privateModel;
-            }
-            set
-            {
-                chargeDeconViewModel.privateModel = value;
-                NotifyPropertyChanged("ChargeEnveModel");
             }
         }
 
@@ -167,16 +156,7 @@ namespace MetaDrawGUI
                 i++;
             }
 
-            Model = MainViewModel.UpdateScanModel(_thanos.msDataScan);
-
-            //_thanos.deconvolutor.ScanChargeEnvelopes = mzSpectrumBU.ChargeDeconvolution(IsotopicEnvelopes);
-            //int ind = 1;
-            //foreach (var theScanChargeEvelope in _thanos.deconvolutor.ScanChargeEnvelopes)
-            //{
-            //    chargeEnvelopesObservableCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
-            //    ind++;
-            //}
-            //chargeEnvelopesCollection = chargeEnvelopesObservableCollection;
+            Model = MainViewModel.DrawScan(_thanos.msDataScan);
 
             double max = _thanos.deconvolutor.mzSpectrumBU.YArray.Max();
             int indexMax = _thanos.deconvolutor.mzSpectrumBU.YArray.ToList().IndexOf(max);
@@ -189,6 +169,15 @@ namespace MetaDrawGUI
                 ind++;
             }
             chargeEnvelopesCollection = chargeEnvelopesObservableCollection;
+
+            //_thanos.deconvolutor.Mz_zs_list = ChargeDecon.FindChargesForScan(_thanos.deconvolutor.mzSpectrumBU);
+            //int ind = 1;
+            //foreach (var mz_z in _thanos.deconvolutor.Mz_zs_list.SelectMany(p=>p))
+            //{
+            //    _thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.Value.Mz, mz_z.Key, mz_z.Value.Intensity));
+            //    ind++;
+            //}
+            //chargeEnvelopesCollection = chargeEnvelopesObservableCollection;
         }
 
         public void DeconPeak_NeuCode()
@@ -323,6 +312,39 @@ namespace MetaDrawGUI
                 {
                     output.WriteLine(theEvaluation.TheScanNumber.ToString() + "\t" + theEvaluation.TheRT + "\t" + theEvaluation.WatchIsoDecon.ToString() + "\t" + theEvaluation.WatchIsoDeconByParallel.ToString() + "\t" + theEvaluation.WatchChaDecon.ToString());
                 }
+            }
+        }
+
+        public void DeconChargeByPeak()
+        {
+            MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(_thanos.msDataScan.MassSpectrum.XArray, _thanos.msDataScan.MassSpectrum.YArray, true);
+
+            double deconChargeMass = _thanos.ControlParameter.DeconChargeMass;
+
+            int index = ChargeDecon.GetCloestIndex(deconChargeMass, mzSpectrumBU.XArray);
+
+            var theMz_zs = ChargeDecon.FindChargesForPeak(_thanos.deconvolutor.mzSpectrumBU, index);
+
+            _thanos.deconvolutor.Mz_zs_list.Add(theMz_zs);
+
+            int ind = 1;
+            foreach (var mz_z in theMz_zs)
+            {
+                _thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.Value.Mz, mz_z.Key, mz_z.Value.Intensity));
+                ind++;
+            }
+            chargeEnvelopesCollection = chargeEnvelopesObservableCollection;
+
+            Model = ChargeEnveViewModel.UpdataModelForChargeEnve(Model, theMz_zs);
+
+        }
+
+        public void PlotTwoScan()
+        {
+            if (_thanos.msDataScan != null && _thanos.msDataScan.OneBasedScanNumber < _thanos.msDataScans.Count)
+            {
+                var anotherScan = _thanos.msDataScans[_thanos.msDataScan.OneBasedScanNumber];
+                Model = ScanCompareViewModel.DrawScan(_thanos.msDataScan, anotherScan);
             }
         }
 

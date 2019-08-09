@@ -7,23 +7,13 @@ using System.ComponentModel;
 using MassSpectrometry;
 using MetaDrawGUI;
 using System.Collections.Generic;
+using System;
 
 namespace ViewModels
 {
     public class ChargeEnveViewModel
     {
         public PlotModel privateModel;
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void NotifyPropertyChanged(string propertyName)
-        {
-            PropertyChangedEventHandler handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
 
         public ChargeEnveViewModel()
         {
@@ -34,7 +24,7 @@ namespace ViewModels
             this.privateModel = tmp;
         }
 
-        public void UpdataModelForChargeEnve_old(MsDataScan MsScanForDraw, ChargeDeconEnvelope chargeDeconEnvelope)
+        public static PlotModel UpdataModelForChargeEnve_old(MsDataScan MsScanForDraw, ChargeDeconEnvelope chargeDeconEnvelope)
         {
             var x = chargeDeconEnvelope.mzFit;
             var y = chargeDeconEnvelope.intensitiesFit;
@@ -111,9 +101,9 @@ namespace ViewModels
                 peakAnno.Text = charges[i].ToString();
                 model.Annotations.Add(peakAnno);
             }
-            model.Axes[0].AxisChanged += XAxisChanged;
+            //model.Axes[0].AxisChanged += XAxisChanged;
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            this.privateModel = model;
+            return model;
         }
 
         public static PlotModel UpdataModelForChargeEnve(MsDataScan msDataScan, Dictionary<int, MzPeak> mz_zs)
@@ -171,13 +161,43 @@ namespace ViewModels
             return model;
         }
 
-        public void ResetDeconModel()
+        public static PlotModel UpdataModelForChargeEnve(PlotModel model, Dictionary<int, MzPeak> mz_zs)
+        {
+            Random rand = new Random();
+            int colorId = rand.Next(0, 14);
+
+            foreach (var mzz in mz_zs)
+            {
+                var mzzLine = new LineSeries();
+                
+                mzzLine.Color = GlycoViewModel.oxyColors[colorId];
+                mzzLine.StrokeThickness = 2;
+                mzzLine.Points.Add(new DataPoint(mzz.Value.Mz, 0));
+                mzzLine.Points.Add(new DataPoint(mzz.Value.Mz, mzz.Value.Intensity));
+                model.Series.Add(mzzLine);
+
+                var peakAnno = new TextAnnotation();
+                peakAnno.TextRotation = 90;
+                peakAnno.Font = "Arial";
+                peakAnno.FontSize = 12;
+                peakAnno.TextColor = OxyColors.Red;
+                peakAnno.StrokeThickness = 0;
+                peakAnno.TextPosition = new DataPoint(mzz.Value.Mz, mzz.Value.Intensity);
+                peakAnno.Text = mzz.Key.ToString() + "+";
+                model.Annotations.Add(peakAnno);
+            }
+
+            // Axes are created automatically if they are not defined      
+            return model;
+        }
+
+        public static PlotModel ResetDeconModel()
         {
             // Create the plot model
             var tmp = new PlotModel { Title = "ChargeEnve Spectrum Annotation", Subtitle = "using OxyPlot" };
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            this.privateModel = tmp;
+            return tmp;
         }
 
         private void XAxisChanged(object sender, AxisChangedEventArgs e)

@@ -217,10 +217,12 @@
     <Compile Include="Sweetor.cs" />
     <Compile Include="Thanos.cs" />
     <Compile Include="ViewModels\ChargeEnveViewModel.cs" />
+    <Compile Include="ViewModels\GlycoViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\DeconViewModel.cs" />
     <Compile Include="ViewModels\PeakViewModel.cs" />
     <Compile Include="ViewModels\PsmAnnotationViewModel.cs" />
+    <Compile Include="ViewModels\ScanCompareViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

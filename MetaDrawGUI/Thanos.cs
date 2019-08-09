@@ -136,7 +136,7 @@ namespace MetaDrawGUI
         public void BuildGlycoFamily()
         {
             familyFeatures = Sweetor.GetGlycoFamilies(msFeatures.ToArray());
-            PsmAnnoModel = Sweetor.PlotGlycoFamily(familyFeatures);
+            PsmAnnoModel = GlycoViewModel.PlotGlycoFamily(familyFeatures);
         }
 
         public void ExtractPrecursorInfo()

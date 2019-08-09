@@ -7,6 +7,7 @@ using MassSpectrometry;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 using MzLibUtil;
+using Chemistry;
 
 namespace MetaDrawGUI
 {
@@ -14,7 +15,13 @@ namespace MetaDrawGUI
     {
         static Tolerance tolerance = new PpmTolerance(5);
 
-        private static int GetCloestIndex(double x, double[] array)
+        static DeconvolutionParameter deconvolutionParameter = new DeconvolutionParameter()
+        {
+            DeconvolutionMinAssumedChargeState = 6, 
+            DeconvolutionMaxAssumedChargeState = 60
+        };
+
+        public static int GetCloestIndex(double x, double[] array)
         {
             if (array.Length == 0)
             {
@@ -145,6 +152,41 @@ namespace MetaDrawGUI
             }
 
             return matched_mz_z;
+        }
+
+        public static List<Dictionary<int, MzPeak>> FindChargesForScan(MzSpectrumBU mzSpectrumBU)
+        {
+            List<Dictionary<int, MzPeak>> mz_zs_list = new List<Dictionary<int, MzPeak>>();
+            HashSet<double> seenPeaks = new HashSet<double>();
+
+            foreach (var peakIndex in mzSpectrumBU.ExtractIndicesByY())
+            {
+                if (seenPeaks.Contains(mzSpectrumBU.XArray[peakIndex]))
+                {
+                    continue;
+                }
+
+                var mz_zs = FindChargesForPeak(mzSpectrumBU, peakIndex);
+
+                foreach (var mzz in mz_zs)
+                {
+                    var ind = mzSpectrumBU.GetClosestPeakIndex(mzz.Value.Mz);
+
+                    var iso = mzSpectrumBU.DeconvolutePeak(ind.Value, deconvolutionParameter);
+
+                    if (iso!= null)
+                    {
+                        foreach (var peak in iso.peaks.Select(p => p.mz))
+                        {
+                            seenPeaks.Add(peak);
+                        }
+                    }
+                }
+
+                mz_zs_list.Add(mz_zs);
+            }
+
+            return mz_zs_list;
         }
 
     }

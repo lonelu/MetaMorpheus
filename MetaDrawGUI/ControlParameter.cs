@@ -14,5 +14,7 @@ namespace MetaDrawGUI
 
         public int modelStartNum { get; set; } = new int();
 
+        public double DeconChargeMass { get; set; } = new double();
+
     }
 }

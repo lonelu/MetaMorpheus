@@ -202,9 +202,9 @@
             <TabItem x:Name="TabDecon" Width="150" Height="30" Header="Deconvolution">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="5*"/>
+                        <ColumnDefinition Width="6*"/>
                         <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="1.5*"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="1*"/>
                         <ColumnDefinition Width="Auto"/>
@@ -214,14 +214,19 @@
                     <Grid Grid.Column="0">
                         <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="1*"/>
-                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="2*"/>
+                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="1*"/>
                             </Grid.RowDefinitions>
                             <GroupBox Header="PSM" Name="gbPSM" Grid.Row="0">
                                 <oxy:PlotView x:Name="plotView" Model="{Binding Model}" FontSize="16" FontStretch="Expanded"/>
                             </GroupBox>
-                            <Grid Grid.Row ="1">
+                            <GridSplitter Grid.Row="1"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Stretch"
+                        Background="Silver"
+                        Height="1" />
+                            <Grid Grid.Row ="2">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="1*"/>
                                     <ColumnDefinition Width="1*"/>
@@ -233,9 +238,6 @@
                                     <oxy:PlotView x:Name="plotViewXIC" Model="{Binding XicModel}" FontSize="16" FontStretch="Expanded"/>
                                 </GroupBox>
                             </Grid>
-                            <GroupBox Header="Charge Envelopes with Normal" Name="gbChargeEnve" Grid.Row="2">
-                                <oxy:PlotView x:Name="plotViewChargeEnve" Model="{Binding ChargeEnveModel}" FontSize="16" FontStretch="Expanded"/>
-                            </GroupBox>
                         </Grid>
                     </Grid>
                     <GridSplitter Grid.Column="1" 
@@ -295,6 +297,10 @@
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
                                         <Label Content="Model Number from:"/>
                                         <TextBox x:Name="TxtDeconModel" Text="0"  Width="30" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
+                                        <Label Content="Decon Charge Mass:"/>
+                                        <TextBox x:Name="TxtDeconChargeMass" Text="0"  Width="30" />
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
                                         <Button x:Name="btnResetDecon" Content="Reset" Click="btnResetDecon_Click"/>

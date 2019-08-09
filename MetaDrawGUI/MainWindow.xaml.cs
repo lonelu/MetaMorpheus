@@ -56,17 +56,11 @@ namespace MetaDrawGUI
 
             PopulateChoice();
 
-            thanos.deconvolutor.mainViewModel = new MainViewModel();
-
             plotView.DataContext = thanos.deconvolutor;
 
             plotViewDecon.DataContext = thanos.deconvolutor;
 
             plotViewXIC.DataContext = thanos.deconvolutor;
-
-            thanos.deconvolutor.chargeDeconViewModel = new ChargeEnveViewModel();
-
-            plotViewChargeEnve.DataContext = thanos.deconvolutor;
 
             thanos.psmAnnotationViewModel = new PsmAnnotationViewModel();
 
@@ -147,6 +141,7 @@ namespace MetaDrawGUI
             thanos.ControlParameter.LCTimeRange = new Tuple<double, double>(  double.Parse(TxtScanNumCountRangeLow.Text), double.Parse(TxtScanNumCountRangeHigh.Text));
             thanos.ControlParameter.deconScanNum = Convert.ToInt32(txtDeconScanNum.Text);
             thanos.ControlParameter.modelStartNum = Convert.ToInt32(TxtDeconModel.Text);
+            thanos.ControlParameter.DeconChargeMass = double.Parse(TxtDeconChargeMass.Text);
         }
 
         private void Window_Drop(object sender, DragEventArgs e)
@@ -267,7 +262,7 @@ namespace MetaDrawGUI
 
             spectrumNumsObservableCollection.Clear();
 
-            thanos.deconvolutor.mainViewModel = new MainViewModel();
+            thanos.deconvolutor.Model = MainViewModel.ResetViewModel();
         } 
     
         private void btnLoadData_Click(object sender, RoutedEventArgs e)
@@ -350,7 +345,6 @@ namespace MetaDrawGUI
             thanos.deconvolutor.DeconModel = DeconViewModel.ResetDeconModel();
             thanos.deconvolutor.Model = MainViewModel.ResetViewModel();
             thanos.deconvolutor.chargeEnvelopesCollection.Clear();
-            thanos.deconvolutor.chargeDeconViewModel.ResetDeconModel();
             thanos.deconvolutor.XicModel = PeakViewModel.ResetViewModel();
         }
 
@@ -375,14 +369,14 @@ namespace MetaDrawGUI
                 if (sele.MsOrder == 2)
                 {
                     var ms2DataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
-                    thanos.deconvolutor.Model = MainViewModel.UpdateScanModel(ms2DataScan);
+                    thanos.deconvolutor.Model = MainViewModel.DrawScan(ms2DataScan);
                     thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.PrecursorScanNum).First();
 
                 }
                 else
                 {
                     thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
-                    thanos.deconvolutor.Model = MainViewModel.UpdateScanModel(thanos.msDataScan);
+                    thanos.deconvolutor.Model = MainViewModel.DrawScan(thanos.msDataScan);
                 }
 
                 MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(thanos.msDataScan.MassSpectrum.XArray, thanos.msDataScan.MassSpectrum.YArray, true);
@@ -490,7 +484,7 @@ namespace MetaDrawGUI
             }
             var sele = (ChargeEnvelopesForDataGrid)dataGridChargeEnves.SelectedItem;
             
-            thanos.deconvolutor.ChargeEnveModel = ChargeEnveViewModel.UpdataModelForChargeEnve(thanos.msDataScan, thanos.deconvolutor.Mz_zs);
+            thanos.deconvolutor.Model = ChargeEnveViewModel.UpdataModelForChargeEnve(thanos.msDataScan, thanos.deconvolutor.Mz_zs);
         }
 
         private void BtnDrawGlycan_Click(object sender, RoutedEventArgs e)
@@ -728,6 +722,12 @@ namespace MetaDrawGUI
                     break;
                 case DeconvolutorSkill.DeconPeak_Neucode:
                     action = thanos.deconvolutor.DeconPeak_NeuCode;
+                    break;
+                case DeconvolutorSkill.DeconChargeByPeak:
+                    action = thanos.deconvolutor.DeconChargeByPeak;
+                    break;
+                case DeconvolutorSkill.DeconDrawTwoScan:
+                    action = thanos.deconvolutor.PlotTwoScan;
                     break;
                 default:
                     break;

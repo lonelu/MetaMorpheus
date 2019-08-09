@@ -47,13 +47,6 @@ namespace ViewModels
             this.privateModel = tmp;
         }
 
-        //Just draw an scan w/o annotation
-        public static PlotModel UpdateScanModel(MsDataScan MsScanForDraw)
-        {
-            var model = DrawScan(MsScanForDraw);
-            return model;
-        }
-
         public static PlotModel DrawScan(MsDataScan MsScanForDraw)
         {
             var x = MsScanForDraw.MassSpectrum.XArray;
@@ -100,15 +93,7 @@ namespace ViewModels
 
         }
 
-        // single peptides (not crosslink)
         public static PlotModel DrawPeptideSpectralMatch(MsDataScan msDataScan, PsmFromTsv psmToDraw)
-        {
-            // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            var model = Draw(msDataScan, psmToDraw);
-            return model;
-        }
-
-        private static PlotModel Draw(MsDataScan msDataScan, PsmFromTsv psmToDraw)
         {
             // x is m/z, y is intensity
             var spectrumMzs = msDataScan.MassSpectrum.XArray;
@@ -240,7 +225,7 @@ namespace ViewModels
 
             // Axes are created automatically if they are not defined      
             return model;
-        }
+        }      
 
         public static PlotModel ResetViewModel()
         {
