@@ -72,6 +72,8 @@ namespace MetaDrawGUI
 
             dataGridPsms.DataContext = spectrumNumsObservableCollection;
 
+            //dataGridPsms.DataContext = thanos.deconvolutor;
+
             dataGridDeconNums.DataContext = thanos.deconvolutor;
 
             dataGridChargeEnves.DataContext = thanos.deconvolutor;
@@ -302,8 +304,6 @@ namespace MetaDrawGUI
             btnClearResultFiles.IsEnabled = false;
 
             // load the PSMs
-            //TO DO: There is a bug with LoadPsms
-            //LoadPsms(resultsFilePath);
             List<string> warnings;
             psms = PsmTsvReader.ReadTsv(resultsFilePath, out warnings);
             foreach (var psm in psms)
@@ -312,25 +312,24 @@ namespace MetaDrawGUI
             }
         }
 
-        private void LoadPsms(string filename)
+        private void BtnLoadFlashDeconResults_Click(object sender, RoutedEventArgs e)
         {
-            string fileNameWithExtension = Path.GetFileName(resultsFilePath);
-            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(resultsFilePath);
-
-            try
+            foreach (var collection in resultFilesObservableCollection)
             {
-                List<string> warnings; 
-                foreach (var psm in PsmTsvReader.ReadTsv(filename, out warnings))
+                resultsFilePath = collection.FilePath;
+                if (resultsFilePath == null)
                 {
-                    if (psm.Filename == fileNameWithExtension || psm.Filename == fileNameWithoutExtension || psm.Filename.Contains(fileNameWithoutExtension))
-                    {
-                        psms.Add(psm);
-                    }
+                    continue;
                 }
+                // load the PSMs
+                thanos.msFeatures.AddRange(TsvReader_MsFeature.ReadTsv(resultsFilePath));
             }
-            catch (Exception e)
+
+            DataGridFlashDeconEnvelopes.DataContext = thanos.deconvolutor;
+
+            foreach (var feature in thanos.msFeatures)
             {
-                MessageBox.Show("Could not open PSM file:\n" + e.Message);
+                thanos.deconvolutor.MsFeatureCollection.Add(new MsFeatureForDataGrid(feature));
             }
         }
 
@@ -461,6 +460,24 @@ namespace MetaDrawGUI
             }
         }
 
+        private void DataGridFlashDeconEnvelopes_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+        {
+            UpdateField();
+            if (DataGridFlashDeconEnvelopes.SelectedItem == null)
+            {
+                return;
+            }
+
+            ResetDataGridAndModel();
+
+            var sele = (MsFeatureForDataGrid)DataGridFlashDeconEnvelopes.SelectedItem;
+
+            thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
+            thanos.deconvolutor.Model = MainViewModel.DrawScan(thanos.msDataScan, sele.MsFeature);
+
+            
+        }
+
         private void DataGridDeconNums_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
             UpdateField();
@@ -558,7 +575,7 @@ namespace MetaDrawGUI
 
             foreach (var feature in thanos.msFeatures)
             {
-                thanos.sweetor.MsFeatureCollection.Add(new MsFeatureForDataGrid(feature.MonoMass, feature.Abundance, feature.ApexRT));
+                thanos.sweetor.MsFeatureCollection.Add(new MsFeatureForDataGrid(feature));
             }
         }
 
@@ -738,5 +755,6 @@ namespace MetaDrawGUI
                 action();
             }
         }
+
     }
 }

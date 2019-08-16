@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using Proteomics.Fragmentation;
 using EngineLayer;
 using Chemistry;
+using MetaDrawGUI;
 
 namespace ViewModels
 {
@@ -225,7 +226,59 @@ namespace ViewModels
 
             // Axes are created automatically if they are not defined      
             return model;
-        }      
+        }
+
+        public static PlotModel DrawScan(MsDataScan MsScanForDraw, MsFeature msFeature)
+        {
+            var x = MsScanForDraw.MassSpectrum.XArray;
+            var y = MsScanForDraw.MassSpectrum.YArray;
+
+            string scanNum = MsScanForDraw.OneBasedScanNumber.ToString();
+
+            PlotModel model = new PlotModel { Title = "Spectrum anotation of Scan " + scanNum, DefaultFontSize = 15 };
+            model.Axes.Add(new LinearAxis
+            {
+                Position = AxisPosition.Bottom,
+                Title = "m/z",
+                Minimum = x.Min() * 0.98,
+                Maximum = x.Max() * 1.02,
+                AbsoluteMinimum = 0,
+                AbsoluteMaximum = x.Max() * 1.02
+            });
+            model.Axes.Add(new LinearAxis
+            {
+                Position = AxisPosition.Left,
+                Title = "Intensity(counts)",
+                Minimum = 0,
+                Maximum = y.Max() * 1.2,
+                AbsoluteMinimum = 0,
+                AbsoluteMaximum = y.Max() * 1.2
+            });
+
+            //Draw the ms/ms scan peaks
+            for (int i = 0; i < x.Length; i++)
+            {
+                var line = new LineSeries();
+                line.Color = OxyColors.Gray;
+                line.StrokeThickness = 1;
+                line.Points.Add(new DataPoint(x[i], 0));
+                line.Points.Add(new DataPoint(x[i], y[i]));
+                model.Series.Add(line);
+            }
+
+            for (int i = 0; i < msFeature.PeakMzs.Count; i++)
+            {
+                var line = new LineSeries();
+                line.Color = OxyColors.Red;
+                line.StrokeThickness = 1.5;
+                line.Points.Add(new DataPoint(msFeature.PeakMzs[i], 0));
+                line.Points.Add(new DataPoint(msFeature.PeakMzs[i], msFeature.PeakIntensities[i]));
+                model.Series.Add(line);
+            }
+
+            return model;
+
+        }
 
         public static PlotModel ResetViewModel()
         {

@@ -8,15 +8,23 @@ namespace MetaDrawGUI
 {
     public class MsFeatureForDataGrid
     {
-        public MsFeatureForDataGrid(double monoMass, double abundance, double apexRT)
+        public MsFeatureForDataGrid(MsFeature msFeature)
         {
-            MonoMass = monoMass;
-            Abundance = abundance;
-            ApexRT = apexRT;
+            MsFeature = msFeature;
+            if (msFeature.ScanNum > 0)
+            {
+                ScanNum = msFeature.ScanNum;
+            }
+            MonoMass = msFeature.MonoMass;
+            Abundance = msFeature.Abundance;
+            ApexRT = msFeature.ApexRT;
         }
 
+        public int ScanNum { get; set; }
         public double MonoMass { get; set; }
         public double Abundance { get; set; }
         public double ApexRT { get; set; }
+
+        public MsFeature MsFeature;
     }
 }

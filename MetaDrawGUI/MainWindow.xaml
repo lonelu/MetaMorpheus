@@ -88,6 +88,251 @@
                           Background="Silver"
                           Width="5"/>
         <TabControl x:Name="MyTab" Grid.Column="2">
+            <TabItem x:Name="TabDecon" Width="150" Height="30" Header="Deconvolution">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="6*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="1.5*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="2*"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="1*"/>
+                            </Grid.RowDefinitions>
+                            <GroupBox Header="PSM" Name="gbPSM" Grid.Row="0">
+                                <oxy:PlotView x:Name="plotView" Model="{Binding Model}" FontSize="16" FontStretch="Expanded"/>
+                            </GroupBox>
+                            <GridSplitter Grid.Row="1"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Stretch"
+                        Background="Silver"
+                        Height="1" />
+                            <Grid Grid.Row ="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <GroupBox Header="Decon" Name="gbPSMDecon">
+                                    <oxy:PlotView x:Name="plotViewDecon" Model="{Binding DeconModel}" FontSize="16" FontStretch="Expanded"/>
+                                </GroupBox>
+                                <GroupBox Header="XIC" Name="gbXIC" Grid.Column="1">
+                                    <oxy:PlotView x:Name="plotViewXIC" Model="{Binding XicModel}" FontSize="16" FontStretch="Expanded"/>
+                                </GroupBox>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                    <GridSplitter Grid.Column="1" 
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Stretch"
+                          Background="Silver"
+                          Width="5"/>
+                    <Grid Grid.Column="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="0.6*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="1.5*"/>
+                        </Grid.RowDefinitions>
+                        <GroupBox Header="Deconvolution Control" Grid.Row="0">
+                            <Expander x:Name="DeconParameterExpander">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="1.5*"/>
+                                        <RowDefinition Height="1*"/>
+                                    </Grid.RowDefinitions>
+                                    <StackPanel Orientation="Vertical">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                            <Label Content="MinAssumedChargeState"/>
+                                            <TextBox x:Name="txtMinAssumedChargeState"  Width="50" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                            <Label Content="MaxAssumedChargeState"/>
+                                            <TextBox x:Name="txtMaxAssumedChargeState" Width="50" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                            <Label Content="Deconvolution Tolerance"/>
+                                            <TextBox x:Name="txtDeconvolutionToleranc" Width="50" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                            <Label Content="IntensityRatioLimit"/>
+                                            <TextBox x:Name="txtIntensityRatioLimit" Width="50" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                            <Label Content="NeuCode Mass Defect"/>
+                                            <TextBox x:Name="TxtNeuCodeMassDefect" Width="50" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                            <Label Content="NeuCode Max Num"/>
+                                            <TextBox x:Name="TxtNeuCodeMaxNum" Width="50" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                            <Label Content="NeuCode Ratio"/>
+                                            <TextBox x:Name="TxtNeuCodeRatio" Width="50" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Vertical" Grid.Row="1">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
+                                            <Label Content="Scan number:"/>
+                                            <TextBox x:Name="txtDeconScanNum" Text="2"  Width="50"/>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
+                                            <Label Content="Model Number from:"/>
+                                            <TextBox x:Name="TxtDeconModel" Text="0"  Width="30" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
+                                            <Label Content="Decon Charge Mass:"/>
+                                            <TextBox x:Name="TxtDeconChargeMass" Text="0"  Width="30" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
+                                            <Button x:Name="btnResetDecon" Content="Reset" Click="btnResetDecon_Click"/>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
+                                            <ComboBox x:Name="cmbDeconAction" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <Button x:Name="btnDeconStart" Content="Start" Click="BtnDeconStart_Click"/>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                </Grid>
+                            </Expander>
+                        </GroupBox>
+                        <GridSplitter Grid.Row="1"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Stretch"
+                        Background="Silver"
+                        Height="3" />
+                        <GroupBox Header="MetaMorpheus Result Files" Name="gbResultFiles" Grid.Row="2">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="30"/>
+                                </Grid.RowDefinitions>
+                                <DataGrid x:Name="dataGridResultFiles" ItemsSource="{Binding}" >
+
+                                    <DataGrid.Resources>
+
+                                    </DataGrid.Resources>
+                                </DataGrid>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
+                                    <Button x:Name="btnAddResultFiles" Content="Add" Click="btnAddResults_Click" Height="30" VerticalAlignment="Top"/>
+                                    <Button x:Name="btnClearResultFiles" Content="Clear" Click="btnClearFiles_Click"/>
+                                    <Button x:Name="BtnLoadResults" Content="Load" Click="BtnLoadResults_Click"/>
+                                    <Button x:Name="BtnLoadFlashDeconResults" Content="Load Flash" Click="BtnLoadFlashDeconResults_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </GroupBox>
+                        <GridSplitter Grid.Row="3"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Stretch"
+                        Background="Silver"
+                        Height="3" />
+                        <GroupBox Header="Spectra" Name="gbFlashDecon" Grid.Row="4">
+                            <Grid Grid.Row="4">
+                                <DataGrid x:Name="DataGridFlashDeconEnvelopes" VerticalAlignment="Stretch" ItemsSource="{Binding MsFeatureCollection}" 
+                              IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0"
+                              SelectedCellsChanged ="DataGridFlashDeconEnvelopes_SelectedCellsChanged"  CanUserDeleteRows="false" CanUserAddRows="false">
+                                    <!--<DataGrid.Columns>
+                            <DataGridTextColumn Header="Ind" Binding="{Binding Ind}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="DeconMass" Binding="{Binding DeconMass}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="MSE" Binding="{Binding MSE}"></DataGridTextColumn>
+                        </DataGrid.Columns>-->
+                                </DataGrid>
+                            </Grid>
+                        </GroupBox>
+                    </Grid>
+                    <Grid Grid.Column="3">
+                        <Expander x:Name="DeconvolutionInformation" ExpandDirection="Right">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="1*"/>
+                                </Grid.RowDefinitions>
+
+                                <Grid Grid.Row="0">
+                                    <Expander x:Name="IsotopeEnvolopeExpander">
+                                        <Expander.Header>
+                                            <TextBlock Text="Isotope Envolope">
+                                                <TextBlock.LayoutTransform>
+                                                    <RotateTransform Angle="0"/>
+                                                </TextBlock.LayoutTransform>
+                                            </TextBlock>
+                                        </Expander.Header>
+
+                                        <DataGrid x:Name="dataGridDeconNums" VerticalAlignment="Stretch" ItemsSource="{Binding envolopCollection}" 
+                              IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0"
+                              SelectedCellsChanged ="DataGridDeconNums_SelectedCellsChanged" CanUserDeleteRows="false" CanUserAddRows="false">
+                                            <!--<DataGrid.Columns>
+                            <DataGridTextColumn Header="Ind" Binding="{Binding Ind}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Mz" Binding="{Binding Mz}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Charge" Binding="{Binding Charge}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="DeconMass" Binding="{Binding DeconMass}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Intensity" Binding="{Binding Intensity}"></DataGridTextColumn>
+                        </DataGrid.Columns>-->
+                                        </DataGrid>
+
+                                    </Expander>
+                                </Grid>
+                                <GridSplitter Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" Background="Silver" Height="3" />
+                                <Grid Grid.Row="2">
+                                    <Expander x:Name="ChargeEnvolopeExpander" >
+                                        <Expander.Header>
+                                            <TextBlock Text="Charge Envolope">
+                                                <TextBlock.LayoutTransform>
+                                                    <RotateTransform Angle="0"/>
+                                                </TextBlock.LayoutTransform>
+                                            </TextBlock>
+                                        </Expander.Header>
+                                        <GroupBox>
+                                            <DataGrid x:Name="dataGridChargeEnves" VerticalAlignment="Stretch" ItemsSource="{Binding chargeEnvelopesCollection}" 
+                              IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0"
+                              SelectedCellsChanged ="DataGridChargeEnves_SelectedCellsChanged" CanUserDeleteRows="false" CanUserAddRows="false">
+                                                <!--<DataGrid.Columns>
+                            <DataGridTextColumn Header="Ind" Binding="{Binding Ind}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="DeconMass" Binding="{Binding DeconMass}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="MSE" Binding="{Binding MSE}"></DataGridTextColumn>
+                        </DataGrid.Columns>-->
+                                            </DataGrid>
+                                        </GroupBox>
+                                    </Expander>
+                                </Grid>
+                                <GridSplitter Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Stretch" Background="Silver" Height="3" />
+                                <GroupBox Header="Spectra" Name="gbSpectra" Grid.Row="4">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="5*"/>
+                                            <RowDefinition Height="1*"/>
+                                        </Grid.RowDefinitions>
+
+                                        <DataGrid x:Name="dataGridPsms" VerticalAlignment="Stretch" ItemsSource="{Binding }" 
+                                  IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="0" Margin="0,0,0,0"
+                                  SelectedCellsChanged ="DataGridScanNums_SelectedCellsChanged">
+                                        </DataGrid>
+                                        <GroupBox Header="Fragment Ion match Parameters" Grid.Row="1">
+                                            <Grid>
+                                                <StackPanel>
+                                                    <StackPanel Orientation="Horizontal" Margin="5">
+                                                        <Label x:Name="label2_Copy" Content="Product Mass Tolerance" />
+                                                        <TextBox x:Name="productMassToleranceTextBox" HorizontalAlignment="Left"  TextWrapping="Wrap" Width="45"/>
+                                                        <ComboBox x:Name="productMassToleranceComboBox" HorizontalAlignment="Left"  />
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Grid>
+                                        </GroupBox>
+                                    </Grid>
+                                </GroupBox>
+                            </Grid>
+                        </Expander>
+                    </Grid>
+                </Grid>
+            </TabItem>
             <TabItem x:Name="TabGlycopeptides" Width="150" Height="30" Header="Glycopeptides">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -196,215 +441,6 @@
                         <StackPanel Grid.Column="2">
                             <Canvas x:Name="glyCanvasRight" Height="700" Width="280" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                         </StackPanel>
-                    </Grid>
-                </Grid>
-            </TabItem>
-            <TabItem x:Name="TabDecon" Width="150" Height="30" Header="Deconvolution">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="6*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="1.5*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="1*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="1*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <Grid Grid.Column="0">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="2*"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="1*"/>
-                            </Grid.RowDefinitions>
-                            <GroupBox Header="PSM" Name="gbPSM" Grid.Row="0">
-                                <oxy:PlotView x:Name="plotView" Model="{Binding Model}" FontSize="16" FontStretch="Expanded"/>
-                            </GroupBox>
-                            <GridSplitter Grid.Row="1"
-                        VerticalAlignment="Center"
-                        HorizontalAlignment="Stretch"
-                        Background="Silver"
-                        Height="1" />
-                            <Grid Grid.Row ="2">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="1*"/>
-                                    <ColumnDefinition Width="1*"/>
-                                </Grid.ColumnDefinitions>
-                                <GroupBox Header="Decon" Name="gbPSMDecon">
-                                    <oxy:PlotView x:Name="plotViewDecon" Model="{Binding DeconModel}" FontSize="16" FontStretch="Expanded"/>
-                                </GroupBox>
-                                <GroupBox Header="XIC" Name="gbXIC" Grid.Column="1">
-                                    <oxy:PlotView x:Name="plotViewXIC" Model="{Binding XicModel}" FontSize="16" FontStretch="Expanded"/>
-                                </GroupBox>
-                            </Grid>
-                        </Grid>
-                    </Grid>
-                    <GridSplitter Grid.Column="1" 
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Stretch"
-                          Background="Silver"
-                          Width="5"/>
-                    <Grid Grid.Column="2">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="2*"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="0.6*"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="1.5*"/>
-                        </Grid.RowDefinitions>
-                        <GroupBox Header="Deconvolution Control" Grid.Row="0">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="1.5*"/>
-                                    <RowDefinition Height="1*"/>
-                                </Grid.RowDefinitions>
-                                <StackPanel Orientation="Vertical">
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                        <Label Content="MinAssumedChargeState"/>
-                                        <TextBox x:Name="txtMinAssumedChargeState"  Width="50" />
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                        <Label Content="MaxAssumedChargeState"/>
-                                        <TextBox x:Name="txtMaxAssumedChargeState" Width="50" />
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                        <Label Content="Deconvolution Tolerance"/>
-                                        <TextBox x:Name="txtDeconvolutionToleranc" Width="50" />
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                        <Label Content="IntensityRatioLimit"/>
-                                        <TextBox x:Name="txtIntensityRatioLimit" Width="50" />
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                        <Label Content="NeuCode Mass Defect"/>
-                                        <TextBox x:Name="TxtNeuCodeMassDefect" Width="50" />
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                        <Label Content="NeuCode Max Num"/>
-                                        <TextBox x:Name="TxtNeuCodeMaxNum" Width="50" />
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                        <Label Content="NeuCode Ratio"/>
-                                        <TextBox x:Name="TxtNeuCodeRatio" Width="50" />
-                                    </StackPanel>
-                                </StackPanel>
-                                <StackPanel Orientation="Vertical" Grid.Row="1">
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
-                                        <Label Content="Scan number:"/>
-                                        <TextBox x:Name="txtDeconScanNum" Text="2"  Width="50"/>
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
-                                        <Label Content="Model Number from:"/>
-                                        <TextBox x:Name="TxtDeconModel" Text="0"  Width="30" />
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
-                                        <Label Content="Decon Charge Mass:"/>
-                                        <TextBox x:Name="TxtDeconChargeMass" Text="0"  Width="30" />
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
-                                        <Button x:Name="btnResetDecon" Content="Reset" Click="btnResetDecon_Click"/>
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
-                                        <ComboBox x:Name="cmbDeconAction" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        <Button x:Name="btnDeconStart" Content="Start" Click="BtnDeconStart_Click"/>
-                                    </StackPanel>
-                                </StackPanel>
-
-                            </Grid>
-                        </GroupBox>
-                        <GridSplitter Grid.Row="1"
-                        VerticalAlignment="Center"
-                        HorizontalAlignment="Stretch"
-                        Background="Silver"
-                        Height="3" />
-                        <GroupBox Header="MetaMorpheus Result Files" Name="gbResultFiles" Grid.Row="2">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="30"/>
-                                </Grid.RowDefinitions>
-                                <DataGrid x:Name="dataGridResultFiles" ItemsSource="{Binding}" >
-
-                                    <DataGrid.Resources>
-
-                                    </DataGrid.Resources>
-                                </DataGrid>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
-                                    <Button x:Name="btnAddResultFiles" Content="Add" Click="btnAddResults_Click" Height="30" VerticalAlignment="Top"/>
-                                    <Button x:Name="btnClearResultFiles" Content="Clear" Click="btnClearFiles_Click"/>
-                                    <Button x:Name="BtnLoadResults" Content="Load Result" Click="BtnLoadResults_Click"/>
-                                </StackPanel>
-                            </Grid>
-                        </GroupBox>
-                        <GridSplitter Grid.Row="3"
-                        VerticalAlignment="Center"
-                        HorizontalAlignment="Stretch"
-                        Background="Silver"
-                        Height="3" />
-                        <GroupBox Header="Spectra" Name="gbSpectra" Grid.Row="4">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="3*"/>
-                                    <RowDefinition Height="1*"/>
-
-                                </Grid.RowDefinitions>
-
-                                <DataGrid x:Name="dataGridPsms" VerticalAlignment="Stretch" ItemsSource="{Binding}" 
-                                  IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="0" Margin="0,0,0,0"
-                                  SelectedCellsChanged ="DataGridScanNums_SelectedCellsChanged">
-                                </DataGrid>
-                                <GroupBox Header="Fragment Ion match Parameters" Grid.Row="1">
-                                    <Grid>
-                                        <StackPanel>
-                                            <StackPanel Orientation="Horizontal" Margin="5">
-                                                <Label x:Name="label2_Copy" Content="Product Mass Tolerance" />
-                                                <TextBox x:Name="productMassToleranceTextBox" HorizontalAlignment="Left"  TextWrapping="Wrap" Width="45"/>
-                                                <ComboBox x:Name="productMassToleranceComboBox" HorizontalAlignment="Left"  />
-                                            </StackPanel>
-                                        </StackPanel>
-                                    </Grid>
-                                </GroupBox>
-                            </Grid>
-                        </GroupBox>
-                    </Grid>
-                    <GridSplitter Grid.Column="3" 
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Stretch"
-                          Background="Silver"
-                          Width="5"/>
-                    <Grid Grid.Column="4">
-                        <GroupBox Header="Decon Numbers">
-                            <DataGrid x:Name="dataGridDeconNums" VerticalAlignment="Stretch" ItemsSource="{Binding envolopCollection}" 
-                              IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0"
-                              SelectedCellsChanged ="DataGridDeconNums_SelectedCellsChanged" CanUserDeleteRows="false" CanUserAddRows="false">
-                                <!--<DataGrid.Columns>
-                            <DataGridTextColumn Header="Ind" Binding="{Binding Ind}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Mz" Binding="{Binding Mz}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Charge" Binding="{Binding Charge}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="DeconMass" Binding="{Binding DeconMass}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Intensity" Binding="{Binding Intensity}"></DataGridTextColumn>
-                        </DataGrid.Columns>-->
-                            </DataGrid>
-                        </GroupBox>
-                    </Grid>
-                    <GridSplitter Grid.Column="5" 
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Stretch"
-                          Background="Silver"
-                          Width="5"/>
-                    <Grid Grid.Column="6">
-                        <GroupBox Header="ChargeEnve Numbers" >
-                            <DataGrid x:Name="dataGridChargeEnves" VerticalAlignment="Stretch" ItemsSource="{Binding chargeEnvelopesCollection}" 
-                              IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0"
-                              SelectedCellsChanged ="DataGridChargeEnves_SelectedCellsChanged" CanUserDeleteRows="false" CanUserAddRows="false">
-                                <!--<DataGrid.Columns>
-                            <DataGridTextColumn Header="Ind" Binding="{Binding Ind}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="DeconMass" Binding="{Binding DeconMass}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="MSE" Binding="{Binding MSE}"></DataGridTextColumn>
-                        </DataGrid.Columns>-->
-                            </DataGrid>
-                        </GroupBox>
                     </Grid>
                 </Grid>
             </TabItem>

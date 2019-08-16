@@ -27,9 +27,8 @@ namespace MetaDrawGUI
         //TO DO: this is not the best way to link deconvolutor to thanos.
         public Thanos _thanos { get; set; }
 
-        //Deconvolution envolop Data Grid
+        //Isotopic deconvolution envolop Data Grid
         private ObservableCollection<EnvolopForDataGrid> envolopObservableCollection = new ObservableCollection<EnvolopForDataGrid>();
-
         public ObservableCollection<EnvolopForDataGrid> envolopCollection
         {
             get
@@ -43,9 +42,8 @@ namespace MetaDrawGUI
             }
         }
 
-        //Charge Deconvolution envolop Data Grid
+        //Charge deconvolution envolop Data Grid
         private ObservableCollection<ChargeEnvelopesForDataGrid> chargeEnvelopesObservableCollection = new ObservableCollection<ChargeEnvelopesForDataGrid>();
-
         public ObservableCollection<ChargeEnvelopesForDataGrid> chargeEnvelopesCollection
         {
             get
@@ -56,6 +54,20 @@ namespace MetaDrawGUI
             {
                 chargeEnvelopesObservableCollection = value;
                 NotifyPropertyChanged("chargeEnvelopesCollection");
+            }
+        }
+
+        private ObservableCollection<MsFeatureForDataGrid> MsFeatureObservableCollection = new ObservableCollection<MsFeatureForDataGrid>();
+        public ObservableCollection<MsFeatureForDataGrid> MsFeatureCollection
+        {
+            get
+            {
+                return MsFeatureObservableCollection;
+            }
+            set
+            {
+                MsFeatureObservableCollection = value;
+                NotifyPropertyChanged("MsFeatureCollection");
             }
         }
 
