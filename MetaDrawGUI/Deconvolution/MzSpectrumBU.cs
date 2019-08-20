@@ -28,19 +28,19 @@ namespace MassSpectrometry
 
         static MzSpectrumBU()
         {
-            // AVERAGINE
-            //const double averageC = 4.9384;
-            //const double averageH = 7.7583;
-            //const double averageO = 1.4773;
-            //const double averageN = 1.3577;
-            //const double averageS = 0.0417;
+            //AVERAGINE
+            const double averageC = 4.9384;
+            const double averageH = 7.7583;
+            const double averageO = 1.4773;
+            const double averageN = 1.3577;
+            const double averageS = 0.0417;
 
             //Glycopeptide Averagine
-            const double averageC = 10.93;
-            const double averageH = 15.75;
-            const double averageO = 6.48;
-            const double averageN = 1.66;
-            const double averageS = 0.02;
+            //const double averageC = 10.93;
+            //const double averageH = 15.75;
+            //const double averageO = 6.48;
+            //const double averageN = 1.66;
+            //const double averageS = 0.02;
 
             const double fineRes = 0.125;
             const double minRes = 1e-8;

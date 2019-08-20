@@ -167,23 +167,27 @@ namespace MetaDrawGUI
                 }
 
                 var mz_zs = FindChargesForPeak(mzSpectrumBU, peakIndex);
-
-                foreach (var mzz in mz_zs)
+                if (mz_zs.Count >=5)
                 {
-                    var ind = mzSpectrumBU.GetClosestPeakIndex(mzz.Value.Mz);
-
-                    var iso = mzSpectrumBU.DeconvolutePeak(ind.Value, deconvolutionParameter);
-
-                    if (iso!= null)
+                    foreach (var mzz in mz_zs)
                     {
-                        foreach (var peak in iso.peaks.Select(p => p.mz))
+                        var ind = mzSpectrumBU.GetClosestPeakIndex(mzz.Value.Mz);
+
+                        var iso = mzSpectrumBU.DeconvolutePeak(ind.Value, deconvolutionParameter);
+
+                        seenPeaks.Add(mzz.Value.Mz);
+
+                        if (iso != null)
                         {
-                            seenPeaks.Add(peak);
+                            foreach (var peak in iso.peaks.Select(p => p.mz))
+                            {
+                                seenPeaks.Add(peak);
+                            }
                         }
                     }
-                }
 
-                mz_zs_list.Add(mz_zs);
+                    mz_zs_list.Add(mz_zs);
+                }
             }
 
             return mz_zs_list;

@@ -403,6 +403,9 @@ namespace MetaDrawGUI
                 int indexMax = thanos.deconvolutor.mzSpectrumBU.YArray.ToList().IndexOf(max);
 
                 thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(thanos.deconvolutor.mzSpectrumBU, indexMax);
+
+                thanos.deconvolutor.Mz_zs_list = ChargeDecon.FindChargesForScan(thanos.deconvolutor.mzSpectrumBU);
+
                 int ind = 1;
                 foreach (var mz_z in thanos.deconvolutor.Mz_zs)
                 {
