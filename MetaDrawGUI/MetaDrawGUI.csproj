@@ -201,6 +201,7 @@
     <Compile Include="DataGrids\RawDataForDataGrid.cs" />
     <Compile Include="DataGrids\SpectrumForDataGrid.cs" />
     <Compile Include="Deconvolution\ChargeDecon.cs" />
+    <Compile Include="Deconvolution\IsoEnvelop.cs" />
     <Compile Include="Deconvolutor.cs" />
     <Compile Include="ChargeDecon\MsDataFileDecon.cs" />
     <Compile Include="MsFeature.cs" />

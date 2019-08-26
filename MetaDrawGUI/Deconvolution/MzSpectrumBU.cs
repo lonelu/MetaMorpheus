@@ -283,6 +283,159 @@ namespace MassSpectrometry
             }
         }
 
+        #region New deconvolution method optimized from MsDeconv (by Lei)
+        
+        //MsDeconv Score peak
+        private double MsDeconvScore_peak((double, double) experiment, (double, double) theory, double mass_error_tolerance = 0.02)
+        {
+            double score = 0;
+
+            double mass_error = Math.Abs(experiment.Item1 - theory.Item1);
+
+            double mass_accuracy = 0;
+
+            if (mass_error <= 0.02)
+            {
+                mass_accuracy = 1 - mass_error / mass_error_tolerance;
+            }
+
+            double abundance_diff = 0;
+
+            if (experiment.Item2 < theory.Item2 && (theory.Item2 - experiment.Item2)/experiment.Item2 <= 1)
+            {
+                abundance_diff = 1 - (theory.Item2 - experiment.Item2) / experiment.Item2;
+            }
+            else if (experiment.Item2 >= theory.Item2 && (experiment.Item2 - theory.Item2) / experiment.Item2 <= 1)
+            {
+                abundance_diff = Math.Sqrt(1 - (experiment.Item2 - theory.Item2) / experiment.Item2);
+            }
+
+            score = Math.Sqrt(theory.Item2) * mass_accuracy * abundance_diff;
+
+            return score;
+        }
+
+        //MsDeconv Envelop
+        private double MsDeconvScore(IsoEnvelop isoEnvelop)
+        {
+            double score = 0;
+
+            for (int i = 0; i < isoEnvelop.TheoIsoEnvelop.Length; i++)
+            {
+                score += MsDeconvScore_peak(isoEnvelop.ExperimentIsoEnvelop[i], isoEnvelop.TheoIsoEnvelop[i]);
+            }
+
+            return score;
+        }
+
+        //Scale Theoretical Envelope
+        private (double, double)[] ScaleTheoEnvelop((double, double)[] experiment, (double, double)[] theory, string method = "sum")
+        {
+            var scale_Theory = new (double, double)[theory.Length];
+            switch (method)
+            {
+                case "sum":
+                    var total_abundance = experiment.Sum(p => p.Item2);
+                    scale_Theory = theory.Select(p => (p.Item1, p.Item2 * total_abundance)).ToArray();
+                    break;
+                default:
+                    break;
+            }
+            return scale_Theory;
+        }
+
+        //Change the workflow for different score method.
+        private IsoEnvelop GetETEnvelopForPeakAtChargeState(double candidateForMostIntensePeakMz, int chargeState, DeconvolutionParameter deconvolutionParameter)
+        {
+            var testMostIntenseMass = candidateForMostIntensePeakMz.ToMass(chargeState);
+
+            var massIndex = Array.BinarySearch(mostIntenseMasses, testMostIntenseMass);
+            if (massIndex < 0)
+                massIndex = ~massIndex;
+            if (massIndex == mostIntenseMasses.Length)
+            {
+                return null;
+            }
+
+            var arrayOfPeaks = new (double, double)[allMasses[massIndex].Length];
+            var arrayOfTheoPeaks = new (double, double)[allMasses[massIndex].Length];
+
+            // Assuming the test peak is most intense...
+            // Try to find the rest of the isotopes!
+
+            double differenceBetweenTheorAndActual = candidateForMostIntensePeakMz.ToMass(chargeState) - mostIntenseMasses[massIndex];
+
+            for (int indexToLookAt = 0; indexToLookAt < allIntensities[massIndex].Length; indexToLookAt++)
+            {
+                double theorMassThatTryingToFind = allMasses[massIndex][indexToLookAt] + differenceBetweenTheorAndActual;
+                arrayOfTheoPeaks[indexToLookAt] = (theorMassThatTryingToFind.ToMz(chargeState), allIntensities[massIndex][indexToLookAt]);
+
+                var closestPeakToTheorMass = GetClosestPeakIndex(theorMassThatTryingToFind.ToMz(chargeState));
+                var closestPeakmz = XArray[closestPeakToTheorMass.Value];
+
+                var closestPeakIntensity = YArray[closestPeakToTheorMass.Value];
+
+                if (!deconvolutionParameter.DeconvolutionAcceptor.Within(theorMassThatTryingToFind, closestPeakmz.ToMass(chargeState)))
+                {
+                    closestPeakmz = theorMassThatTryingToFind;
+                    closestPeakIntensity = 0;
+                }
+
+                arrayOfPeaks[indexToLookAt] = (closestPeakmz, closestPeakIntensity);
+            }
+
+            var scaleArrayOfTheoPeaks = ScaleTheoEnvelop(arrayOfPeaks, arrayOfTheoPeaks);
+
+            //The following 3 lines are for calculating monoisotopicMass, origin from Stephan, I don't understand it, and may optimize it in the future. (Lei)
+            var extrapolatedMonoisotopicMass = candidateForMostIntensePeakMz.ToMass(chargeState) - diffToMonoisotopic[massIndex]; // Optimized for proteoforms!!
+            var lowestMass = arrayOfPeaks.Min(b => b.Item1).ToMass(chargeState); // But may actually observe this small peak
+            var monoisotopicMass = Math.Abs(extrapolatedMonoisotopicMass - lowestMass) < 0.5 ? lowestMass : extrapolatedMonoisotopicMass; 
+
+            IsoEnvelop isoEnvelop = new IsoEnvelop(arrayOfPeaks, scaleArrayOfTheoPeaks, monoisotopicMass);
+            return isoEnvelop;
+        }
+
+        public IsoEnvelop DeconvoluteExperimentPeak(int candidateForMostIntensePeak, DeconvolutionParameter deconvolutionParameter)
+        {
+            IsoEnvelop bestIsotopeEnvelopeForThisPeak = null;
+
+            var candidateForMostIntensePeakMz = XArray[candidateForMostIntensePeak];
+
+            //Find possible chargeStates.
+            List<int> allPossibleChargeState = new List<int>();
+            for (int i = candidateForMostIntensePeak + 1; i < XArray.Length; i++)
+            {
+                if (XArray[i] - candidateForMostIntensePeakMz < 1.1) //In case charge is +1
+                {
+                    var chargeDouble = 1.00289 / (XArray[i] - candidateForMostIntensePeakMz);
+                    int charge = Convert.ToInt32(chargeDouble);
+                    if (deconvolutionParameter.DeconvolutionAcceptor.Within(candidateForMostIntensePeakMz + 1.00289/ chargeDouble, XArray[i]) 
+                        && charge >= deconvolutionParameter.DeconvolutionMinAssumedChargeState 
+                        && charge <= deconvolutionParameter.DeconvolutionMaxAssumedChargeState)
+                    {
+                        allPossibleChargeState.Add(charge);
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            foreach (var chargeState in allPossibleChargeState)
+            {
+                var isoEnvelop = GetETEnvelopForPeakAtChargeState(candidateForMostIntensePeakMz,  chargeState, deconvolutionParameter);
+
+                if (MsDeconvScore(isoEnvelop) > MsDeconvScore(bestIsotopeEnvelopeForThisPeak))
+                {
+                    bestIsotopeEnvelopeForThisPeak = isoEnvelop;
+                }
+            }
+            return bestIsotopeEnvelopeForThisPeak;
+        }
+
+        #endregion
+
         //Parallel the Deconvolution
         public IEnumerable<NeuCodeIsotopicEnvelop> ParallelDeconvolute(MzRange theRange, DeconvolutionParameter deconvolutionParameter, int core)
         {

@@ -4,7 +4,7 @@ namespace MetaDrawGUI
 {
     public class DeconvolutionParameter
     {
-        public Tolerance DeconvolutionAcceptor = new PpmTolerance(5);
+        private double _deconvolutionMassTolerance = 0;
 
         public DeconvolutionParameter()
         {
@@ -21,11 +21,29 @@ namespace MetaDrawGUI
         public double DeconvolutionIntensityRatio { get; set; }
         public int DeconvolutionMinAssumedChargeState { get; set; }
         public int DeconvolutionMaxAssumedChargeState { get; set; }
-        public double DeconvolutionMassTolerance { get; set; }
+        public double DeconvolutionMassTolerance
+        {
+            get
+            {
+                return _deconvolutionMassTolerance;
+            }
+            set
+            {
+                _deconvolutionMassTolerance = value;
+            }
+        }
 
 
         public double NeuCodeMassDefect { get; set; }
         public int MaxmiumNeuCodeNumber { get; set; }
         public double NeuCodePairRatio { get; set; }
+
+        public Tolerance DeconvolutionAcceptor
+        {
+            get
+            {
+                return new PpmTolerance(_deconvolutionMassTolerance);
+            }
+        }
     }
 }
