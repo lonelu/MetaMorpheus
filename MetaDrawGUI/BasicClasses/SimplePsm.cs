@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Proteomics.Fragmentation;
 using EngineLayer;
 using EngineLayer.CrosslinkSearch;
+using EngineLayer.GlycoSearch;
 using Proteomics;
 using Proteomics.ProteolyticDigestion;
 using MassSpectrometry;

@@ -41,9 +41,9 @@ namespace EngineLayer.GlycoSearch
          return oxoniumIonsIntensities.Select(p => p / largest).ToArray();
         }
 
-        public static void OxoniumIonsAnalysis(double[] vs)
+        public static bool OxoniumIonsAnalysis(double[] vs)
         {
-
+            return true;
         }
 
         public static int ScanOxoniumIonFilter(Ms2ScanWithSpecificMass theScan, MassDiffAcceptor massDiffAcceptor, DissociationType dissociationType)

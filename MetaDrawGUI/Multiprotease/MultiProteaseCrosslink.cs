@@ -33,14 +33,14 @@ namespace MetaDrawGUI
             }
 
             StreamReader reader = null;
-            try
-            {
+            //try
+            //{
                 reader = new StreamReader(filepath);
-            }
-            catch (Exception e)
-            {
-                //throw new MetaMorpheusException("Could not read file: " + e.Message);
-            }
+            //}
+            //catch ()
+            //{
+            //    //throw new MetaMorpheusException("Could not read file: " + e.Message);
+            //}
 
             int lineCount = 0;
             string line;

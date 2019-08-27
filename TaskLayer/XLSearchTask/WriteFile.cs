@@ -32,9 +32,6 @@ namespace TaskLayer
                     case 2:
                         header = CrosslinkSpectralMatch.GetTabSepHeaderCross();
                         break;
-                    case 3:
-                        header = CrosslinkSpectralMatch.GetTabSepHeaderGlyco();
-                        break;
                     default:
                         break;
                 }
@@ -451,7 +448,7 @@ namespace TaskLayer
             }
         }
 
-        public void WriteOxoniumIons(Tuple<int, double[]>[] items, string filePath)
+        public static void WriteOxoniumIons(Tuple<int, double[]>[] items, string filePath)
         {
             using (StreamWriter output = new StreamWriter(filePath))
             {

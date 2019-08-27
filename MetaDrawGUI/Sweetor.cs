@@ -357,9 +357,9 @@ namespace MetaDrawGUI
                 MsFeature[] msFeatures = new MsFeature[scans.Length];
                 for (int i = 0; i < scans.Length; i++)
                 {
-                    var oxi = EngineLayer.CrosslinkSearch.GlycoPeptides.ScanGetOxoniumIons(scans[i], massDiffAcceptor_oxiniumIons);
+                    var oxi = EngineLayer.GlycoSearch.GlycoPeptides.ScanGetOxoniumIons(scans[i], massDiffAcceptor_oxiniumIons);
                     msFeatures[i] = new MsFeature(i, scans[i].PrecursorMass, scans[i].TotalIonCurrent, scans[i].RetentionTime);
-                    msFeatures[i].ContainOxiniumIon = EngineLayer.CrosslinkSearch.GlycoPeptides.OxoniumIonsAnalysis(oxi);
+                    msFeatures[i].ContainOxiniumIon = EngineLayer.GlycoSearch.GlycoPeptides.OxoniumIonsAnalysis(oxi);
                 }
 
                 var glycoFamily = GetGlycoFamilies(msFeatures);

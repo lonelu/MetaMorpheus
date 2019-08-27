@@ -257,6 +257,17 @@ namespace EngineLayer
             return kind;
         }
 
+        public static byte[] GetKindFromKindString(string kindString)
+        {
+            var kind = new byte[5];
+            var kinds = kindString.Split(' ');
+            for (int i = 0; i < 5; i++)
+            {
+                kind[i] = byte.Parse(kinds[i]);
+            }
+            return kind;
+        }
+
         public static int GetIonLossMass(byte[] Kind, byte[] ionKind)
         {
             byte[] lossKind = new byte[Kind.Length];
@@ -319,7 +330,56 @@ namespace EngineLayer
             return childKinds;
         }
 
-        public static IEnumerable<Glycan> LoadKindGlycan(string filePath, IEnumerable<Glycan> NGlycans)
+        public static byte[] GetKindFromByonic(string line)
+        {
+            //byte[] kind = new byte[10] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+            byte[] kind = new byte[5] { 0, 0, 0, 0, 0 };
+            var x = line.Split('(', ')');
+            int i = 0;
+            while (i < x.Length - 1)
+            {
+                switch (x[i])
+                {
+                    case "Hex":
+                        kind[0] = byte.Parse(x[i + 1]);
+                        break;
+                    case "HexNAc":
+                        kind[1] = byte.Parse(x[i + 1]);
+                        break;
+                    case "NeuAc":
+                        kind[2] = byte.Parse(x[i + 1]);
+                        break;
+                    case "NeuGc":
+                        kind[3] = byte.Parse(x[i + 1]);
+                        break;
+                    case "Fuc":
+                        kind[4] = byte.Parse(x[i + 1]);
+                        break;
+                    //case "Xyl":
+                    //    kind[5] = byte.Parse(x[i + 1]);
+                    //    break;
+                    //case "KND":
+                    //    kind[6] = byte.Parse(x[i + 1]);
+                    //    break;
+                    //case "Phosphate":
+                    //    kind[7] = byte.Parse(x[i + 1]);
+                    //    break;
+                    //case "Sulfate":
+                    //    kind[8] = byte.Parse(x[i + 1]);
+                    //    break;
+                    //case "HexA":
+                    //    kind[9] = byte.Parse(x[i + 1]);
+                    //    break;
+                    default:
+                        break;
+                }
+                i = i + 2;
+            }
+            return kind;
+        }
+
+        public static IEnumerable<Glycan> LoadKindGlycan(string filePath, IEnumerable<Glycan> NGlycans) //Database from Nick in coon lab
         {
             var groupedGlycans = NGlycans.GroupBy(p => GetKindString(p.Kind)).ToDictionary(p => p.Key, p => p.ToList());
 
@@ -330,48 +390,7 @@ namespace EngineLayer
                 {
                     string line = lines.ReadLine();
 
-                    byte[] kind = new byte[10] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0  };
-                    var x = line.Split('(', ')');
-                    int i = 0;
-                    while (i < x.Length - 1)
-                    {
-                        switch (x[i])
-                        {
-                            case "Hex":
-                                kind[0] = byte.Parse(x[i + 1]);
-                                break;
-                            case "HexNAc":
-                                kind[1] = byte.Parse(x[i + 1]);
-                                break;
-                            case "NeuAc":                            
-                                kind[2] = byte.Parse(x[i + 1]);
-                                break;
-                            case "NeuGc":
-                                kind[3] = byte.Parse(x[i + 1]);
-                                break;
-                            case "Fuc":
-                                kind[4] = byte.Parse(x[i + 1]);
-                                break;
-                            case "Xyl":
-                                kind[5] = byte.Parse(x[i + 1]);
-                                break;
-                            case "KND":
-                                kind[6] = byte.Parse(x[i + 1]);
-                                break;
-                            case "Phosphate":
-                                kind[7] = byte.Parse(x[i + 1]);
-                                break;
-                            case "Sulfate":
-                                kind[8] = byte.Parse(x[i + 1]);
-                                break;
-                            case "HexA":
-                                kind[9] = byte.Parse(x[i + 1]);
-                                break;
-                            default:
-                                break;
-                        }
-                        i = i + 2;
-                    }                  
+                    byte[] kind = GetKindFromByonic(line);
                     var mass = GetMass(kind);
                     
                     var glycans = GetAllIonMassFromKind(kind, groupedGlycans);
@@ -492,6 +511,12 @@ namespace EngineLayer
 
             Glycan glycan = new Glycan(theGlycanStruct, mass, kind, glycanIons, false);
             glycan.GlyId = id;
+            return glycan;
+        }
+
+        public static Glycan Kind2Glycan(byte[] kind)
+        {
+            Glycan glycan = new Glycan(null, GetMass(kind), kind, null, false);
             return glycan;
         }
 
