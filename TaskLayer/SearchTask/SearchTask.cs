@@ -35,9 +35,13 @@ namespace TaskLayer
             {
                 case MassDiffAcceptorType.Exact:
                     if (precursorMassTolerance is PpmTolerance)
+                    {
                         return new SinglePpmAroundZeroSearchMode(precursorMassTolerance.Value);
+                    }
                     else
+                    {
                         return new SingleAbsoluteAroundZeroSearchMode(precursorMassTolerance.Value);
+                    }
 
                 case MassDiffAcceptorType.OneMM:
                     return new DotMassDiffAcceptor("1mm", new List<double> { 0, 1.0029 }, precursorMassTolerance);
@@ -56,6 +60,21 @@ namespace TaskLayer
 
                 case MassDiffAcceptorType.Custom:
                     return ParseSearchMode(customMdac);
+
+                case MassDiffAcceptorType.PlusOrMinusThreeMM:
+                    return new DotMassDiffAcceptor(
+                        "PlusOrMinus3Da",
+                        new List<double>
+                        {
+                            -3 * Chemistry.Constants.C13MinusC12,
+                            -2 * Chemistry.Constants.C13MinusC12,
+                            -1 * Chemistry.Constants.C13MinusC12,
+                            0,
+                            1 * Chemistry.Constants.C13MinusC12,
+                            2 * Chemistry.Constants.C13MinusC12,
+                            3 * Chemistry.Constants.C13MinusC12
+                        },
+                        precursorMassTolerance);
 
                 default:
                     throw new MetaMorpheusException("Unknown MassDiffAcceptorType");
@@ -80,6 +99,13 @@ namespace TaskLayer
                     for (int i = 0; i < SearchParameters.SilacLabels.Count; i++)
                     {
                         SilacLabel currentLabel = SearchParameters.SilacLabels[i];
+                        //make sure we're not overwriting something. , , and if it's a valid residue (not a motif/delimiter)
+                        while ((Residue.TryGetResidue(heavyLabel, out Residue residue) //Check if the amino acid exists. If it already exists, we don't want to overwrite it
+                            && !residue.ThisChemicalFormula.Formula.Equals(currentLabel.LabelChemicalFormula)) //if it exists but it's already the label (so we're not overwriting anything), then we're fine
+                            || GlobalVariables.InvalidAminoAcids.Contains(heavyLabel)) //If it didn't already exist, but it's invalid, we need to keep going
+                        {
+                            heavyLabel++;
+                        }
                         SilacLabel updatedLabel = SilacConversions.AssignValidHeavyCharacter(currentLabel, heavyLabel);
                         heavyLabel++;
                         if (currentLabel.AdditionalLabels != null)
@@ -96,7 +122,7 @@ namespace TaskLayer
                 }
             }
             //if no quant, remove any silac labels that may have been added, because they screw up downstream analysis
-            if(!SearchParameters.DoQuantification) //using "if" instead of "else", because DoQuantification can change if it's an mgf
+            if (!SearchParameters.DoQuantification) //using "if" instead of "else", because DoQuantification can change if it's an mgf
             {
                 SearchParameters.SilacLabels = null;
             }
@@ -189,7 +215,7 @@ namespace TaskLayer
 
                         lock (indexLock)
                         {
-                            GenerateIndexes(indexEngine, dbFilenameList, ref peptideIndex, ref fragmentIndex, ref precursorIndex, proteinList, GlobalVariables.AllModsKnown.ToList(), taskId);
+                            GenerateIndexes(indexEngine, dbFilenameList, ref peptideIndex, ref fragmentIndex, ref precursorIndex, proteinList, taskId);
                         }
 
                         Status("Searching files...", taskId);
@@ -225,21 +251,23 @@ namespace TaskLayer
                         {
                             List<PeptideWithSetModifications> peptideIndex = null;
 
-                            List<Protein> proteinListSubset = proteinList.GetRange(currentPartition * proteinList.Count / paramToUse.TotalPartitions, ((currentPartition + 1) * proteinList.Count / paramToUse.TotalPartitions) - (currentPartition * proteinList.Count / paramToUse.TotalPartitions));
+                            List<Protein> proteinListSubset = proteinList.GetRange(currentPartition * proteinList.Count / paramToUse.TotalPartitions,
+                                ((currentPartition + 1) * proteinList.Count / paramToUse.TotalPartitions) - (currentPartition * proteinList.Count / paramToUse.TotalPartitions));
 
-                            List<int>[] fragmentIndex = new List<int>[1];
-                            List<int>[] precursorIndex = new List<int>[1];
+                            List<int>[] fragmentIndex = null;
+                            List<int>[] precursorIndex = null;
 
                             Status("Getting fragment dictionary...", new List<string> { taskId });
-                            var indexEngine = new IndexingEngine(proteinListSubset, variableModifications, fixedModifications, SearchParameters.SilacLabels, currentPartition, SearchParameters.DecoyType, paramToUse, SearchParameters.MaxFragmentSize, true, dbFilenameList.Select(p => new FileInfo(p.FilePath)).ToList(), new List<string> { taskId });
+                            var indexEngine = new IndexingEngine(proteinListSubset, variableModifications, fixedModifications, SearchParameters.SilacLabels, currentPartition,
+                                SearchParameters.DecoyType, paramToUse, SearchParameters.MaxFragmentSize, true, dbFilenameList.Select(p => new FileInfo(p.FilePath)).ToList(), new List<string> { taskId });
                             lock (indexLock)
                             {
-                                GenerateIndexes(indexEngine, dbFilenameList, ref peptideIndex, ref fragmentIndex, ref precursorIndex, proteinList, GlobalVariables.AllModsKnown.ToList(), taskId);
+                                GenerateIndexes(indexEngine, dbFilenameList, ref peptideIndex, ref fragmentIndex, ref precursorIndex, proteinList, taskId);
                             }
 
                             Status("Searching files...", taskId);
 
-                            new NonSpecificEnzymeSearchEngine(fileSpecificPsmsSeparatedByFdrCategory, arrayOfMs2ScansSortedByMass, peptideIndex, fragmentIndex, precursorIndex, currentPartition, paramToUse, massDiffAcceptor, SearchParameters.MaximumMassThatFragmentIonScoreIsDoubled, thisId).Run();
+                            new NonSpecificEnzymeSearchEngine(fileSpecificPsmsSeparatedByFdrCategory, arrayOfMs2ScansSortedByMass, peptideIndex, fragmentIndex, precursorIndex, currentPartition, paramToUse, variableModifications, massDiffAcceptor, SearchParameters.MaximumMassThatFragmentIonScoreIsDoubled, thisId).Run();
 
                             ReportProgress(new ProgressEventArgs(100, "Done with search " + (currentPartition + 1) + "/" + paramToUse.TotalPartitions + "!", thisId));
                             if (GlobalVariables.StopLoops) { break; }
@@ -322,6 +350,7 @@ namespace TaskLayer
                 case MassDiffAcceptorType.ThreeMM: return 4;
                 case MassDiffAcceptorType.ModOpen: return 1;
                 case MassDiffAcceptorType.Open: return 1;
+                case MassDiffAcceptorType.PlusOrMinusThreeMM: return 7;
                 case MassDiffAcceptorType.Custom: return ParseSearchMode(customMdac).NumNotches;
 
                 default: throw new MetaMorpheusException("Unknown mass difference acceptor type");

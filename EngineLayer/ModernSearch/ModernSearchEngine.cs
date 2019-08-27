@@ -21,7 +21,9 @@ namespace EngineLayer.ModernSearch
         protected readonly DissociationType DissociationType;
         protected readonly double MaxMassThatFragmentIonScoreIsDoubled;
 
-        public ModernSearchEngine(PeptideSpectralMatch[] globalPsms, Ms2ScanWithSpecificMass[] listOfSortedms2Scans, List<PeptideWithSetModifications> peptideIndex, List<int>[] fragmentIndex, int currentPartition, CommonParameters commonParameters, MassDiffAcceptor massDiffAcceptor, double maximumMassThatFragmentIonScoreIsDoubled, List<string> nestedIds) : base(commonParameters, nestedIds)
+        public ModernSearchEngine(PeptideSpectralMatch[] globalPsms, Ms2ScanWithSpecificMass[] listOfSortedms2Scans, List<PeptideWithSetModifications> peptideIndex, 
+            List<int>[] fragmentIndex, int currentPartition, CommonParameters commonParameters, MassDiffAcceptor massDiffAcceptor, double maximumMassThatFragmentIonScoreIsDoubled, 
+            List<string> nestedIds) : base(commonParameters, nestedIds)
         {
             PeptideSpectralMatches = globalPsms;
             ListOfSortedMs2Scans = listOfSortedms2Scans;
@@ -37,13 +39,11 @@ namespace EngineLayer.ModernSearch
         {
             double progress = 0;
             int oldPercentProgress = 0;
-            ReportProgress(new ProgressEventArgs(oldPercentProgress, "Performing modern search... " + CurrentPartition + "/" + commonParameters.TotalPartitions, nestedIds));
+            ReportProgress(new ProgressEventArgs(oldPercentProgress, "Performing modern search... " + CurrentPartition + "/" + CommonParameters.TotalPartitions, NestedIds));
 
-            byte byteScoreCutoff = (byte)commonParameters.ScoreCutoff;
-            if (commonParameters.CalculateEValue)
-                byteScoreCutoff = 1;
+            byte byteScoreCutoff = (byte)CommonParameters.ScoreCutoff;
 
-            int maxThreadsPerFile = commonParameters.MaxThreadsToUsePerFile;
+            int maxThreadsPerFile = CommonParameters.MaxThreadsToUsePerFile;
             int[] threads = Enumerable.Range(0, maxThreadsPerFile).ToArray();
             Parallel.ForEach(threads, (i) =>
             {
@@ -64,7 +64,7 @@ namespace EngineLayer.ModernSearch
                     Ms2ScanWithSpecificMass scan = ListOfSortedMs2Scans[i];
 
                     // get fragment bins for this scan
-                    List<int> allBinsToSearch = GetBinsToSearch(scan);
+                    List<int> allBinsToSearch = GetBinsToSearch(scan, FragmentIndex, CommonParameters.DissociationType);
 
                     // get allowed theoretical masses from the known experimental mass
                     // note that this is the OPPOSITE of the classic search (which calculates experimental masses from theoretical values)
@@ -76,37 +76,32 @@ namespace EngineLayer.ModernSearch
                     double highestMassPeptideToLookFor = notches.Max(p => p.AllowedInterval.Maximum);
 
                     // first-pass scoring
-                    IndexedScoring(allBinsToSearch, scoringTable, byteScoreCutoff, idsOfPeptidesPossiblyObserved, scan.PrecursorMass, lowestMassPeptideToLookFor, highestMassPeptideToLookFor, PeptideIndex, MassDiffAcceptor, MaxMassThatFragmentIonScoreIsDoubled, commonParameters.DissociationType);
+                    IndexedScoring(FragmentIndex, allBinsToSearch, scoringTable, byteScoreCutoff, idsOfPeptidesPossiblyObserved, scan.PrecursorMass, lowestMassPeptideToLookFor, highestMassPeptideToLookFor, PeptideIndex, MassDiffAcceptor, MaxMassThatFragmentIonScoreIsDoubled, CommonParameters.DissociationType);
 
                     // done with indexed scoring; refine scores and create PSMs
                     foreach (int id in idsOfPeptidesPossiblyObserved)
                     {
                         PeptideWithSetModifications peptide = PeptideIndex[id];
 
-                        List<Product> peptideTheorProducts = peptide.Fragment(commonParameters.DissociationType, FragmentationTerminus.Both).ToList();
+                        List<Product> peptideTheorProducts = peptide.Fragment(CommonParameters.DissociationType, FragmentationTerminus.Both).ToList();
 
-                        List<MatchedFragmentIon> matchedIons = MatchFragmentIons(scan, peptideTheorProducts, commonParameters);
+                        List<MatchedFragmentIon> matchedIons = MatchFragmentIons(scan, peptideTheorProducts, CommonParameters);
 
                         double thisScore = CalculatePeptideScore(scan.TheScan, matchedIons);
                         int notch = MassDiffAcceptor.Accepts(scan.PrecursorMass, peptide.MonoisotopicMass);
 
-                        bool meetsScoreCutoff = thisScore >= commonParameters.ScoreCutoff;
+                        bool meetsScoreCutoff = thisScore >= CommonParameters.ScoreCutoff;
                         bool scoreImprovement = PeptideSpectralMatches[i] == null || (thisScore - PeptideSpectralMatches[i].RunnerUpScore) > -PeptideSpectralMatch.ToleranceForScoreDifferentiation;
 
-                        if (meetsScoreCutoff && scoreImprovement || commonParameters.CalculateEValue)
+                        if (meetsScoreCutoff && scoreImprovement)
                         {
                             if (PeptideSpectralMatches[i] == null)
                             {
-                                PeptideSpectralMatches[i] = new PeptideSpectralMatch(peptide, notch, thisScore, i, scan, commonParameters.DigestionParams, matchedIons);
+                                PeptideSpectralMatches[i] = new PeptideSpectralMatch(peptide, notch, thisScore, i, scan, CommonParameters.DigestionParams, matchedIons);
                             }
                             else
                             {
-                                PeptideSpectralMatches[i].AddOrReplace(peptide, thisScore, notch, commonParameters.ReportAllAmbiguity, matchedIons, 0);
-                            }
-
-                            if (commonParameters.CalculateEValue)
-                            {
-                                PeptideSpectralMatches[i].AllScores.Add(thisScore);
+                                PeptideSpectralMatches[i].AddOrReplace(peptide, thisScore, notch, CommonParameters.ReportAllAmbiguity, matchedIons, 0);
                             }
                         }
                     }
@@ -118,22 +113,10 @@ namespace EngineLayer.ModernSearch
                     if (percentProgress > oldPercentProgress)
                     {
                         oldPercentProgress = percentProgress;
-                        ReportProgress(new ProgressEventArgs(percentProgress, "Performing modern search... " + CurrentPartition + "/" + commonParameters.TotalPartitions, nestedIds));
+                        ReportProgress(new ProgressEventArgs(percentProgress, "Performing modern search... " + CurrentPartition + "/" + CommonParameters.TotalPartitions, NestedIds));
                     }
                 }
             });
-
-            // remove peptides below the score cutoff that were stored to calculate expectation values
-            if (commonParameters.CalculateEValue)
-            {
-                for (int i = 0; i < PeptideSpectralMatches.Length; i++)
-                {
-                    if (PeptideSpectralMatches[i] != null && PeptideSpectralMatches[i].Score < commonParameters.ScoreCutoff)
-                    {
-                        PeptideSpectralMatches[i] = null;
-                    }
-                }
-            }
 
             foreach (PeptideSpectralMatch psm in PeptideSpectralMatches.Where(p => p != null))
             {
@@ -143,12 +126,12 @@ namespace EngineLayer.ModernSearch
             return new MetaMorpheusEngineResults(this);
         }
 
-        protected List<int> GetBinsToSearch(Ms2ScanWithSpecificMass scan)
+        protected List<int> GetBinsToSearch(Ms2ScanWithSpecificMass scan, List<int>[] FragmentIndex, DissociationType dissociationType)
         {
             int obsPreviousFragmentCeilingMz = 0;
             List<int> binsToSearch = new List<int>();
 
-            if (commonParameters.DissociationType == DissociationType.LowCID)
+            if (dissociationType == DissociationType.LowCID)
             {
                 double[] masses = scan.TheScan.MassSpectrum.XArray;
                 double[] intensities = scan.TheScan.MassSpectrum.YArray;
@@ -164,9 +147,9 @@ namespace EngineLayer.ModernSearch
                     }
 
                     // add complementary ions
-                    if (commonParameters.AddCompIons)
+                    if (CommonParameters.AddCompIons)
                     {
-                        if (complementaryIonConversionDictionary.TryGetValue(commonParameters.DissociationType, out double protonMassShift)) //TODO: this is broken for EThcD because that method needs two conversions
+                        if (complementaryIonConversionDictionary.TryGetValue(dissociationType, out double protonMassShift)) //TODO: this is broken for EThcD because that method needs two conversions
                         {
                             protonMassShift = ClassExtensions.ToMass(protonMassShift, 1);
                             fragmentBin = (int)Math.Round((scan.PrecursorMass + protonMassShift - masses[i]) / 1.0005079);
@@ -191,8 +174,8 @@ namespace EngineLayer.ModernSearch
                     double experimentalFragmentMass = envelope.monoisotopicMass;
 
                     // get theoretical fragment bins within mass tolerance
-                    int obsFragmentFloorMass = (int)Math.Floor((commonParameters.ProductMassTolerance.GetMinimumValue(experimentalFragmentMass)) * FragmentBinsPerDalton);
-                    int obsFragmentCeilingMass = (int)Math.Ceiling((commonParameters.ProductMassTolerance.GetMaximumValue(experimentalFragmentMass)) * FragmentBinsPerDalton);
+                    int obsFragmentFloorMass = (int)Math.Floor((CommonParameters.ProductMassTolerance.GetMinimumValue(experimentalFragmentMass)) * FragmentBinsPerDalton);
+                    int obsFragmentCeilingMass = (int)Math.Ceiling((CommonParameters.ProductMassTolerance.GetMaximumValue(experimentalFragmentMass)) * FragmentBinsPerDalton);
 
                     // prevents double-counting peaks close in m/z and lower-bound out of range exceptions
                     if (obsFragmentFloorMass < obsPreviousFragmentCeilingMz)
@@ -223,11 +206,11 @@ namespace EngineLayer.ModernSearch
                     }
 
                     // add complementary ions
-                    if (commonParameters.AddCompIons)
+                    if (CommonParameters.AddCompIons)
                     {
                         //okay, we're not actually adding in complementary m/z peaks, we're doing a shortcut and just straight up adding the bins assuming that they're z=1
 
-                        if (complementaryIonConversionDictionary.TryGetValue(commonParameters.DissociationType, out double protonMassShift)) //TODO: this is broken for EThcD because that method needs two conversions
+                        if (complementaryIonConversionDictionary.TryGetValue(dissociationType, out double protonMassShift)) //TODO: this is broken for EThcD because that method needs two conversions
                         {
                             protonMassShift = ClassExtensions.ToMass(protonMassShift, 1);
                             int compFragmentFloorMass = (int)Math.Round(((scan.PrecursorMass + protonMassShift) * FragmentBinsPerDalton)) - obsFragmentCeilingMass;
@@ -288,7 +271,7 @@ namespace EngineLayer.ModernSearch
             return m;
         }
 
-        protected void IndexedScoring(List<int> binsToSearch, byte[] scoringTable, byte byteScoreCutoff, List<int> idsOfPeptidesPossiblyObserved, double scanPrecursorMass, double lowestMassPeptideToLookFor,
+        protected void IndexedScoring(List<int>[] FragmentIndex, List<int> binsToSearch, byte[] scoringTable, byte byteScoreCutoff, List<int> idsOfPeptidesPossiblyObserved, double scanPrecursorMass, double lowestMassPeptideToLookFor,
             double highestMassPeptideToLookFor, List<PeptideWithSetModifications> peptideIndex, MassDiffAcceptor massDiffAcceptor, double maxMassThatFragmentIonScoreIsDoubled, DissociationType dissociationType)
         {
             // get all theoretical fragments this experimental fragment could be

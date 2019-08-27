@@ -1,13 +1,16 @@
 ﻿using EngineLayer;
+using MassSpectrometry;
+using MzLibUtil;
 using NUnit.Framework;
+using Proteomics;
+using Proteomics.Fragmentation;
+using Proteomics.ProteolyticDigestion;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using TaskLayer;
-using Proteomics.ProteolyticDigestion;
-using Proteomics.Fragmentation;
-using System.Globalization;
 
 namespace Test
 {
@@ -41,6 +44,9 @@ namespace Test
 
             result = SearchTask.GetMassDiffAcceptor(searchTask.CommonParameters.PrecursorMassTolerance, MassDiffAcceptorType.Exact, searchTask.SearchParameters.CustomMdac);
             Assert.That(result.FileNameAddition.Equals("5ppmAroundZero"));
+
+            result = SearchTask.GetMassDiffAcceptor(searchTask.CommonParameters.PrecursorMassTolerance, MassDiffAcceptorType.PlusOrMinusThreeMM, searchTask.SearchParameters.CustomMdac);
+            Assert.That(result.FileNameAddition.Equals("PlusOrMinus3Da"));
         }
 
         /// <summary>
@@ -106,6 +112,12 @@ namespace Test
             string outputPath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"TestSemiSpecificSmall\AllPSMs.psmtsv");
             var output = File.ReadAllLines(outputPath);
             Assert.IsTrue(output.Length == 3);
+
+            var mzId = File.ReadAllLines(Path.Combine(TestContext.CurrentContext.TestDirectory, @"TestSemiSpecificSmall\Individual File Results\tinySemi.mzID"));
+            Assert.That(mzId[115].Equals("          <cvParam name=\"mzML format\" cvRef=\"PSI-MS\" accession=\"MS:1000584\" />"));
+            Assert.That(mzId[118].Equals("          <cvParam name=\"mzML unique identifier\" cvRef=\"PSI-MS\" accession=\"MS:1001530\" />"));
+            Assert.That(mzId[97].Equals("        <cvParam name=\"pep:FDR threshold\" value=\"0.01\" cvRef=\"PSI-MS\" accession=\"MS:1001448\" />"));
+
         }
 
         /// <summary>
@@ -288,8 +300,125 @@ namespace Test
 
             // test that the final q-value follows the (target / decoy) formula
             // intermediate q-values no longer always follow this formula, so I'm not testing them here
-            Assert.AreEqual((double)cumDecoys / (double)cumTargets, finalQValue, 0.0001);
+            Assert.AreEqual(cumDecoys / (double)cumTargets, finalQValue, 0.0001);
             Directory.Delete(folderPath, true);
+        }
+
+        /// <summary>
+        /// Tests interval mass difference acceptor type to make sure values are assigned properly
+        /// </summary>
+        [Test]
+        public static void IntervalMassDiffAceptorTest()
+        {
+            var result = new IntervalMassDiffAcceptor("-187andUp", new List<DoubleRange> { new DoubleRange(-187, double.PositiveInfinity) });
+            Assert.That(result.Accepts(2.0, 2.0) == 0);
+            Assert.That(result.Accepts(double.PositiveInfinity, 2.0) == 0);
+            result.GetAllowedPrecursorMassIntervalsFromTheoreticalMass(2.0);
+            result.GetAllowedPrecursorMassIntervalsFromObservedMass(2.0);
+            result.ToString();
+            result.ToProseString();
+            result = new IntervalMassDiffAcceptor("-187andUp", new List<DoubleRange> { new DoubleRange(-5, 0) });
+            Assert.That(result.Accepts(2.0, 4.0) == 0);
+            Assert.That(result.Accepts(2.0, 10.0) == -1);
+        }
+
+        /// <summary>
+        /// Tests interval mass difference acceptor type to make sure values are assigned properly
+        /// </summary>
+        [Test]
+        public static void SingleAbsoluteAroundZeroSearchMode()
+        {
+            var result = new SingleAbsoluteAroundZeroSearchMode(2.0);
+            Assert.That(result.Accepts(2.0, 2.0) == 0);
+            result.GetAllowedPrecursorMassIntervalsFromTheoreticalMass(2.0);
+            result.GetAllowedPrecursorMassIntervalsFromObservedMass(2.0);
+            result.ToString();
+            result.ToProseString();
+        }
+
+        [Test]
+        public static void TestMzIdentMlWriterWithUniprotResId()
+        {
+            Protein protein = new Protein("PEPTIDE", "", databaseFilePath: "temp");
+
+            Modification uniProtMod = GlobalVariables.AllModsKnown.First(p =>
+                p.IdWithMotif == "FMN phosphoryl threonine on T"
+                && p.ModificationType == "UniProt"
+                && p.Target.ToString() == "T"
+                && p.DatabaseReference.ContainsKey("RESID")
+                && p.LocationRestriction == "Anywhere.");
+
+            string resIdAccession = uniProtMod.DatabaseReference["RESID"].First();
+            var peptide = protein.Digest(new DigestionParams(), new List<Modification> { uniProtMod }, new List<Modification>()).First();
+
+            MsDataScan dfb = new MsDataScan(new MzSpectrum(new double[] { 1 }, new double[] { 1 }, false), 0, 1, true, Polarity.Positive, double.NaN, null,
+                null, MZAnalyzerType.Orbitrap, double.NaN, null, null, "scan=1", double.NaN, null, null, double.NaN, null, DissociationType.AnyActivationType, 0, null);
+            Ms2ScanWithSpecificMass scan = new Ms2ScanWithSpecificMass(dfb, 2, 0, "File", new CommonParameters());
+
+            var psm = new PeptideSpectralMatch(peptide, 0, 1, 0, scan, new DigestionParams(), new List<MatchedFragmentIon>());
+            psm.ResolveAllAmbiguities();
+            psm.SetFdrValues(0, 0, 0, 0, 0, 0, 0, 0);
+
+            string path = Path.Combine(TestContext.CurrentContext.TestDirectory, "ResIdOutput.mzID");
+
+            MzIdentMLWriter.WriteMzIdentMl(new List<PeptideSpectralMatch> { psm }, new List<ProteinGroup>(), new List<Modification>(),
+                new List<Modification>(), new List<SilacLabel>(), new List<Protease>(), 0, new PpmTolerance(20), new PpmTolerance(20),
+                0, path);
+
+            var file = File.ReadAllLines(path);
+            bool found = false;
+            foreach (var line in file)
+            {
+                if (line.Contains("FMN phosphoryl threonine on T") && line.Contains("RESID:" + resIdAccession))
+                {
+                    found = true;
+                }
+            }
+            Assert.That(found);
+
+            File.Delete(path);
+        }
+
+        [Test]
+        public static void TestMzIdentMlWriterWithUniprotPsiMod()
+        {
+            Protein protein = new Protein("PEPTIDE", "", databaseFilePath: "temp");
+
+            ModificationMotif.TryGetMotif("T", out var motif);
+
+            Modification fakeMod = new Modification(_originalId: "FAKE", _accession: "FAKE_MOD_ACCESSION", _modificationType: "fake", 
+                _target: motif, _locationRestriction: "Anywhere.", _monoisotopicMass: 0,
+                _databaseReference: new Dictionary<string, IList<string>> { { "PSI-MOD", new List<string> { "FAKE_MOD_ACCESSION" } } });
+
+            string resIdAccession = fakeMod.DatabaseReference["PSI-MOD"].First();
+            var peptide = protein.Digest(new DigestionParams(), new List<Modification> { fakeMod }, new List<Modification>()).First();
+
+            MsDataScan dfb = new MsDataScan(new MzSpectrum(new double[] { 1 }, new double[] { 1 }, false), 0, 1, true, Polarity.Positive, double.NaN, null,
+                null, MZAnalyzerType.Orbitrap, double.NaN, null, null, "scan=1", double.NaN, null, null, double.NaN, null, DissociationType.AnyActivationType, 0, null);
+            Ms2ScanWithSpecificMass scan = new Ms2ScanWithSpecificMass(dfb, 2, 0, "File", new CommonParameters());
+
+            var psm = new PeptideSpectralMatch(peptide, 0, 1, 0, scan, new DigestionParams(), new List<MatchedFragmentIon>());
+            psm.ResolveAllAmbiguities();
+            psm.SetFdrValues(0, 0, 0, 0, 0, 0, 0, 0);
+
+            string path = Path.Combine(TestContext.CurrentContext.TestDirectory, "ResIdOutput.mzID");
+
+            MzIdentMLWriter.WriteMzIdentMl(new List<PeptideSpectralMatch> { psm }, new List<ProteinGroup>(), new List<Modification>(),
+                new List<Modification>(), new List<SilacLabel>(), new List<Protease>(), 0, new PpmTolerance(20), new PpmTolerance(20),
+                0, path);
+
+            var file = File.ReadAllLines(path);
+            bool found = false;
+            foreach (var line in file)
+            {
+                if (line.Contains("FAKE on T") && line.Contains("PSI-MOD:" + resIdAccession))
+                {
+                    found = true;
+                }
+            }
+            Assert.That(found);
+
+            File.Delete(path);
         }
     }
 }

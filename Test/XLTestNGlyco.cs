@@ -1,6 +1,7 @@
 ﻿using Chemistry;
 using EngineLayer;
 using EngineLayer.CrosslinkSearch;
+using EngineLayer.GlycoSearch;
 using EngineLayer.Indexing;
 using MassSpectrometry;
 using NUnit.Framework;
@@ -41,7 +42,7 @@ namespace Test
         {
             PeptideWithSetModifications pep = new PeptideWithSetModifications("ELNPTPNVEVNVECR", null); 
             string[] motifs = new string[] { "Nxs", "Nxt"};
-            var sites = CrosslinkSpectralMatch.GetPossibleModSites(pep, motifs);
+            var sites = GlycoSpectralMatch.GetPossibleModSites(pep, motifs);
             Assert.That(sites.Count() == 1 && sites[0] == 4);
 
             ModificationMotif.TryGetMotif("C", out ModificationMotif motif1);
@@ -49,12 +50,12 @@ namespace Test
             ModificationMotif.TryGetMotif("N", out ModificationMotif motif2);
             Modification mod2 = new Modification(_originalId: "Test of N", _modificationType: "Common Fixed", _target: motif2, _locationRestriction: "Anywhere.");
             var testN = new PeptideWithSetModifications("C[Common Fixed:Carbamidomethyl of C]N[Common Fixed:Test of N]SSDQPKL[Common Fixed:Carbamidomethyl of C]NLSGIETP", new Dictionary<string, Modification> { { "Carbamidomethyl of C", mod1 }, { "Test of N", mod2 } });
-            var testSites = CrosslinkSpectralMatch.GetPossibleModSites(testN, motifs);
+            var testSites = GlycoSpectralMatch.GetPossibleModSites(testN, motifs);
             Assert.That(testSites.Count() == 1 && testSites[0] == 11);
 
 
             var testC = new PeptideWithSetModifications("TELAAYLSC[Common Fixed:Carbamidomethyl of C]NATK", new Dictionary<string, Modification> { { "Carbamidomethyl of C", mod1 }});
-            var testCSites = CrosslinkSpectralMatch.GetPossibleModSites(testC, motifs);
+            var testCSites = GlycoSpectralMatch.GetPossibleModSites(testC, motifs);
             Assert.That(testCSites.Count() == 1 && testSites[0] == 11);
         }
 
@@ -66,7 +67,7 @@ namespace Test
             var aPeptideWithSetModifications = pep.Digest(digestionParams, new List<Modification>(), new List<Modification>());
 
             string[] motifs = new string[] { "Nxs", "Nxt" };
-            var sites = CrosslinkSpectralMatch.GetPossibleModSites(aPeptideWithSetModifications.Last(), motifs);
+            var sites = GlycoSpectralMatch.GetPossibleModSites(aPeptideWithSetModifications.Last(), motifs);
             Glycan glycan = Glycan.Struct2Glycan("(N(F)(N(H(H(N))(H(N)))))", 0);
 
             
@@ -115,8 +116,8 @@ namespace Test
         [Test]
         public static void GlyTest_RunTask()
         {
-            XLSearchTask task = new XLSearchTask();
-            task.XlSearchParameters.OpenSearchType = OpenSearchType.NGlyco;
+            GlycoSearchTask task = new GlycoSearchTask();
+            task._glycoSearchParameters.OpenSearchType = OpenSearchType.NGlyco;
             Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, @"TESTGlycoData"));
             DbForTask db = new DbForTask(Path.Combine(TestContext.CurrentContext.TestDirectory, @"GlycoTestData/Q9C0Y4.fasta"), false);
             string raw = Path.Combine(TestContext.CurrentContext.TestDirectory, @"GlycoTestData/yeast_glycan_25170.mgf");
@@ -135,7 +136,7 @@ namespace Test
             var aPeptideWithSetModifications = pep.Digest(digestionParams, fixedModifications, new List<Modification>());
 
             string[] motifs = new string[] { "Nxs", "Nxt" };
-            var sites = CrosslinkSpectralMatch.GetPossibleModSites(aPeptideWithSetModifications.Last(), motifs);
+            var sites = GlycoSpectralMatch.GetPossibleModSites(aPeptideWithSetModifications.Last(), motifs);
             Glycan glycan = Glycan.Struct2Glycan("(N(N(H(H(H(H)))(H(H(H(H(H))))))))", 0);
 
             Tolerance tolerance = new PpmTolerance(20);
@@ -223,18 +224,28 @@ namespace Test
             //This is just to test how binary search works.
             double[] array = new double[] { 3.44, 3.45, 4.55, 4.55, 4.55, 4.55, 4.55, 4.55, 4.55, 5.66 };
             double x = 3.43;
+            double x1 = 3.44;
+            double x2 = 3.441;
+            double x3 = 3.45;
             double y = 4.44;
             double z = 5.67;
             double d = 4.55;
             double t = 4.56;
+            double t1 = 5.66;
             var xid = GlycoPeptides.BinarySearchGetIndex(array, x);
+            var xid1 = GlycoPeptides.BinarySearchGetIndex(array, x1);
+            var xid2 = GlycoPeptides.BinarySearchGetIndex(array, x2);
+            var xid3 = GlycoPeptides.BinarySearchGetIndex(array, x3);
+
             var yid = GlycoPeptides.BinarySearchGetIndex(array, y);
             var zid = GlycoPeptides.BinarySearchGetIndex(array, z);
             var did = GlycoPeptides.BinarySearchGetIndex(array, d);
             var tid = GlycoPeptides.BinarySearchGetIndex(array, t);
+            var tid1 = GlycoPeptides.BinarySearchGetIndex(array, t1);
+
             Assert.AreEqual(xid, 0);
             Assert.AreEqual(yid, 2);
-            Assert.AreEqual(zid, 10);
+            Assert.AreEqual(zid, 10); //Index out range
             Assert.AreEqual(did, 2);
             Assert.AreEqual(tid, 9);          
         }
@@ -269,7 +280,7 @@ namespace Test
             {
                 foreach (var glycan in NGlycans)
                 {
-                    var mod = GlycoPeptides.GlycanToModificationWithNoMass(glycan.Value.First());
+                    var mod = GlycoPeptides.GlycanToModification(glycan.Value.First());
                     List<string> temp = new List<string>();
                     temp.Add(mod.ToString());
                     temp.Add(@"//");

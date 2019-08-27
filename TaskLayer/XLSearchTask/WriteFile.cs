@@ -1,5 +1,6 @@
 ﻿using EngineLayer;
 using EngineLayer.CrosslinkSearch;
+using EngineLayer.GlycoSearch;
 using Proteomics;
 using Proteomics.Fragmentation;
 using System;
@@ -11,7 +12,7 @@ using System.Xml.Serialization;
 
 namespace TaskLayer
 {
-    public partial class XLSearchTask : MetaMorpheusTask
+    public static class WriteFile
     {
         public static void WritePsmCrossToTsv(List<CrosslinkSpectralMatch> items, string filePath, int writeType)
         {
@@ -45,7 +46,7 @@ namespace TaskLayer
             }
         }
         
-        public void WriteCrosslinkToTxtForPercolator(List<CrosslinkSpectralMatch> items, string outputFolder, string fileName, Crosslinker crosslinker, List<string> nestedIds)
+        public static void WriteCrosslinkToTxtForPercolator(List<CrosslinkSpectralMatch> items, string outputFolder, string fileName, Crosslinker crosslinker)
         {
             if (items.Count == 0)
             { return; }
@@ -78,17 +79,16 @@ namespace TaskLayer
                             + "\t" + (item.BetaPeptide.BaseSequence.Length + item.BaseSequence.Length).ToString(CultureInfo.InvariantCulture)
                             + "\t" + "-." + item.FullSequence + item.LinkPositions.First().ToString(CultureInfo.InvariantCulture) + "--" + item.BetaPeptide.FullSequence + item.BetaPeptide.LinkPositions.First().ToString(CultureInfo.InvariantCulture) + ".-"
                             + "\t" + item.BestMatchingPeptides.First().Peptide.Protein.Accession.ToString(CultureInfo.InvariantCulture)
-                                   + "(" + item.XlProteinPos.ToString(CultureInfo.InvariantCulture) + ")"
+                                   + "(" + (item.XlProteinPos.HasValue ? item.XlProteinPos.Value.ToString(CultureInfo.InvariantCulture):string.Empty) + ")"
                             + "\t" + item.BetaPeptide.BestMatchingPeptides.First().Peptide.Protein.Accession.ToString(CultureInfo.InvariantCulture)
-                                   + "(" + item.BetaPeptide.XlProteinPos.ToString(CultureInfo.InvariantCulture) + ")"
+                                   + "(" + (item.BetaPeptide.XlProteinPos.HasValue ? item.BetaPeptide.XlProteinPos.Value.ToString(CultureInfo.InvariantCulture) : string.Empty) + ")"
                             );
                     }
                 }
             }
-            FinishedWritingFile(writtenFile, nestedIds);
         }
         
-        public void WritePepXML_xl(List<CrosslinkSpectralMatch> items, List<Protein> proteinList, string databasePath, List<Modification> variableModifications, List<Modification> fixedModifications, List<string> localizeableModificationTypes, string outputFolder, string fileName, List<string> nestedIds)
+        public static void WritePepXML_xl(List<CrosslinkSpectralMatch> items, List<Protein> proteinList, string databasePath, List<Modification> variableModifications, List<Modification> fixedModifications, List<string> localizeableModificationTypes, string outputFolder, string fileName, CommonParameters CommonParameters, XlSearchParameters XlSearchParameters)
         {
             if (!items.Any())
             {
@@ -254,8 +254,6 @@ namespace TaskLayer
                             crosslinkerDeadEndMass = crosslinker.DeadendMassH2O;
                             break;
                     }
-                    var mod = new pepXML.Generated.modInfoDataTypeMod_aminoacid_mass { mass = crosslinkerDeadEndMass, position = items[i].LinkPositions.First().ToString() };
-                    mods.Add(mod);
                     var searchHit = new pepXML.Generated.msms_pipeline_analysisMsms_run_summarySpectrum_querySearch_resultSearch_hit
                     {
                         hit_rank = 1,
@@ -422,7 +420,35 @@ namespace TaskLayer
             TextWriter writer = new StreamWriter(Path.Combine(outputFolder, fileName + ".pep.XML"));
             _indexedSerializer.Serialize(writer, _pepxml);
             writer.Close();
-            FinishedWritingFile(Path.Combine(outputFolder, fileName + ".pep.XML"), nestedIds);
+        }
+
+        public static void WritePsmGlycoToTsv(List<GlycoSpectralMatch> items, string filePath, int writeType)
+        {
+            if (items.Count == 0)
+            {
+                return;
+            }
+
+            using (StreamWriter output = new StreamWriter(filePath))
+            {
+                string header = "";
+                switch (writeType)
+                {
+                    case 1:
+                        header = GlycoSpectralMatch.GetTabSepHeaderSingle();
+                        break;
+                    case 2:
+                        header = GlycoSpectralMatch.GetTabSepHeaderGlyco();
+                        break;
+                    default:
+                        break;
+                }
+                output.WriteLine(header);
+                foreach (var heh in items)
+                {
+                    output.WriteLine(heh.ToString());
+                }
+            }
         }
 
         public void WriteOxoniumIons(Tuple<int, double[]>[] items, string filePath)

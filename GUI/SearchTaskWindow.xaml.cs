@@ -160,7 +160,6 @@ namespace MetaMorpheusGUI
             {
                 semiSpecificSearchRadioButton.IsChecked = true;
             }
-            MaxFragmentMassTextBox.Text = task.SearchParameters.MaxFragmentSize.ToString(CultureInfo.InvariantCulture);
             checkBoxParsimony.IsChecked = task.SearchParameters.DoParsimony;
             checkBoxNoOneHitWonders.IsChecked = task.SearchParameters.NoOneHitWonders;
             checkBoxNoQuant.IsChecked = !task.SearchParameters.DoQuantification;
@@ -196,6 +195,7 @@ namespace MetaMorpheusGUI
             missedCleavagesTextBox.Text = task.CommonParameters.DigestionParams.MaxMissedCleavages == int.MaxValue ? "" : task.CommonParameters.DigestionParams.MaxMissedCleavages.ToString(CultureInfo.InvariantCulture);
             MinPeptideLengthTextBox.Text = task.CommonParameters.DigestionParams.MinPeptideLength.ToString(CultureInfo.InvariantCulture);
             MaxPeptideLengthTextBox.Text = task.CommonParameters.DigestionParams.MaxPeptideLength == int.MaxValue ? "" : task.CommonParameters.DigestionParams.MaxPeptideLength.ToString(CultureInfo.InvariantCulture);
+            MaxFragmentMassTextBox.Text = task.SearchParameters.MaxFragmentSize.ToString(CultureInfo.InvariantCulture); //put after max peptide length to allow for override of auto
             maxModificationIsoformsTextBox.Text = task.CommonParameters.DigestionParams.MaxModificationIsoforms.ToString(CultureInfo.InvariantCulture);
             MaxModNumTextBox.Text = task.CommonParameters.DigestionParams.MaxModsForPeptide.ToString(CultureInfo.InvariantCulture);
             initiatorMethionineBehaviorComboBox.SelectedIndex = (int)task.CommonParameters.DigestionParams.InitiatorMethionineBehavior;
@@ -213,7 +213,6 @@ namespace MetaMorpheusGUI
             allAmbiguity.IsChecked = task.CommonParameters.ReportAllAmbiguity;
             DeconvolutionMaxAssumedChargeStateTextBox.Text = task.CommonParameters.DeconvolutionMaxAssumedChargeState.ToString();
             minScoreAllowed.Text = task.CommonParameters.ScoreCutoff.ToString(CultureInfo.InvariantCulture);
-            eValueCheckBox.IsChecked = task.CommonParameters.CalculateEValue;
             deltaScoreCheckBox.IsChecked = task.CommonParameters.UseDeltaScore;
             trimMs1.IsChecked = task.CommonParameters.TrimMs1Peaks;
             trimMsMs.IsChecked = task.CommonParameters.TrimMsMsPeaks;
@@ -308,6 +307,7 @@ namespace MetaMorpheusGUI
             massDiffAccept1mm.IsChecked = task.SearchParameters.MassDiffAcceptorType == MassDiffAcceptorType.OneMM;
             massDiffAccept2mm.IsChecked = task.SearchParameters.MassDiffAcceptorType == MassDiffAcceptorType.TwoMM;
             massDiffAccept3mm.IsChecked = task.SearchParameters.MassDiffAcceptorType == MassDiffAcceptorType.ThreeMM;
+            massDiffAcceptPlusOrMinusThree.IsChecked = task.SearchParameters.MassDiffAcceptorType == MassDiffAcceptorType.PlusOrMinusThreeMM;
             massDiffAccept187.IsChecked = task.SearchParameters.MassDiffAcceptorType == MassDiffAcceptorType.ModOpen;
             massDiffAcceptOpen.IsChecked = task.SearchParameters.MassDiffAcceptorType == MassDiffAcceptorType.Open;
             massDiffAcceptCustom.IsChecked = task.SearchParameters.MassDiffAcceptorType == MassDiffAcceptorType.Custom;
@@ -500,7 +500,6 @@ namespace MetaMorpheusGUI
                 doPrecursorDeconvolution: deconvolutePrecursors.IsChecked.Value,
                 useProvidedPrecursorInfo: useProvidedPrecursor.IsChecked.Value,
                 scoreCutoff: double.Parse(minScoreAllowed.Text, CultureInfo.InvariantCulture),
-                calculateEValue: eValueCheckBox.IsChecked.Value,
                 listOfModsFixed: listOfModsFixed,
                 listOfModsVariable: listOfModsVariable,
                 dissociationType: dissociationType,
@@ -617,6 +616,10 @@ namespace MetaMorpheusGUI
             if (massDiffAcceptOpen.IsChecked.HasValue && massDiffAcceptOpen.IsChecked.Value)
             {
                 TheTask.SearchParameters.MassDiffAcceptorType = MassDiffAcceptorType.Open;
+            }
+            if (massDiffAcceptPlusOrMinusThree.IsChecked.HasValue && massDiffAcceptPlusOrMinusThree.IsChecked.Value)
+            {
+                TheTask.SearchParameters.MassDiffAcceptorType = MassDiffAcceptorType.PlusOrMinusThreeMM;
             }
             if (massDiffAcceptCustom.IsChecked.HasValue && massDiffAcceptCustom.IsChecked.Value)
             {
@@ -762,7 +765,7 @@ namespace MetaMorpheusGUI
 
         private void NonSpecificUpdate(object sender, TextChangedEventArgs e)
         {
-            if (((Protease)proteaseComboBox.SelectedItem).Name.Contains("non-specific") || nonSpecificSearchRadioButton.IsChecked.Value)
+            if (((Protease)proteaseComboBox.SelectedItem).Name.Contains("non-specific"))
             {
                 try
                 {
@@ -785,6 +788,16 @@ namespace MetaMorpheusGUI
                 catch
                 {
                     //if not an entry, don't update the other box.
+                }
+            }
+
+            if (!classicSearchRadioButton.IsChecked.Value && MaxPeptideLengthTextBox.Text.Length != 0)
+            {
+                //trim maxFragmentMass to reduce index size ( reduces index size on disc and makes reading/writing faster)
+                int maxLength = Convert.ToInt32(MaxPeptideLengthTextBox.Text);
+                if (maxLength > 0 && maxLength < 100) //default is 30000; 30000/300=100
+                {
+                    MaxFragmentMassTextBox.Text = (maxLength * 300).ToString(); //assume the average residue doesn't have a mass over 300 Da (largest is W @ 204, but mods exist)
                 }
             }
         }
