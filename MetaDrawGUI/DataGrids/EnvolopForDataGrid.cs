@@ -2,7 +2,7 @@
 {
     public class EnvolopForDataGrid
     {
-        public EnvolopForDataGrid(int ind, bool hasPartner, double mz, int charge, double deconMass, double intensity, double score)
+        public EnvolopForDataGrid(int ind, bool hasPartner, double mz, int charge, double deconMass, double intensity, double score, double significance)
         {
             Ind = ind;
             HasPartner = hasPartner;
@@ -11,7 +11,7 @@
             DeconMass = deconMass;         
             Intensity = intensity;
             Score = score;
-            
+            Significance = significance;
         }
 
         public int Ind { get; set; }
@@ -27,5 +27,7 @@
         public double Intensity { get; set; }
 
         public double Score { get; set; }
+
+        public double Significance { get; set; }
     }
 }

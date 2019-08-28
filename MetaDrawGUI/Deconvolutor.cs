@@ -163,7 +163,7 @@ namespace MetaDrawGUI
             int i = 1;
             foreach (var item in IsotopicEnvelopes)
             {
-                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.HasPartner, item.ExperimentIsoEnvelop.First().Item1, item.Charge, item.MonoisotopicMass, item.TotalIntensity, item.MsDeconvScore));
+                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.HasPartner, item.ExperimentIsoEnvelop.First().Item1, item.Charge, item.MonoisotopicMass, item.TotalIntensity, item.MsDeconvScore, item.MsDeconvSignificance));
                 i++;
             }
 

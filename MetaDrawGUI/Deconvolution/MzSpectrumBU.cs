@@ -698,17 +698,17 @@ namespace MassSpectrometry
 
             var arrayOfPeaks = new (double mz, double intensity)[theoryIsoEnvelopLength];
             var arrayOfTheoPeaks = new (double mz, double intensity)[theoryIsoEnvelopLength];
+            var arrayOfTheoPeakIndexes = new int[theoryIsoEnvelopLength];
 
             for (int indexToLookAt = 0; indexToLookAt < theoryIsoEnvelopLength; indexToLookAt++)
             {
-
                 double theorMassThatTryingToFind = allMasses[massIndex][indexToLookAt] + differenceBetweenTheorAndActual;
                 arrayOfTheoPeaks[indexToLookAt] = (theorMassThatTryingToFind.ToMz(chargeState), allIntensities[massIndex][indexToLookAt]);
 
-                var closestPeakToTheorMass = GetClosestPeakIndex(theorMassThatTryingToFind.ToMz(chargeState));
-                var closestPeakmz = XArray[closestPeakToTheorMass.Value];
-
-                var closestPeakIntensity = YArray[closestPeakToTheorMass.Value];
+                var closestPeakToTheorMassIndex = GetClosestPeakIndex(theorMassThatTryingToFind.ToMz(chargeState));
+                var closestPeakmz = XArray[closestPeakToTheorMassIndex.Value];
+                var closestPeakIntensity = YArray[closestPeakToTheorMassIndex.Value];
+                arrayOfTheoPeakIndexes[indexToLookAt] = closestPeakToTheorMassIndex.Value;
 
                 if (!deconvolutionParameter.DeconvolutionAcceptor.Within(theorMassThatTryingToFind, closestPeakmz.ToMass(chargeState)) || closestPeakIntensity < noiseLevel)
                 {
@@ -728,7 +728,7 @@ namespace MassSpectrometry
                 var lowestMass = arrayOfPeaks.Min(b => b.mz).ToMass(chargeState); // But may actually observe this small peak
                 var monoisotopicMass = Math.Abs(extrapolatedMonoisotopicMass - lowestMass) < 0.5 ? lowestMass : extrapolatedMonoisotopicMass;
 
-                IsoEnvelop isoEnvelop = new IsoEnvelop(arrayOfPeaks, scaleArrayOfTheoPeaks, monoisotopicMass, chargeState);
+                IsoEnvelop isoEnvelop = new IsoEnvelop(arrayOfPeaks, scaleArrayOfTheoPeaks, monoisotopicMass, chargeState, arrayOfTheoPeakIndexes);
                 return isoEnvelop;
             }
 
@@ -820,6 +820,26 @@ namespace MassSpectrometry
             return bestIsotopeEnvelopeForThisPeak;
         }
 
+        //Kind of similar as a S/N filter. It works for top-down, Not working for bottom-up.
+        private double CalIsoEnvelopNoise(IsoEnvelop isoEnvelop)
+        {
+            double intensityInRange = 0;
+
+            int minInd = isoEnvelop.TheoPeakIndex.Min();
+
+            int maxInd = isoEnvelop.TheoPeakIndex.Max();
+
+            for (int i = minInd; i <= maxInd; i++)
+            {
+                intensityInRange += YArray[i];
+            }
+
+            double ratio = (isoEnvelop.TotalIntensity / intensityInRange) * ((double)isoEnvelop.ExperimentIsoEnvelop.Where(p=>p.intensity!=0).Count()/((double)maxInd - (double)minInd + 1));
+
+            return ratio;
+
+        }
+
         private double CalNoiseLevel()
         {
             return 0;
@@ -852,6 +872,8 @@ namespace MassSpectrometry
 
                 if (bestIsotopeEnvelopeForThisPeak != null)
                 {
+                    bestIsotopeEnvelopeForThisPeak.MsDeconvSignificance = CalIsoEnvelopNoise(bestIsotopeEnvelopeForThisPeak);
+
                     isolatedMassesAndCharges.Add(bestIsotopeEnvelopeForThisPeak);
                     //foreach (var peak in bestIsotopeEnvelopeForThisPeak.ExperimentIsoEnvelop.Select(p => p.Item1))
                     //{
@@ -951,6 +973,5 @@ namespace MassSpectrometry
         }
 
         #endregion
-
     }
 }

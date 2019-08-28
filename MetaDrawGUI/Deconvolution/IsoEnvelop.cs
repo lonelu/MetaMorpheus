@@ -10,17 +10,20 @@ namespace MassSpectrometry
     {
         public IsoEnvelop() { }
 
-        public IsoEnvelop((double mz, double intensity)[] exp, (double mz, double intensity)[] theo, double mass, int charge)
+        public IsoEnvelop((double mz, double intensity)[] exp, (double mz, double intensity)[] theo, double mass, int charge, int[] theoPeakIndex)
         {
             ExperimentIsoEnvelop = exp;
             TheoIsoEnvelop = theo;
             MonoisotopicMass = mass;
             Charge = charge;
+            TheoPeakIndex = theoPeakIndex;
         }
 
         public (double mz, double intensity)[] ExperimentIsoEnvelop { get; set; }
 
         public (double mz, double intensity)[] TheoIsoEnvelop { get; set; }
+
+        public int[] TheoPeakIndex { get; set; }
 
         public double MonoisotopicMass { get; set; }
 
@@ -35,6 +38,8 @@ namespace MassSpectrometry
         public int Charge { get; set; }
 
         public double MsDeconvScore { get; set; }
+
+        public double MsDeconvSignificance { get; set; }
 
         public int ScanNum { get; set; }
         public double RT { get; set; }
