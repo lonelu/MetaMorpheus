@@ -249,59 +249,28 @@
                         <Expander x:Name="DeconvolutionInformation" ExpandDirection="Right">
                             <Grid>
                                 <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="1*"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="1*"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="2*"/>
                                 </Grid.RowDefinitions>
-
                                 <Grid Grid.Row="0">
-                                    <Expander x:Name="IsotopeEnvolopeExpander">
-                                        <Expander.Header>
-                                            <TextBlock Text="Isotope Envolope">
-                                                <TextBlock.LayoutTransform>
-                                                    <RotateTransform Angle="0"/>
-                                                </TextBlock.LayoutTransform>
-                                            </TextBlock>
-                                        </Expander.Header>
-
+                                    <GroupBox Header="IsoEnvelope" Name="gbIsoEnvelope">
                                         <DataGrid x:Name="dataGridDeconNums" VerticalAlignment="Stretch" ItemsSource="{Binding envolopCollection}" 
                               IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0"
                               SelectedCellsChanged ="DataGridDeconNums_SelectedCellsChanged" CanUserDeleteRows="false" CanUserAddRows="false">
-                                            <!--<DataGrid.Columns>
-                            <DataGridTextColumn Header="Ind" Binding="{Binding Ind}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Mz" Binding="{Binding Mz}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Charge" Binding="{Binding Charge}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="DeconMass" Binding="{Binding DeconMass}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Intensity" Binding="{Binding Intensity}"></DataGridTextColumn>
-                        </DataGrid.Columns>-->
                                         </DataGrid>
-
-                                    </Expander>
+                                    </GroupBox>
                                 </Grid>
                                 <GridSplitter Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" Background="Silver" Height="3" />
                                 <Grid Grid.Row="2">
-                                    <Expander x:Name="ChargeEnvolopeExpander" >
-                                        <Expander.Header>
-                                            <TextBlock Text="Charge Envolope">
-                                                <TextBlock.LayoutTransform>
-                                                    <RotateTransform Angle="0"/>
-                                                </TextBlock.LayoutTransform>
-                                            </TextBlock>
-                                        </Expander.Header>
-                                        <GroupBox>
-                                            <DataGrid x:Name="dataGridChargeEnves" VerticalAlignment="Stretch" ItemsSource="{Binding chargeEnvelopesCollection}" 
+                                    <GroupBox Header="ChargeEnvelope" Name="gbChargeEnvelope">
+                                        <DataGrid x:Name="dataGridChargeEnves" VerticalAlignment="Stretch" ItemsSource="{Binding chargeEnvelopesCollection}" 
                               IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0"
                               SelectedCellsChanged ="DataGridChargeEnves_SelectedCellsChanged" CanUserDeleteRows="false" CanUserAddRows="false">
-                                                <!--<DataGrid.Columns>
-                            <DataGridTextColumn Header="Ind" Binding="{Binding Ind}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="DeconMass" Binding="{Binding DeconMass}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="MSE" Binding="{Binding MSE}"></DataGridTextColumn>
-                        </DataGrid.Columns>-->
-                                            </DataGrid>
-                                        </GroupBox>
-                                    </Expander>
+                                        </DataGrid>
+                                    </GroupBox>
                                 </Grid>
                                 <GridSplitter Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Stretch" Background="Silver" Height="3" />
                                 <GroupBox Header="Spectra" Name="gbSpectra" Grid.Row="4">

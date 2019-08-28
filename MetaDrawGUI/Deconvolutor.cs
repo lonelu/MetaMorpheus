@@ -72,7 +72,7 @@ namespace MetaDrawGUI
         }
 
         public List<ChargeDeconEnvelope> ScanChargeEnvelopes { get; set; } = new List<ChargeDeconEnvelope>();
-        public List<NeuCodeIsotopicEnvelop> IsotopicEnvelopes { get; set; } = new List<NeuCodeIsotopicEnvelop>();
+        public List<IsoEnvelop> IsotopicEnvelopes { get; set; } = new List<IsoEnvelop>();
         public Dictionary<int, MzPeak> Mz_zs { get; set; } = new Dictionary<int, MzPeak>();
         public List<Dictionary<int, MzPeak>> Mz_zs_list { get; set; } = new List<Dictionary<int, MzPeak>>();
 
@@ -159,12 +159,12 @@ namespace MetaDrawGUI
             //IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
             //IsotopicEnvelopes = mzSpectrumBU.Deconvolute(msDataScan.ScanWindowRange, _thanos.DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
             //IsotopicEnvelopes = mzSpectrumBU.ParallelDeconvolute(msDataScan.ScanWindowRange, DeconvolutionParameter, 8).OrderBy(p => p.monoisotopicMass).ToList();
-            IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU_NeuCode(_thanos.msDataScan.ScanWindowRange, _thanos.DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+            IsotopicEnvelopes = mzSpectrumBU.MsDeconv_Deconvolute(_thanos.msDataScan.ScanWindowRange, _thanos.DeconvolutionParameter).OrderBy(p => p.MonoisotopicMass).ToList();
 
             int i = 1;
             foreach (var item in IsotopicEnvelopes)
             {
-                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
+                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.ExperimentIsoEnvelop.First().Item1, item.Charge, item.MonoisotopicMass, item.TotalIntensity));
                 i++;
             }
 
@@ -299,18 +299,13 @@ namespace MetaDrawGUI
                 var isotopicEnvelopes = mzSpectrumBU.Deconvolute(MS1Scans[i].ScanWindowRange, _thanos.DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
                 watch.Stop();
 
-                var watch0 = System.Diagnostics.Stopwatch.StartNew();
-
-                var isotopicEnvelopesByParallel = mzSpectrumBU.ParallelDeconvolute(MS1Scans[i].ScanWindowRange, _thanos.DeconvolutionParameter, 8).OrderBy(p => p.monoisotopicMass).ToList();
-                watch0.Stop();
-
                 var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
                 var chargeDecon = mzSpectrumBU.ChargeDeconvolution(isotopicEnvelopes);
 
                 watch1.Stop();
 
-                var theEvaluation = new WatchEvaluation(theScanNum, theRT, watch.ElapsedMilliseconds, watch0.ElapsedMilliseconds, watch1.ElapsedMilliseconds);
+                var theEvaluation = new WatchEvaluation(theScanNum, theRT, watch.ElapsedMilliseconds, watch1.ElapsedMilliseconds);
                 evalution.Add(theEvaluation);
                 i++;
 
@@ -322,7 +317,7 @@ namespace MetaDrawGUI
                 output.WriteLine("ScanNum\tRT\tIsotopicDecon\tIsoTopicDeconByParallel\tChargeDecon");
                 foreach (var theEvaluation in evalution)
                 {
-                    output.WriteLine(theEvaluation.TheScanNumber.ToString() + "\t" + theEvaluation.TheRT + "\t" + theEvaluation.WatchIsoDecon.ToString() + "\t" + theEvaluation.WatchIsoDeconByParallel.ToString() + "\t" + theEvaluation.WatchChaDecon.ToString());
+                    output.WriteLine(theEvaluation.TheScanNumber.ToString() + "\t" + theEvaluation.TheRT + "\t" + theEvaluation.WatchIsoDecon.ToString() + "\t" + theEvaluation.WatchChaDecon.ToString());
                 }
             }
         }

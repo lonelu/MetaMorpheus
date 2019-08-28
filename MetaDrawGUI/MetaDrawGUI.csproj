@@ -178,7 +178,7 @@
     <Compile Include="Deconvolution\DeconvolutionParameter.cs" />
     <Compile Include="BasicClasses\GlycanStructureAnnotation.cs" />
     <Compile Include="BasicClasses\NeucodeDoublet.cs" />
-    <Compile Include="BasicClasses\NeuCodeIsotopicEnvelop.cs" />
+    <Compile Include="Deconvolution\NeuCodeIsotopicEnvelop.cs" />
     <Compile Include="BasicClasses\SimplePsm.cs" />
     <Compile Include="BasicClasses\Timepoint.cs" />
     <Compile Include="BasicClasses\TsvReader_Glyco.cs" />
