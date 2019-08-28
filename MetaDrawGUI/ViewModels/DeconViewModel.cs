@@ -103,7 +103,7 @@ namespace ViewModels
             return model;
         }
 
-        public static PlotModel UpdateModelForDeconModel(MzSpectrumBU mzSpectrumBU, int ind)
+        public static PlotModel DrawDeconModel(MzSpectrumBU mzSpectrumBU, int ind)
         {
             PlotModel model = new PlotModel { Title = "Decon Model", DefaultFontSize = 15 };
             model.Axes.Add(new LinearAxis {
@@ -143,6 +143,46 @@ namespace ViewModels
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
             return tmp;
+        }
+
+        public static PlotModel DrawIntensityDistibution(MsDataScan MsScanForDraw)
+        {
+            string scanNum = MsScanForDraw.OneBasedScanNumber.ToString();
+
+            var y = MsScanForDraw.MassSpectrum.YArray.OrderByDescending(p=>p).ToArray();
+
+            PlotModel model = new PlotModel { Title = "Intensity Distribution of Scan ", DefaultFontSize = 15 };
+
+            model.Axes.Add(new LinearAxis
+            {
+                Position = AxisPosition.Bottom,
+                Title = "Intensity Rank",
+                Minimum = 0,
+                Maximum = y.Length + 5,
+                AbsoluteMinimum = -5,
+                AbsoluteMaximum = y.Length + 10,
+            });
+            model.Axes.Add(new LinearAxis
+            {
+                Position = AxisPosition.Left,
+                Title = "Intensity(counts)",
+                Minimum = 0,
+                Maximum = y.Max() * 1.2,
+                AbsoluteMinimum = 0,
+                AbsoluteMaximum = y.Max() * 1.3
+            });
+
+            for (int i = 0; i < y.Length; i++)
+            {
+                var line = new LineSeries();
+                line.Color = OxyColors.Blue;
+                line.StrokeThickness = 1;
+                line.Points.Add(new DataPoint(i, 0));
+                line.Points.Add(new DataPoint(i, y[i]));
+                model.Series.Add(line);
+            }
+
+            return model;
         }
 
         private void XAxisChanged(object sender, AxisChangedEventArgs e)

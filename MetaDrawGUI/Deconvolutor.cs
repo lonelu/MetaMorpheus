@@ -17,9 +17,10 @@ namespace MetaDrawGUI
         DeconQuant = 2,
         DeconAllChargeParsi = 3,
         DeconWatch = 4,
-        DeconPeak_Neucode = 5,
+        DeconIsoByPeak = 5,
         DeconChargeByPeak = 6,
-        DeconDrawTwoScan = 7
+        DeconDrawTwoScan = 7,
+        DeconDrawIntensityDistribution = 8
     }
 
     public class Deconvolutor: INotifyPropertyChanged
@@ -149,8 +150,6 @@ namespace MetaDrawGUI
         //TO DO:this need to be change when the mzSpectrumBU change.
         public int DeconPeakInd { get; set; } = 0;
 
-        public HashSet<double> seenPeaks { get; set; } = new HashSet<double>();
-
         public void Decon()
         {
             _thanos.msDataScan = _thanos.msDataScans.Where(p => p.OneBasedScanNumber == _thanos.ControlParameter.deconScanNum).First();
@@ -192,32 +191,21 @@ namespace MetaDrawGUI
             //chargeEnvelopesCollection = chargeEnvelopesObservableCollection;
         }
 
-        public void DeconPeak_NeuCode()
+        public void DeconIsoByPeak()
         {
-            if (DeconPeakInd < mzSpectrumBU.Size)
-            {
-                if (!seenPeaks.Contains(mzSpectrumBU.XArray[indexByY[DeconPeakInd]]))
-                {
-                    var envo = mzSpectrumBU.DeconvolutePeak_NeuCode(indexByY[DeconPeakInd], _thanos.DeconvolutionParameter);
-                    if (envo != null)
-                    {
-                        foreach (var p in envo.peaks)
-                        {
-                            seenPeaks.Add(p.mz);
-                        }
-                        if (envo.Partner != null)
-                        {
-                            foreach (var p in envo.Partner.peaks)
-                            {
-                                seenPeaks.Add(p.mz);
-                            }
-                        }
-                        //_thanos.deconvolutor.DeconModel = DeconViewModel.UpdataModelForDecon(_thanos.msDataScan, envo);
+            MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(_thanos.msDataScan.MassSpectrum.XArray, _thanos.msDataScan.MassSpectrum.YArray, true);
 
-                    }
-                }
+            double deconChargeMass = _thanos.ControlParameter.DeconChargeMass;
+
+            int index = ChargeDecon.GetCloestIndex(deconChargeMass, mzSpectrumBU.XArray);
+
+            var envo = mzSpectrumBU.MsDeconvExperimentPeak(index, _thanos.DeconvolutionParameter, 0);
+
+            if (envo != null)
+            {
+                _thanos.deconvolutor.DeconModel = DeconViewModel.UpdataModelForDecon(_thanos.msDataScan, envo);
             }
-            DeconPeakInd++;
+
         }
 
         public void PlotDeconModel()
@@ -225,13 +213,13 @@ namespace MetaDrawGUI
             if (_thanos.msDataScan != null)
             {
                 MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(_thanos.msDataScan.MassSpectrum.XArray, _thanos.msDataScan.MassSpectrum.YArray, true);                
-                Model = DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, _thanos.ControlParameter.modelStartNum);
+                Model = DeconViewModel.DrawDeconModel(mzSpectrumBU, _thanos.ControlParameter.modelStartNum);
             }
             else
             {
 
                 var mzSpectrumBU = new MzSpectrumBU(new double[] { 1 }, new double[] { 1 }, true);                
-                Model = DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, _thanos.ControlParameter.modelStartNum);
+                Model = DeconViewModel.DrawDeconModel(mzSpectrumBU, _thanos.ControlParameter.modelStartNum);
             }
         }
         
@@ -352,6 +340,14 @@ namespace MetaDrawGUI
             {
                 var anotherScan = _thanos.msDataScans[_thanos.msDataScan.OneBasedScanNumber];
                 Model = ScanCompareViewModel.DrawScan(_thanos.msDataScan, anotherScan);
+            }
+        }
+
+        public void PlotIntensityDistribution()
+        {
+            if (_thanos.msDataScan != null)
+            {
+                Model = DeconViewModel.DrawIntensityDistibution(_thanos.msDataScan);
             }
         }
 

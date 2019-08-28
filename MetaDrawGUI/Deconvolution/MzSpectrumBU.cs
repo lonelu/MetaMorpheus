@@ -690,7 +690,7 @@ namespace MassSpectrometry
             {
                 theoryIsoEnvelopLength++;
                 theoryIntensityCut += allIntensities[massIndex][i];
-                if (theoryIntensityCut >= 0.85 && i >= 2)
+                if (theoryIntensityCut >= 0.95 && i >= 2)
                 {
                     break;
                 }
@@ -735,7 +735,7 @@ namespace MassSpectrometry
             return null;
         }
 
-        private int GetConsecutiveLength((double mz, double intensity)[] experiment)
+        private int GetConsecutiveLength((double mz, double intensity)[] experiment, out int secondConsecutiveLenth)
         {
             List<int> inds = new List<int>();
             for (int i = 0; i < experiment.Length; i++)
@@ -748,6 +748,7 @@ namespace MassSpectrometry
 
             if (inds.Count == 1)
             {
+                secondConsecutiveLenth = 0;
                 return inds.First();
             }
             else if (inds.Count > 1)
@@ -758,19 +759,20 @@ namespace MassSpectrometry
 
                 for (int i = 0; i < inds.Count() - 1; i++)
                 {
-                    lens.Add(inds[i + 1] - inds[i]);
+                    lens.Add(inds[i + 1] - inds[i] - 1);
                 }
-
+                secondConsecutiveLenth = lens.OrderByDescending(p => p).ElementAt(1);
                 return lens.Max();
             }
-
+            secondConsecutiveLenth = 0;
             return experiment.Length;
         }
 
         private bool FilterEEnvelop((double mz, double intensity)[] experiment)
         {
-            int consecutiveLength = GetConsecutiveLength(experiment);
-            if (consecutiveLength < 3 || consecutiveLength < (experiment.Length - 3))
+            int secondConsecutiveLength = 0;
+            int consecutiveLength = GetConsecutiveLength(experiment, out secondConsecutiveLength);
+            if (consecutiveLength < 3 || consecutiveLength + secondConsecutiveLength < experiment.Length*2/3)
             {
                 return false;
             }
@@ -778,7 +780,7 @@ namespace MassSpectrometry
             return true;
         }
 
-        public IsoEnvelop DeconvoluteExperimentPeak(int candidateForMostIntensePeak, DeconvolutionParameter deconvolutionParameter, double noiseLevel)
+        public IsoEnvelop MsDeconvExperimentPeak(int candidateForMostIntensePeak, DeconvolutionParameter deconvolutionParameter, double noiseLevel)
         {
             IsoEnvelop bestIsotopeEnvelopeForThisPeak = null;
 
@@ -846,7 +848,7 @@ namespace MassSpectrometry
 
                 double noiseLevel = CalNoiseLevel();
 
-                IsoEnvelop bestIsotopeEnvelopeForThisPeak = DeconvoluteExperimentPeak(candidateForMostIntensePeak, deconvolutionParameter, noiseLevel);
+                IsoEnvelop bestIsotopeEnvelopeForThisPeak = MsDeconvExperimentPeak(candidateForMostIntensePeak, deconvolutionParameter, noiseLevel);
 
                 if (bestIsotopeEnvelopeForThisPeak != null)
                 {

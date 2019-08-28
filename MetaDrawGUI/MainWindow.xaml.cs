@@ -733,14 +733,17 @@ namespace MetaDrawGUI
                 case DeconvolutorSkill.DeconAllChargeParsi:
                     action = thanos.deconvolutor.DeconAllChargeParsi;
                     break;
-                case DeconvolutorSkill.DeconPeak_Neucode:
-                    action = thanos.deconvolutor.DeconPeak_NeuCode;
+                case DeconvolutorSkill.DeconIsoByPeak:
+                    action = thanos.deconvolutor.DeconIsoByPeak;
                     break;
                 case DeconvolutorSkill.DeconChargeByPeak:
                     action = thanos.deconvolutor.DeconChargeByPeak;
                     break;
                 case DeconvolutorSkill.DeconDrawTwoScan:
                     action = thanos.deconvolutor.PlotTwoScan;
+                    break;
+                case DeconvolutorSkill.DeconDrawIntensityDistribution:
+                    action = thanos.deconvolutor.PlotIntensityDistribution;
                     break;
                 default:
                     break;
