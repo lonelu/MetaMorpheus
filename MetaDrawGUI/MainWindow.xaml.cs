@@ -462,6 +462,7 @@ namespace MetaDrawGUI
             }
         }
 
+        //From FlashDecon
         private void DataGridFlashDeconEnvelopes_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
             UpdateField();
@@ -480,6 +481,7 @@ namespace MetaDrawGUI
             
         }
 
+        //From Decon isoEnvelop
         private void DataGridDeconNums_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
             UpdateField();
@@ -490,10 +492,11 @@ namespace MetaDrawGUI
             var sele = (EnvolopForDataGrid)dataGridDeconNums.SelectedItem;
 
             var envo = thanos.deconvolutor.IsotopicEnvelopes[sele.Ind - 1];
-            //thanos.deconvolutor.DeconModel = DeconViewModel.UpdataModelForDecon(thanos.msDataScan, envo);
+            thanos.deconvolutor.DeconModel = DeconViewModel.UpdataModelForDecon(thanos.msDataScan, envo);
            // thanos.deconvolutor.XicModel = PeakViewModel.DrawXic(envo.monoisotopicMass, envo.charge, thanos.msDataScan.RetentionTime, thanos.msDataFile, new PpmTolerance(5), 5.0, 3, "");
         }
 
+        //From Charge Decon chargeEnvelop
         private void DataGridChargeEnves_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
             UpdateField();

@@ -22,13 +22,13 @@ namespace ViewModels
             this.privateModel = tmp;
         }
 
-        public static PlotModel UpdataModelForDecon(MsDataScan MsScanForDraw, NeuCodeIsotopicEnvelop isotopicEnvelope)
+        public static PlotModel UpdataModelForDecon(MsDataScan MsScanForDraw, IsoEnvelop isotopicEnvelope)
         {
             var model = DrawDecon(MsScanForDraw, isotopicEnvelope);
             return model;
         }
 
-        public static PlotModel DrawDecon(MsDataScan MsScanForDraw, NeuCodeIsotopicEnvelop isotopicEnvelope)
+        public static PlotModel DrawDecon(MsDataScan MsScanForDraw, IsoEnvelop isotopicEnvelope)
         {
             var x = MsScanForDraw.MassSpectrum.XArray;
             var y = MsScanForDraw.MassSpectrum.YArray;
@@ -38,22 +38,22 @@ namespace ViewModels
             model.Axes.Add(new LinearAxis {
                 Position = AxisPosition.Bottom,
                 Title = "m/z",
-                Minimum = isotopicEnvelope.peaks.First().mz - 2,
-                Maximum = isotopicEnvelope.peaks.Last().mz + 2,
-                AbsoluteMinimum = isotopicEnvelope.peaks.First().mz - 10,
-                AbsoluteMaximum = isotopicEnvelope.peaks.Last().mz + 10,
+                Minimum = isotopicEnvelope.ExperimentIsoEnvelop.First().mz - 2,
+                Maximum = isotopicEnvelope.ExperimentIsoEnvelop.Last().mz + 2,
+                AbsoluteMinimum = isotopicEnvelope.ExperimentIsoEnvelop.First().mz - 10,
+                AbsoluteMaximum = isotopicEnvelope.ExperimentIsoEnvelop.Last().mz + 10,
             });
             model.Axes.Add(new LinearAxis {
                 Position = AxisPosition.Left,
                 Title = "Intensity(counts)",
                 Minimum = 0,
-                Maximum = isotopicEnvelope.peaks.First().intensity * 1.3,
+                Maximum = isotopicEnvelope.ExperimentIsoEnvelop.First().intensity * 1.3,
                 AbsoluteMinimum = 0,
                 // AbsoluteMaximum = isotopicEnvelope.peaks.First().intensity * 2
                 AbsoluteMaximum = y.Max() * 1.2
             });
 
-            foreach (var peak in isotopicEnvelope.peaks)
+            foreach (var peak in isotopicEnvelope.ExperimentIsoEnvelop)
             {
                 var sPeak = new LineSeries();
                 sPeak.Color = OxyColors.OrangeRed;
@@ -65,7 +65,7 @@ namespace ViewModels
 
             if (isotopicEnvelope.Partner!=null)
             {
-                foreach (var peak in isotopicEnvelope.Partner.peaks)
+                foreach (var peak in isotopicEnvelope.Partner.ExperimentIsoEnvelop)
                 {
                     var sPeak = new LineSeries();
                     sPeak.Color = OxyColors.Yellow;
@@ -82,8 +82,8 @@ namespace ViewModels
             peakAnno.FontSize = 12;
             peakAnno.TextColor = OxyColors.Red;
             peakAnno.StrokeThickness = 0;
-            peakAnno.TextPosition = new DataPoint(isotopicEnvelope.peaks[0].mz, isotopicEnvelope.peaks[0].intensity);
-            peakAnno.Text = isotopicEnvelope.monoisotopicMass.ToString("f1") + "@" + isotopicEnvelope.charge.ToString();
+            peakAnno.TextPosition = new DataPoint(isotopicEnvelope.ExperimentIsoEnvelop[0].mz, isotopicEnvelope.ExperimentIsoEnvelop[0].intensity);
+            peakAnno.Text = isotopicEnvelope.MonoisotopicMass.ToString("f1") + "@" + isotopicEnvelope.Charge.ToString();
 
             //Draw the ms/ms scan peaks
             LineSeries[] s0 = new LineSeries[x.Length];

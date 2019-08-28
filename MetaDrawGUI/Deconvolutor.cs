@@ -212,7 +212,7 @@ namespace MetaDrawGUI
                                 seenPeaks.Add(p.mz);
                             }
                         }
-                        _thanos.deconvolutor.DeconModel = DeconViewModel.UpdataModelForDecon(_thanos.msDataScan, envo);
+                        //_thanos.deconvolutor.DeconModel = DeconViewModel.UpdataModelForDecon(_thanos.msDataScan, envo);
 
                     }
                 }

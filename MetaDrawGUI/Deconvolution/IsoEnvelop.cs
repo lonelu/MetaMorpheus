@@ -10,7 +10,7 @@ namespace MassSpectrometry
     {
         public IsoEnvelop() { }
 
-        public IsoEnvelop((double, double)[] exp, (double, double)[] theo, double mass, int charge)
+        public IsoEnvelop((double mz, double intensity)[] exp, (double mz, double intensity)[] theo, double mass, int charge)
         {
             ExperimentIsoEnvelop = exp;
             TheoIsoEnvelop = theo;
@@ -18,9 +18,9 @@ namespace MassSpectrometry
             Charge = charge;
         }
 
-        public (double, double)[] ExperimentIsoEnvelop { get; set; }
+        public (double mz, double intensity)[] ExperimentIsoEnvelop { get; set; }
 
-        public (double, double)[] TheoIsoEnvelop { get; set; }
+        public (double mz, double intensity)[] TheoIsoEnvelop { get; set; }
 
         public double MonoisotopicMass { get; set; }
 
@@ -39,6 +39,8 @@ namespace MassSpectrometry
 
         //For NeuCode Feature
         public bool IsNeuCode { get; set; } = false;
+
+        public IsoEnvelop Partner { get; set; }
 
     }
 }
