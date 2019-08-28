@@ -142,10 +142,6 @@
                         <GroupBox Header="Deconvolution Control" Grid.Row="0">
                             <Expander x:Name="DeconParameterExpander">
                                 <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="1.5*"/>
-                                        <RowDefinition Height="1*"/>
-                                    </Grid.RowDefinitions>
                                     <StackPanel Orientation="Vertical">
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
                                             <Label Content="MinAssumedChargeState"/>
@@ -164,40 +160,22 @@
                                             <TextBox x:Name="txtIntensityRatioLimit" Width="50" />
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                            <Label Content="NeuCode Mass Defect"/>
-                                            <TextBox x:Name="TxtNeuCodeMassDefect" Width="50" />
+                                            <Label Content="Partner Mass Diff"/>
+                                            <TextBox x:Name="TxtPartnerMassDiff" Width="50" />
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                            <Label Content="NeuCode Max Num"/>
-                                            <TextBox x:Name="TxtNeuCodeMaxNum" Width="50" />
+                                            <Label Content="Max Label Num"/>
+                                            <TextBox x:Name="TxtMaxLabelNum" Width="50" />
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                            <Label Content="NeuCode Ratio"/>
-                                            <TextBox x:Name="TxtNeuCodeRatio" Width="50" />
+                                            <Label Content="Partner Ratio"/>
+                                            <TextBox x:Name="TxtPartnerRatio" Width="50" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                            <Label Content="Partner Tolerance"/>
+                                            <TextBox x:Name="TxtParnerTolerance" Width="50" />
                                         </StackPanel>
                                     </StackPanel>
-                                    <StackPanel Orientation="Vertical" Grid.Row="1">
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
-                                            <Label Content="Scan number:"/>
-                                            <TextBox x:Name="txtDeconScanNum" Text="2"  Width="50"/>
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
-                                            <Label Content="Model Number from:"/>
-                                            <TextBox x:Name="TxtDeconModel" Text="0"  Width="30" />
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
-                                            <Label Content="Decon Charge Mass:"/>
-                                            <TextBox x:Name="TxtDeconChargeMass" Text="0"  Width="30" />
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
-                                            <Button x:Name="btnResetDecon" Content="Reset" Click="btnResetDecon_Click"/>
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
-                                            <ComboBox x:Name="cmbDeconAction" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            <Button x:Name="btnDeconStart" Content="Start" Click="BtnDeconStart_Click"/>
-                                        </StackPanel>
-                                    </StackPanel>
-
                                 </Grid>
                             </Expander>
                         </GroupBox>
@@ -233,15 +211,37 @@
                         Height="3" />
                         <GroupBox Header="Spectra" Name="gbFlashDecon" Grid.Row="4">
                             <Grid Grid.Row="4">
-                                <DataGrid x:Name="DataGridFlashDeconEnvelopes" VerticalAlignment="Stretch" ItemsSource="{Binding MsFeatureCollection}" 
-                              IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="1" Margin="0,0,0,0"
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="2*"/>
+                                        <RowDefinition Height="1*"/>
+                                    </Grid.RowDefinitions>
+                                    <DataGrid x:Name="DataGridFlashDeconEnvelopes" VerticalAlignment="Stretch" ItemsSource="{Binding MsFeatureCollection}" 
+                              IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="0" Margin="0,0,0,0"
                               SelectedCellsChanged ="DataGridFlashDeconEnvelopes_SelectedCellsChanged"  CanUserDeleteRows="false" CanUserAddRows="false">
-                                    <!--<DataGrid.Columns>
-                            <DataGridTextColumn Header="Ind" Binding="{Binding Ind}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="DeconMass" Binding="{Binding DeconMass}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="MSE" Binding="{Binding MSE}"></DataGridTextColumn>
-                        </DataGrid.Columns>-->
-                                </DataGrid>
+                                    </DataGrid>
+                                    <StackPanel Orientation="Vertical" Grid.Row="1">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
+                                            <Label Content="Scan number:"/>
+                                            <TextBox x:Name="txtDeconScanNum" Text="2"  Width="50"/>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
+                                            <Label Content="Model Number from:"/>
+                                            <TextBox x:Name="TxtDeconModel" Text="0"  Width="30" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
+                                            <Label Content="Decon Charge Mass:"/>
+                                            <TextBox x:Name="TxtDeconChargeMass" Text="0"  Width="30" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
+                                            <Button x:Name="btnResetDecon" Content="Reset" Click="btnResetDecon_Click"/>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
+                                            <ComboBox x:Name="cmbDeconAction" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <Button x:Name="btnDeconStart" Content="Start" Click="BtnDeconStart_Click"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
                             </Grid>
                         </GroupBox>
                     </Grid>

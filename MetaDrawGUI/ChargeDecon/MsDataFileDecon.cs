@@ -29,15 +29,15 @@ namespace MetaDrawGUI
 
                         var selectedMS2 = msDataScanList.Where(p => p.OneBasedPrecursorScanNumber == msDataScan.OneBasedScanNumber).Select(p => p.SelectedIonMZ).ToList();
 
-                        var chargeDecon = mzSpectrumTD.ChargeDeconvolution(isotopicEnvelopes);
+                        //var chargeDecon = mzSpectrumTD.ChargeDeconvolution(isotopicEnvelopes);
 
-                        lock (chargeDeconPerMS1Scans)
-                        {
-                            if (chargeDecon.Count != 0)
-                            {
-                                chargeDeconPerMS1Scans.Add(new ChargeDeconPerMS1Scan(chargeDecon));
-                            }
-                        }
+                        //lock (chargeDeconPerMS1Scans)
+                        //{
+                        //    if (chargeDecon.Count != 0)
+                        //    {
+                        //        chargeDeconPerMS1Scans.Add(new ChargeDeconPerMS1Scan(chargeDecon));
+                        //    }
+                        //}
 
                         //lock (chargeEnvelopesList)
                         //{
@@ -253,7 +253,7 @@ namespace MetaDrawGUI
                 peaks.Add(chromatographicPeaks[i]);
                 for (int j = i+1; j < chromatographicPeaks.Count; j++)
                 {
-                    if (chromatographicPeaks[j].Identifications.First().monoisotopicMass - chromatographicPeaks[i].Identifications.First().monoisotopicMass > deconvolutionParameter.NeuCodeMassDefect * (deconvolutionParameter.MaxmiumNeuCodeNumber + 1))
+                    if (chromatographicPeaks[j].Identifications.First().monoisotopicMass - chromatographicPeaks[i].Identifications.First().monoisotopicMass > deconvolutionParameter.PartnerMassDiff * (deconvolutionParameter.MaxmiumLabelNumber + 1))
                     {
                         break;
                     }
@@ -279,13 +279,13 @@ namespace MetaDrawGUI
             {
                 return false;
             }
-            for (int i = 1; i < deconvolutionParameter.MaxmiumNeuCodeNumber + 1; i++)
+            for (int i = 1; i < deconvolutionParameter.MaxmiumLabelNumber + 1; i++)
             {
                 if (aPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Min() <= bPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Max()
                     && bPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Min() <= aPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Max())
                 {
                     if (deconvolutionParameter.DeconvolutionAcceptor.Within(aPeak.Identifications.First().monoisotopicMass,
-                        bPeak.Identifications.First().monoisotopicMass - deconvolutionParameter.NeuCodeMassDefect * i / 1000))
+                        bPeak.Identifications.First().monoisotopicMass - deconvolutionParameter.PartnerMassDiff * i / 1000))
                     {
                         return true;
                     }

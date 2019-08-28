@@ -205,7 +205,6 @@
     <Compile Include="Deconvolutor.cs" />
     <Compile Include="ChargeDecon\MsDataFileDecon.cs" />
     <Compile Include="MsFeature.cs" />
-    <Compile Include="Multiprotease\MultiProteaseCrosslink.cs" />
     <Compile Include="Deconvolution\MzSpectrumBU.cs" />
     <Compile Include="Regression\GaussianModel.cs" />
     <Compile Include="Regression\LevenbergMarquardtSolver.cs" />

@@ -38,7 +38,7 @@ namespace MassSpectrometry
         public double RT { get; set; }
 
         //For NeuCode Feature
-        public bool IsNeuCode { get; set; } = false;
+        public bool HasPartner { get; set; } = false;
 
         public IsoEnvelop Partner { get; set; }
 

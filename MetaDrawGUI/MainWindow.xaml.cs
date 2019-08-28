@@ -123,9 +123,9 @@ namespace MetaDrawGUI
             txtMaxAssumedChargeState.Text = thanos.DeconvolutionParameter.DeconvolutionMaxAssumedChargeState.ToString();
             txtDeconvolutionToleranc.Text = thanos.DeconvolutionParameter.DeconvolutionMassTolerance.ToString();
             txtIntensityRatioLimit.Text = thanos.DeconvolutionParameter.DeconvolutionIntensityRatio.ToString();
-            TxtNeuCodeMassDefect.Text = thanos.DeconvolutionParameter.NeuCodeMassDefect.ToString();
-            TxtNeuCodeMaxNum.Text = thanos.DeconvolutionParameter.MaxmiumNeuCodeNumber.ToString();
-            TxtNeuCodeRatio.Text = thanos.DeconvolutionParameter.NeuCodePairRatio.ToString();
+            TxtPartnerMassDiff.Text = thanos.DeconvolutionParameter.PartnerMassDiff.ToString();
+            TxtMaxLabelNum.Text = thanos.DeconvolutionParameter.MaxmiumLabelNumber.ToString();
+            TxtPartnerRatio.Text = thanos.DeconvolutionParameter.PartnerPairRatio.ToString();
             TxtScanNumCountRangeLow.Text = thanos.ControlParameter.LCTimeRange.Item1.ToString();
             TxtScanNumCountRangeHigh.Text = thanos.ControlParameter.LCTimeRange.Item2.ToString();
         }
@@ -136,9 +136,9 @@ namespace MetaDrawGUI
             thanos.DeconvolutionParameter.DeconvolutionMaxAssumedChargeState = int.Parse(txtMaxAssumedChargeState.Text);
             thanos.DeconvolutionParameter.DeconvolutionMassTolerance = double.Parse(txtDeconvolutionToleranc.Text);
             thanos.DeconvolutionParameter.DeconvolutionIntensityRatio = double.Parse(txtIntensityRatioLimit.Text);
-            thanos.DeconvolutionParameter.NeuCodeMassDefect = double.Parse(TxtNeuCodeMassDefect.Text);
-            thanos.DeconvolutionParameter.MaxmiumNeuCodeNumber = int.Parse(TxtNeuCodeMaxNum.Text);
-            thanos.DeconvolutionParameter.NeuCodePairRatio = double.Parse(TxtNeuCodeRatio.Text);
+            thanos.DeconvolutionParameter.PartnerMassDiff = double.Parse(TxtPartnerMassDiff.Text);
+            thanos.DeconvolutionParameter.MaxmiumLabelNumber = int.Parse(TxtMaxLabelNum.Text);
+            thanos.DeconvolutionParameter.PartnerPairRatio = double.Parse(TxtPartnerRatio.Text);
 
             thanos.ControlParameter.LCTimeRange = new Tuple<double, double>(  double.Parse(TxtScanNumCountRangeLow.Text), double.Parse(TxtScanNumCountRangeHigh.Text));
             thanos.ControlParameter.deconScanNum = Convert.ToInt32(txtDeconScanNum.Text);
@@ -312,6 +312,8 @@ namespace MetaDrawGUI
             }
         }
 
+        #region Deconvolution Control
+
         private void BtnLoadFlashDeconResults_Click(object sender, RoutedEventArgs e)
         {
             foreach (var collection in resultFilesObservableCollection)
@@ -387,7 +389,7 @@ namespace MetaDrawGUI
                 {
                     thanos.deconvolutor.IsotopicEnvelopes[i - 1].ScanNum = thanos.msDataScan.OneBasedScanNumber;
                     thanos.deconvolutor.IsotopicEnvelopes[i - 1].RT = thanos.msDataScan.RetentionTime;
-                    thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.ExperimentIsoEnvelop.First().Item1, item.Charge, item.MonoisotopicMass, item.ExperimentIsoEnvelop.First().Item2));
+                    thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.HasPartner, item.ExperimentIsoEnvelop.First().Item1, item.Charge, item.MonoisotopicMass, item.ExperimentIsoEnvelop.First().Item2));
                     i++;
                 }
 
@@ -403,7 +405,7 @@ namespace MetaDrawGUI
 
                 thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(thanos.deconvolutor.mzSpectrumBU, indexMax);
 
-                thanos.deconvolutor.Mz_zs_list = ChargeDecon.FindChargesForScan(thanos.deconvolutor.mzSpectrumBU);
+                //thanos.deconvolutor.Mz_zs_list = ChargeDecon.FindChargesForScan(thanos.deconvolutor.mzSpectrumBU);
 
                 int ind = 1;
                 foreach (var mz_z in thanos.deconvolutor.Mz_zs)
@@ -432,12 +434,12 @@ namespace MetaDrawGUI
             thanos.deconvolutor.Model = MainViewModel.DrawPeptideSpectralMatch(ms2DataScan, psm);
             thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.PrecursorScanNum).First();
 
-           // thanos.deconvolutor.IsotopicEnvelopes = thanos.deconvolutor.mzSpectrumBU.DeconvoluteBU_NeuCode(thanos.msDataScan.ScanWindowRange, thanos.DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+            thanos.deconvolutor.IsotopicEnvelopes = thanos.deconvolutor.mzSpectrumBU.MsDeconv_Deconvolute(thanos.msDataScan.ScanWindowRange, thanos.DeconvolutionParameter).OrderBy(p => p.MonoisotopicMass).ToList();
 
             int i = 1;
             foreach (var item in thanos.deconvolutor.IsotopicEnvelopes)
             {
-                //thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.peaks.First().mz, item.charge, item.monoisotopicMass, item.totalIntensity));
+                thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.HasPartner, item.ExperimentIsoEnvelop.First().mz, item.Charge, item.MonoisotopicMass, item.TotalIntensity));
                 i++;
             }
 
@@ -477,7 +479,6 @@ namespace MetaDrawGUI
 
             thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
             thanos.deconvolutor.Model = MainViewModel.DrawScan(thanos.msDataScan, sele.MsFeature);
-
             
         }
 
@@ -493,7 +494,7 @@ namespace MetaDrawGUI
 
             var envo = thanos.deconvolutor.IsotopicEnvelopes[sele.Ind - 1];
             thanos.deconvolutor.DeconModel = DeconViewModel.UpdataModelForDecon(thanos.msDataScan, envo);
-           // thanos.deconvolutor.XicModel = PeakViewModel.DrawXic(envo.monoisotopicMass, envo.charge, thanos.msDataScan.RetentionTime, thanos.msDataFile, new PpmTolerance(5), 5.0, 3, "");
+            thanos.deconvolutor.XicModel = PeakViewModel.DrawXic(envo.MonoisotopicMass, envo.Charge, thanos.msDataScan.RetentionTime, thanos.msDataFile, new PpmTolerance(5), 5.0, 3, "");
         }
 
         //From Charge Decon chargeEnvelop
@@ -508,6 +509,10 @@ namespace MetaDrawGUI
             
             thanos.deconvolutor.Model = ChargeEnveViewModel.UpdataModelForChargeEnve(thanos.msDataScan, thanos.deconvolutor.Mz_zs);
         }
+
+        #endregion
+
+        #region Glyco Control
 
         private void BtnDrawGlycan_Click(object sender, RoutedEventArgs e)
         {
@@ -602,22 +607,6 @@ namespace MetaDrawGUI
             GlycanStructureAnnotation.DrawGlycan(glyCanvas, sele.Structure, 50);
         }
 
-        private void BtnLoadMutiProteaseCrosslink_Click(object sender, RoutedEventArgs e)
-        {
-            resultsFilePath = resultFilesObservableCollection.First().FilePath;
-            if (resultsFilePath == null)
-            {
-                MessageBox.Show("Please add a result file.");
-                return;
-            }
-
-            // load the spectra file
-            (sender as Button).IsEnabled = false;
-
-            MultiproteaseCrosslink.Read(resultsFilePath);
-            
-        }
-
         private void BtnLoadGlycans_Click(object sender, RoutedEventArgs e)
         {
             thanos.sweetor.NGlycans = Glycan.LoadGlycan(GlobalVariables.NGlycanLocation).ToList();
@@ -656,6 +645,8 @@ namespace MetaDrawGUI
             glyCanvasLeft.Children.Clear();
             GlycanStructureAnnotation.DrawGlycan(glyCanvasLeft, sele.Structure, 50);
         }
+
+        #endregion
 
         private void BtnStart_Click(object sender, RoutedEventArgs e)
         {

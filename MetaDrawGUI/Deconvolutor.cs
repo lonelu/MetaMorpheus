@@ -164,7 +164,7 @@ namespace MetaDrawGUI
             int i = 1;
             foreach (var item in IsotopicEnvelopes)
             {
-                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.IsNeuCode, item.ExperimentIsoEnvelop.First().Item1, item.Charge, item.MonoisotopicMass, item.TotalIntensity));
+                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.HasPartner, item.ExperimentIsoEnvelop.First().Item1, item.Charge, item.MonoisotopicMass, item.TotalIntensity));
                 i++;
             }
 
@@ -225,13 +225,13 @@ namespace MetaDrawGUI
             if (_thanos.msDataScan != null)
             {
                 MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(_thanos.msDataScan.MassSpectrum.XArray, _thanos.msDataScan.MassSpectrum.YArray, true);                
-                DeconModel = DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, _thanos.ControlParameter.modelStartNum);
+                Model = DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, _thanos.ControlParameter.modelStartNum);
             }
             else
             {
 
                 var mzSpectrumBU = new MzSpectrumBU(new double[] { 1 }, new double[] { 1 }, true);                
-                DeconModel = DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, _thanos.ControlParameter.modelStartNum);
+                Model = DeconViewModel.UpdateModelForDeconModel(mzSpectrumBU, _thanos.ControlParameter.modelStartNum);
             }
         }
         
@@ -301,7 +301,7 @@ namespace MetaDrawGUI
 
                 var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
-                var chargeDecon = mzSpectrumBU.ChargeDeconvolution(isotopicEnvelopes);
+                //var chargeDecon = mzSpectrumBU.ChargeDeconvolution(isotopicEnvelopes);
 
                 watch1.Stop();
 

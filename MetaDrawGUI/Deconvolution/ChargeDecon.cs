@@ -154,44 +154,44 @@ namespace MetaDrawGUI
             return matched_mz_z;
         }
 
-        public static List<Dictionary<int, MzPeak>> FindChargesForScan(MzSpectrumBU mzSpectrumBU)
-        {
-            List<Dictionary<int, MzPeak>> mz_zs_list = new List<Dictionary<int, MzPeak>>();
-            HashSet<double> seenPeaks = new HashSet<double>();
+        //public static List<Dictionary<int, MzPeak>> FindChargesForScan(MzSpectrumBU mzSpectrumBU)
+        //{
+        //    List<Dictionary<int, MzPeak>> mz_zs_list = new List<Dictionary<int, MzPeak>>();
+        //    HashSet<double> seenPeaks = new HashSet<double>();
 
-            foreach (var peakIndex in mzSpectrumBU.ExtractIndicesByY())
-            {
-                if (seenPeaks.Contains(mzSpectrumBU.XArray[peakIndex]))
-                {
-                    continue;
-                }
+        //    foreach (var peakIndex in mzSpectrumBU.ExtractIndicesByY())
+        //    {
+        //        if (seenPeaks.Contains(mzSpectrumBU.XArray[peakIndex]))
+        //        {
+        //            continue;
+        //        }
 
-                var mz_zs = FindChargesForPeak(mzSpectrumBU, peakIndex);
-                if (mz_zs.Count >=5)
-                {
-                    foreach (var mzz in mz_zs)
-                    {
-                        var ind = mzSpectrumBU.GetClosestPeakIndex(mzz.Value.Mz);
+        //        var mz_zs = FindChargesForPeak(mzSpectrumBU, peakIndex);
+        //        if (mz_zs.Count >=5)
+        //        {
+        //            foreach (var mzz in mz_zs)
+        //            {
+        //                var ind = mzSpectrumBU.GetClosestPeakIndex(mzz.Value.Mz);
 
-                        var iso = mzSpectrumBU.DeconvolutePeak(ind.Value, deconvolutionParameter);
+        //                var iso = mzSpectrumBU.DeconvolutePeak(ind.Value, deconvolutionParameter);
 
-                        seenPeaks.Add(mzz.Value.Mz);
+        //                seenPeaks.Add(mzz.Value.Mz);
 
-                        if (iso != null)
-                        {
-                            foreach (var peak in iso.peaks.Select(p => p.mz))
-                            {
-                                seenPeaks.Add(peak);
-                            }
-                        }
-                    }
+        //                if (iso != null)
+        //                {
+        //                    foreach (var peak in iso.peaks.Select(p => p.mz))
+        //                    {
+        //                        seenPeaks.Add(peak);
+        //                    }
+        //                }
+        //            }
 
-                    mz_zs_list.Add(mz_zs);
-                }
-            }
+        //            mz_zs_list.Add(mz_zs);
+        //        }
+        //    }
 
-            return mz_zs_list;
-        }
+        //    return mz_zs_list;
+        //}
 
     }
 }

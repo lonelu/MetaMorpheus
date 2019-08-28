@@ -6,6 +6,8 @@ namespace MetaDrawGUI
     {
         private double _deconvolutionMassTolerance = 0;
 
+        private double _partnerMassTolerance = 0;
+
         public DeconvolutionParameter()
         {
             DeconvolutionMinAssumedChargeState = 2;
@@ -13,9 +15,10 @@ namespace MetaDrawGUI
             DeconvolutionMassTolerance = 4;
             DeconvolutionIntensityRatio = 3;
 
-            NeuCodeMassDefect = 18;
-            MaxmiumNeuCodeNumber = 3;
-            NeuCodePairRatio = 1;
+            PartnerMassDiff = 18;
+            MaxmiumLabelNumber = 3;
+            PartnerPairRatio = 1;
+            ParterMassTolerance = 10;
         }
 
         public double DeconvolutionIntensityRatio { get; set; }
@@ -34,15 +37,34 @@ namespace MetaDrawGUI
         }
 
 
-        public double NeuCodeMassDefect { get; set; }
-        public int MaxmiumNeuCodeNumber { get; set; }
-        public double NeuCodePairRatio { get; set; }
+        public double PartnerMassDiff { get; set; }
+        public int MaxmiumLabelNumber { get; set; }
+        public double PartnerPairRatio { get; set; }
+        public double ParterMassTolerance
+        {
+            get
+            {
+                return _partnerMassTolerance;
+            }
+            set
+            {
+                _partnerMassTolerance = value;
+            }
+        }
 
         public Tolerance DeconvolutionAcceptor
         {
             get
             {
                 return new PpmTolerance(_deconvolutionMassTolerance);
+            }
+        }
+
+        public Tolerance PartnerAcceptor
+        {
+            get
+            {
+                return new PpmTolerance(_partnerMassTolerance);
             }
         }
     }
