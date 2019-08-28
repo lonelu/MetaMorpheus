@@ -15,7 +15,7 @@ namespace MetaDrawGUI
             DeconvolutionMassTolerance = 4;
             DeconvolutionIntensityRatio = 3;
 
-            PartnerMassDiff = 18;
+            PartnerMassDiff = 0.018;
             MaxmiumLabelNumber = 3;
             PartnerPairRatio = 1;
             ParterMassTolerance = 10;

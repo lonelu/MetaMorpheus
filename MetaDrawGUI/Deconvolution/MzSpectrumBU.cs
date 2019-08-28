@@ -923,11 +923,13 @@ namespace MassSpectrometry
 
                 for (int i = 1; i <= deconvolutionParameter.MaxmiumLabelNumber; i++)
                 {
-                    var possiblePairMass = iso.MonoisotopicMass + deconvolutionParameter.PartnerMassDiff * i / 1000;
+                    var possiblePairMass = iso.MonoisotopicMass + deconvolutionParameter.PartnerMassDiff * i;
 
                     var closestIsoIndex = GetClosestIsoIndex(possiblePairMass, monoMasses);
 
-                    if (deconvolutionParameter.PartnerAcceptor.Within(monoMasses[closestIsoIndex.Value], possiblePairMass))
+                    if (isoEnvelops.ElementAt(closestIsoIndex.Value).MonoisotopicMass != iso.MonoisotopicMass 
+                        && deconvolutionParameter.PartnerAcceptor.Within(monoMasses[closestIsoIndex.Value], possiblePairMass)
+                        && iso.Charge == isoEnvelops.ElementAt(closestIsoIndex.Value).Charge)
                     {
                         var ratio = iso.TotalIntensity / isoEnvelops.ElementAt(closestIsoIndex.Value).TotalIntensity;
                         if (0.5 <= ratio && ratio <= 2)

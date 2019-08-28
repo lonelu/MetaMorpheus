@@ -223,7 +223,7 @@
                                     <StackPanel Orientation="Vertical" Grid.Row="1">
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
                                             <Label Content="Scan number:"/>
-                                            <TextBox x:Name="txtDeconScanNum" Text="2"  Width="50"/>
+                                            <TextBox x:Name="txtDeconScanNum" Text="1"  Width="50"/>
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
                                             <Label Content="Model Number from:"/>
