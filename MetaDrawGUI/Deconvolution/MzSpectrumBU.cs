@@ -645,6 +645,8 @@ namespace MassSpectrometry
                 score += MsDeconvScore_peak(isoEnvelop.ExperimentIsoEnvelop[i], isoEnvelop.TheoIsoEnvelop[i]);
             }
 
+            isoEnvelop.MsDeconvScore = score;
+
             return score;
         }
 

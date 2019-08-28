@@ -389,7 +389,7 @@ namespace MetaDrawGUI
                 {
                     thanos.deconvolutor.IsotopicEnvelopes[i - 1].ScanNum = thanos.msDataScan.OneBasedScanNumber;
                     thanos.deconvolutor.IsotopicEnvelopes[i - 1].RT = thanos.msDataScan.RetentionTime;
-                    thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.HasPartner, item.ExperimentIsoEnvelop.First().Item1, item.Charge, item.MonoisotopicMass, item.ExperimentIsoEnvelop.First().Item2));
+                    thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.HasPartner, item.ExperimentIsoEnvelop.First().Item1, item.Charge, item.MonoisotopicMass, item.TotalIntensity, item.MsDeconvScore));
                     i++;
                 }
 
@@ -439,7 +439,7 @@ namespace MetaDrawGUI
             int i = 1;
             foreach (var item in thanos.deconvolutor.IsotopicEnvelopes)
             {
-                thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.HasPartner, item.ExperimentIsoEnvelop.First().mz, item.Charge, item.MonoisotopicMass, item.TotalIntensity));
+                thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.HasPartner, item.ExperimentIsoEnvelop.First().mz, item.Charge, item.MonoisotopicMass, item.TotalIntensity, item.MsDeconvScore));
                 i++;
             }
 

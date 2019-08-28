@@ -34,6 +34,8 @@ namespace MassSpectrometry
 
         public int Charge { get; set; }
 
+        public double MsDeconvScore { get; set; }
+
         public int ScanNum { get; set; }
         public double RT { get; set; }
 
