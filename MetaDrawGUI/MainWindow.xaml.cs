@@ -393,24 +393,18 @@ namespace MetaDrawGUI
                     i++;
                 }
 
-                //int ind = 1;
-                //foreach (var theScanChargeEvelope in thanos.deconvolutor.ScanChargeEnvelopes)
-                //{
-                //    thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, theScanChargeEvelope.isotopicMass, theScanChargeEvelope.MSE));
-                //    ind++;
-                //}
 
                 double max = thanos.deconvolutor.mzSpectrumBU.YArray.Max();
                 int indexMax = thanos.deconvolutor.mzSpectrumBU.YArray.ToList().IndexOf(max);
 
                 thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(thanos.deconvolutor.mzSpectrumBU, indexMax);
 
-                var test = ChargeDecon.FindChargesForScan(thanos.deconvolutor.mzSpectrumBU);
+                thanos.deconvolutor.ChargeEnvelops = ChargeDecon.FindChargesForScan(thanos.deconvolutor.mzSpectrumBU);
 
                 int ind = 1;
-                foreach (var mz_z in thanos.deconvolutor.Mz_zs)
+                foreach (var chargeEnvelop in thanos.deconvolutor.ChargeEnvelops)
                 {
-                    thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.Value.Mz, mz_z.Key, mz_z.Value.Intensity));
+                    thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, chargeEnvelop.FirstMz, chargeEnvelop.FirstIntensity, chargeEnvelop.Mse));
                     ind++;
                 }
             }
@@ -505,9 +499,14 @@ namespace MetaDrawGUI
             {
                 return;
             }
+
             var sele = (ChargeEnvelopesForDataGrid)dataGridChargeEnves.SelectedItem;
+
+            var ce = thanos.deconvolutor.ChargeEnvelops.ElementAt(sele.Ind - 1);
             
-            thanos.deconvolutor.Model = ChargeEnveViewModel.UpdataModelForChargeEnve(thanos.msDataScan, thanos.deconvolutor.Mz_zs);
+            thanos.deconvolutor.Model = ChargeEnveViewModel.DrawCharEnvelopMatch(thanos.msDataScan, ce);
+
+            thanos.deconvolutor.DeconModel = ChargeEnveViewModel.DrawCharEnvelopModel(thanos.msDataScan, ce);
         }
 
         #endregion

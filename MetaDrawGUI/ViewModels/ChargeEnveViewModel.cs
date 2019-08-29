@@ -24,89 +24,59 @@ namespace ViewModels
             this.privateModel = tmp;
         }
 
-        public static PlotModel UpdataModelForChargeEnve_old(MsDataScan MsScanForDraw, ChargeDeconEnvelope chargeDeconEnvelope)
+        public static PlotModel DrawCharEnvelopModel(MsDataScan MsScanForDraw, ChargeEnvelop chargeDeconEnvelope)
         {
-            var x = chargeDeconEnvelope.mzFit;
-            var y = chargeDeconEnvelope.intensitiesFit;
-            var z = chargeDeconEnvelope.intensitiesModel;
-            var charges = chargeDeconEnvelope.chargeStates;
+            var x = chargeDeconEnvelope.distributions.Select(p=>p.peak.Mz).ToArray();
+            var y = chargeDeconEnvelope.distributions.Select(p=>p.peak.Intensity).ToArray();
+            var scale = y.Sum() / chargeDeconEnvelope.IntensityModel.Sum();
+            var intensityModel = chargeDeconEnvelope.IntensityModel.Select(p=>p*scale).ToArray();
+            var charges = chargeDeconEnvelope.distributions.Select(p=>p.charge);
             string scanNum = MsScanForDraw.OneBasedScanNumber.ToString();
-
-            var isoEnves = chargeDeconEnvelope.isotopicEnvelopes;
 
             PlotModel model = new PlotModel { Title = "Spectrum anotation of Scan " + scanNum, DefaultFontSize = 15 };
             model.Axes.Add(new LinearAxis {
                 Position = AxisPosition.Bottom,
                 Title = "m/z",
                 Minimum = 0,
-                Maximum = MsScanForDraw.MassSpectrum.XArray.Max() * 1.02,
+                Maximum = x.Max() * 1.02,
                 AbsoluteMinimum = 0,
-                AbsoluteMaximum = MsScanForDraw.MassSpectrum.XArray.Max() * 1.2
+                AbsoluteMaximum = x.Max() * 1.2
             });
 
             model.Axes.Add(new LinearAxis {
                 Position = AxisPosition.Left,
                 Title = "Intensity(counts)",
                 Minimum = 0,
-                Maximum = chargeDeconEnvelope.intensitiesFit.Max() * 1.2,
+                Maximum = y.Max() * 1.2,
                 AbsoluteMinimum = 0,
-                AbsoluteMaximum = chargeDeconEnvelope.intensitiesFit.Max() * 1.3
+                AbsoluteMaximum = y.Max() * 1.3
             });
 
-            LineSeries[] sPeaks = new LineSeries[chargeDeconEnvelope.mzFit.Length];
+
             for (int i = 0; i < x.Length; i++)
             {
-                sPeaks[i] = new LineSeries();
-                sPeaks[i].Color = OxyColors.DimGray;
-                sPeaks[i].StrokeThickness = 1.5;
-                sPeaks[i].Points.Add(new DataPoint(x[i], 0));
-                sPeaks[i].Points.Add(new DataPoint(x[i], y[i]));
-                model.Series.Add(sPeaks[i]);
+                var line = new LineSeries();
+                line.Color = OxyColors.DimGray;
+                line.StrokeThickness = 3;
+                line.Points.Add(new DataPoint(x[i], 0));
+                line.Points.Add(new DataPoint(x[i], y[i]));
+                model.Series.Add(line);
             }
 
-            //Original peaks
-            for (int i = 0; i < isoEnves.Count; i++)
-            {
-                foreach (var isoEnve in isoEnves)
-                {
-                    foreach (var peak in isoEnve.peaks)
-                    {
-                        var sPeak = new LineSeries();
-                        sPeak.Color = OxyColors.Black;
-                        sPeak.StrokeThickness = 1.5;
-                        sPeak.Points.Add(new DataPoint(peak.mz, 0));
-                        sPeak.Points.Add(new DataPoint(peak.mz, peak.intensity));
-                        model.Series.Add(sPeak);
-                    }
-                }
-            }
-
-            LineSeries[] sPeaksModel = new LineSeries[chargeDeconEnvelope.mzFit.Length];
             for (int i = 0; i < x.Length; i++)
             {
-                sPeaksModel[i] = new LineSeries();
-                sPeaksModel[i].Color = OxyColors.Red;
-                sPeaksModel[i].StrokeThickness = 1;
-                sPeaksModel[i].Points.Add(new DataPoint(x[i], 0));
-                sPeaksModel[i].Points.Add(new DataPoint(x[i], z[i]));
-                model.Series.Add(sPeaksModel[i]);
-
-                var peakAnno = new TextAnnotation();
-                peakAnno.TextRotation = 90;
-                peakAnno.Font = "Arial";
-                peakAnno.FontSize = 12;
-                peakAnno.TextColor = OxyColors.Red;
-                peakAnno.StrokeThickness = 0;
-                peakAnno.TextPosition = sPeaksModel[i].Points[1];
-                peakAnno.Text = charges[i].ToString();
-                model.Annotations.Add(peakAnno);
+                var line = new LineSeries();
+                line.Color = OxyColors.Red;
+                line.StrokeThickness = 1.5;
+                line.Points.Add(new DataPoint(x[i], 0));
+                line.Points.Add(new DataPoint(x[i], intensityModel[i]));
+                model.Series.Add(line);
             }
-            //model.Axes[0].AxisChanged += XAxisChanged;
-            // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
+            
             return model;
         }
 
-        public static PlotModel UpdataModelForChargeEnve(MsDataScan msDataScan, Dictionary<int, MzPeak> mz_zs)
+        public static PlotModel DrawCharEnvelopMatch(MsDataScan msDataScan, ChargeEnvelop chargeEnvelop)
         {
             // x is m/z, y is intensity
             var spectrumMzs = msDataScan.MassSpectrum.XArray;
@@ -118,43 +88,50 @@ namespace ViewModels
             model.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Title = "Intensity", Minimum = 0, Maximum = spectrumIntensities.Max() * 1.2, AbsoluteMinimum = 0, AbsoluteMaximum = spectrumIntensities.Max() * 1.3 });
             model.Axes[1].Zoom(0, spectrumIntensities.Max() * 1.1);
 
-            LineSeries[] allIons = new LineSeries[spectrumMzs.Length];
 
             // draw the remaining unmatched peaks
             for (int i = 0; i < spectrumMzs.Length; i++)
             {
-                // peak has already been drawn (it is a matched peak)
-                if (allIons[i] != null)
-                {
-                    continue;
-                }
-
-                allIons[i] = new LineSeries();
-                allIons[i].Color = OxyColors.DimGray;
-                allIons[i].StrokeThickness = 1;
-                allIons[i].Points.Add(new DataPoint(spectrumMzs[i], 0));
-                allIons[i].Points.Add(new DataPoint(spectrumMzs[i], spectrumIntensities[i]));
-                model.Series.Add(allIons[i]);
+                var line = new LineSeries();
+                line.Color = OxyColors.DimGray;
+                line.StrokeThickness = 1;
+                line.Points.Add(new DataPoint(spectrumMzs[i], 0));
+                line.Points.Add(new DataPoint(spectrumMzs[i], spectrumIntensities[i]));
+                model.Series.Add(line);
             }
 
-            foreach (var mzz in mz_zs)
+            foreach (var distri in chargeEnvelop.distributions)
             {
-                var mzzLine = new LineSeries();
-                mzzLine.Color = OxyColors.Red;
-                mzzLine.StrokeThickness = 3;
-                mzzLine.Points.Add( new DataPoint( mzz.Value.Mz, 0));
-                mzzLine.Points.Add(new DataPoint(mzz.Value.Mz, mzz.Value.Intensity));
-                model.Series.Add(mzzLine);
+                if (distri.isoEnvelop!=null)
+                {
+                    foreach (var peak in distri.isoEnvelop.ExperimentIsoEnvelop)
+                    {
+                        var line = new LineSeries();
+                        line.Color = OxyColors.Red;
+                        line.StrokeThickness = 3;
+                        line.Points.Add(new DataPoint(peak.Mz, 0));
+                        line.Points.Add(new DataPoint(peak.Mz, peak.Intensity));
+                        model.Series.Add(line);
+                    }
+                }
 
-                var peakAnno = new TextAnnotation();
-                peakAnno.TextRotation = 90;
-                peakAnno.Font = "Arial";
-                peakAnno.FontSize = 12;
-                peakAnno.TextColor = OxyColors.Red;
-                peakAnno.StrokeThickness = 0;
-                peakAnno.TextPosition = new DataPoint(mzz.Value.Mz, mzz.Value.Intensity);
-                peakAnno.Text = mzz.Key.ToString() + "+";
-                model.Annotations.Add(peakAnno);
+                    var mzzLine = new LineSeries();
+                    mzzLine.Color = OxyColors.Red;
+                    mzzLine.StrokeThickness = 3;
+                    mzzLine.Points.Add(new DataPoint(distri.peak.Mz, 0));
+                    mzzLine.Points.Add(new DataPoint(distri.peak.Mz, distri.peak.Intensity));
+                    model.Series.Add(mzzLine);
+
+                    var peakAnno = new TextAnnotation();
+                    peakAnno.TextRotation = 90;
+                    peakAnno.Font = "Arial";
+                    peakAnno.FontSize = 12;
+                    peakAnno.TextColor = OxyColors.Red;
+                    peakAnno.StrokeThickness = 0;
+                    peakAnno.TextPosition = new DataPoint(distri.peak.Mz, distri.peak.Intensity);
+                    peakAnno.Text = distri.charge.ToString() + "+";
+                    model.Annotations.Add(peakAnno);
+                
             }
 
             // Axes are created automatically if they are not defined      

@@ -179,13 +179,15 @@ namespace MetaDrawGUI
 
                         chargeEnve.FirstIndex = peakIndex;
                         chargeEnve.FirstMz = mzSpectrumBU.XArray[peakIndex];
-                        chargeEnve.distributions.Add((mzz.Key, mzz.Value, iso));
+                        chargeEnve.FirstIntensity = mzSpectrumBU.YArray[peakIndex];
+                        chargeEnve.distributions.Add((mzz.Key, mzz.Value, iso));                     
 
                         for (int i = arrayOfTheoPeakIndexes.Min(); i <= arrayOfTheoPeakIndexes.Max(); i++)
                         {
                             seenPeakIndex.Add(i);
                         } 
                     }
+                    chargeEnve.GetMSE();
                     chargeEnvelops.Add(chargeEnve);
                 }
             }

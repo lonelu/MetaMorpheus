@@ -75,7 +75,7 @@ namespace MetaDrawGUI
         public List<ChargeDeconEnvelope> ScanChargeEnvelopes { get; set; } = new List<ChargeDeconEnvelope>();
         public List<IsoEnvelop> IsotopicEnvelopes { get; set; } = new List<IsoEnvelop>();
         public Dictionary<int, MzPeak> Mz_zs { get; set; } = new Dictionary<int, MzPeak>();
-        public List<Dictionary<int, MzPeak>> Mz_zs_list { get; set; } = new List<Dictionary<int, MzPeak>>();
+        public List<ChargeEnvelop> ChargeEnvelops { get; set; } = new List<ChargeEnvelop>();
 
         //View model
         private MainViewModel mainViewModel = new MainViewModel();
@@ -146,9 +146,6 @@ namespace MetaDrawGUI
                 return mzSpectrumBU.ExtractIndicesByY().ToArray();
             }
         }
-
-        //TO DO:this need to be change when the mzSpectrumBU change.
-        public int DeconPeakInd { get; set; } = 0;
 
         public void Decon()
         {
@@ -319,8 +316,6 @@ namespace MetaDrawGUI
             int index = ChargeDecon.GetCloestIndex(deconChargeMass, mzSpectrumBU.XArray);
 
             var theMz_zs = ChargeDecon.FindChargesForPeak(_thanos.deconvolutor.mzSpectrumBU, index);
-
-            _thanos.deconvolutor.Mz_zs_list.Add(theMz_zs);
 
             int ind = 1;
             foreach (var mz_z in theMz_zs)
