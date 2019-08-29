@@ -175,6 +175,7 @@
     <Compile Include="Accountant.cs" />
     <Compile Include="Accumulator.cs" />
     <Compile Include="BasicClasses\ChromatographicPeak.cs" />
+    <Compile Include="Deconvolution\ChargeEnvelop.cs" />
     <Compile Include="Deconvolution\DeconvolutionParameter.cs" />
     <Compile Include="BasicClasses\GlycanStructureAnnotation.cs" />
     <Compile Include="BasicClasses\NeucodeDoublet.cs" />

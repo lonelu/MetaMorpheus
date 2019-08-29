@@ -17,8 +17,8 @@ namespace MetaDrawGUI
 
         static DeconvolutionParameter deconvolutionParameter = new DeconvolutionParameter()
         {
-            DeconvolutionMinAssumedChargeState = 6, 
-            DeconvolutionMaxAssumedChargeState = 60
+            DeconvolutionMinAssumedChargeState = 2, 
+            DeconvolutionMaxAssumedChargeState = 50
         };
 
         public static int GetCloestIndex(double x, double[] array)
@@ -120,7 +120,7 @@ namespace MetaDrawGUI
             double score = 1;
 
             //each charge state
-            for (int i = 6; i <= 60; i++)
+            for (int i = deconvolutionParameter.DeconvolutionMinAssumedChargeState; i <= deconvolutionParameter.DeconvolutionMaxAssumedChargeState; i++)
             {
                 var mz_z = GenerateMzs(mz, i);
 
@@ -154,44 +154,44 @@ namespace MetaDrawGUI
             return matched_mz_z;
         }
 
-        //public static List<Dictionary<int, MzPeak>> FindChargesForScan(MzSpectrumBU mzSpectrumBU)
-        //{
-        //    List<Dictionary<int, MzPeak>> mz_zs_list = new List<Dictionary<int, MzPeak>>();
-        //    HashSet<double> seenPeaks = new HashSet<double>();
+        public static List<ChargeEnvelop> FindChargesForScan(MzSpectrumBU mzSpectrumBU)
+        {
+            List<ChargeEnvelop> chargeEnvelops = new List<ChargeEnvelop>();
+            HashSet<int> seenPeakIndex = new HashSet<int>();
 
-        //    foreach (var peakIndex in mzSpectrumBU.ExtractIndicesByY())
-        //    {
-        //        if (seenPeaks.Contains(mzSpectrumBU.XArray[peakIndex]))
-        //        {
-        //            continue;
-        //        }
+            foreach (var peakIndex in mzSpectrumBU.ExtractIndicesByY())
+            {
+                if (seenPeakIndex.Contains(peakIndex))
+                {
+                    continue;
+                }
+            
+                var mz_zs = FindChargesForPeak(mzSpectrumBU, peakIndex);
 
-        //        var mz_zs = FindChargesForPeak(mzSpectrumBU, peakIndex);
-        //        if (mz_zs.Count >=5)
-        //        {
-        //            foreach (var mzz in mz_zs)
-        //            {
-        //                var ind = mzSpectrumBU.GetClosestPeakIndex(mzz.Value.Mz);
+                if (mz_zs.Count >= 3)
+                {
+                    var chargeEnve = new ChargeEnvelop();
 
-        //                var iso = mzSpectrumBU.DeconvolutePeak(ind.Value, deconvolutionParameter);
+                    foreach (var mzz in mz_zs)
+                    {
+                        int[] arrayOfTheoPeakIndexes;
+                        var iso = mzSpectrumBU.GetETEnvelopForPeakAtChargeState(mzz.Value.Mz, mzz.Key, deconvolutionParameter, 0, out arrayOfTheoPeakIndexes);
 
-        //                seenPeaks.Add(mzz.Value.Mz);
+                        chargeEnve.FirstIndex = peakIndex;
+                        chargeEnve.FirstMz = mzSpectrumBU.XArray[peakIndex];
+                        chargeEnve.distributions.Add((mzz.Key, mzz.Value, iso));
 
-        //                if (iso != null)
-        //                {
-        //                    foreach (var peak in iso.peaks.Select(p => p.mz))
-        //                    {
-        //                        seenPeaks.Add(peak);
-        //                    }
-        //                }
-        //            }
+                        for (int i = arrayOfTheoPeakIndexes.Min(); i <= arrayOfTheoPeakIndexes.Max(); i++)
+                        {
+                            seenPeakIndex.Add(i);
+                        } 
+                    }
+                    chargeEnvelops.Add(chargeEnve);
+                }
+            }
 
-        //            mz_zs_list.Add(mz_zs);
-        //        }
-        //    }
-
-        //    return mz_zs_list;
-        //}
+            return chargeEnvelops;
+        }
 
     }
 }

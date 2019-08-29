@@ -38,16 +38,16 @@ namespace ViewModels
             model.Axes.Add(new LinearAxis {
                 Position = AxisPosition.Bottom,
                 Title = "m/z",
-                Minimum = isotopicEnvelope.ExperimentIsoEnvelop.First().mz - 2,
-                Maximum = isotopicEnvelope.ExperimentIsoEnvelop.Last().mz + 2,
-                AbsoluteMinimum = isotopicEnvelope.ExperimentIsoEnvelop.First().mz - 10,
-                AbsoluteMaximum = isotopicEnvelope.ExperimentIsoEnvelop.Last().mz + 10,
+                Minimum = isotopicEnvelope.ExperimentIsoEnvelop.First().Mz - 2,
+                Maximum = isotopicEnvelope.ExperimentIsoEnvelop.Last().Mz + 2,
+                AbsoluteMinimum = isotopicEnvelope.ExperimentIsoEnvelop.First().Mz - 10,
+                AbsoluteMaximum = isotopicEnvelope.ExperimentIsoEnvelop.Last().Mz + 10,
             });
             model.Axes.Add(new LinearAxis {
                 Position = AxisPosition.Left,
                 Title = "Intensity(counts)",
                 Minimum = 0,
-                Maximum = isotopicEnvelope.ExperimentIsoEnvelop.First().intensity * 1.3,
+                Maximum = isotopicEnvelope.ExperimentIsoEnvelop.First().Intensity * 1.3,
                 AbsoluteMinimum = 0,
                 // AbsoluteMaximum = isotopicEnvelope.peaks.First().intensity * 2
                 AbsoluteMaximum = y.Max() * 1.2
@@ -58,8 +58,8 @@ namespace ViewModels
                 var sPeak = new LineSeries();
                 sPeak.Color = OxyColors.OrangeRed;
                 sPeak.StrokeThickness = 2.5;
-                sPeak.Points.Add(new DataPoint(peak.mz, 0));
-                sPeak.Points.Add(new DataPoint(peak.mz, peak.intensity));
+                sPeak.Points.Add(new DataPoint(peak.Mz, 0));
+                sPeak.Points.Add(new DataPoint(peak.Mz, peak.Intensity));
                 model.Series.Add(sPeak);
             }
 
@@ -70,8 +70,8 @@ namespace ViewModels
                     var sPeak = new LineSeries();
                     sPeak.Color = OxyColors.Yellow;
                     sPeak.StrokeThickness = 2.5;
-                    sPeak.Points.Add(new DataPoint(peak.mz, 0));
-                    sPeak.Points.Add(new DataPoint(peak.mz, peak.intensity));
+                    sPeak.Points.Add(new DataPoint(peak.Mz, 0));
+                    sPeak.Points.Add(new DataPoint(peak.Mz, peak.Intensity));
                     model.Series.Add(sPeak);
                 }
             }
@@ -82,7 +82,7 @@ namespace ViewModels
             peakAnno.FontSize = 12;
             peakAnno.TextColor = OxyColors.Red;
             peakAnno.StrokeThickness = 0;
-            peakAnno.TextPosition = new DataPoint(isotopicEnvelope.ExperimentIsoEnvelop[0].mz, isotopicEnvelope.ExperimentIsoEnvelop[0].intensity);
+            peakAnno.TextPosition = new DataPoint(isotopicEnvelope.ExperimentIsoEnvelop[0].Mz, isotopicEnvelope.ExperimentIsoEnvelop[0].Intensity);
             peakAnno.Text = isotopicEnvelope.MonoisotopicMass.ToString("f1") + "@" + isotopicEnvelope.Charge.ToString();
 
             //Draw the ms/ms scan peaks

@@ -601,11 +601,11 @@ namespace MassSpectrometry
         #region New deconvolution method optimized from MsDeconv (by Lei)
 
         //MsDeconv Score peak
-        private double MsDeconvScore_peak((double mz, double intensity) experiment, (double mz, double intensity) theory, double mass_error_tolerance = 0.02)
+        private double MsDeconvScore_peak(MzPeak experiment, MzPeak theory, double mass_error_tolerance = 0.02)
         {
             double score = 0;
 
-            double mass_error = Math.Abs(experiment.mz - theory.mz);
+            double mass_error = Math.Abs(experiment.Mz - theory.Mz);
 
             double mass_accuracy = 0;
 
@@ -616,16 +616,16 @@ namespace MassSpectrometry
 
             double abundance_diff = 0;
 
-            if (experiment.intensity < theory.intensity && (theory.intensity - experiment.intensity) / experiment.intensity <= 1)
+            if (experiment.Intensity < theory.Intensity && (theory.Intensity - experiment.Intensity) / experiment.Intensity <= 1)
             {
-                abundance_diff = 1 - (theory.intensity - experiment.intensity) / experiment.intensity;
+                abundance_diff = 1 - (theory.Intensity - experiment.Intensity) / experiment.Intensity;
             }
-            else if (experiment.intensity >= theory.intensity && (experiment.intensity - theory.intensity) / experiment.intensity <= 1)
+            else if (experiment.Intensity >= theory.Intensity && (experiment.Intensity - theory.Intensity) / experiment.Intensity <= 1)
             {
-                abundance_diff = Math.Sqrt(1 - (experiment.intensity - theory.intensity) / experiment.intensity);
+                abundance_diff = Math.Sqrt(1 - (experiment.Intensity - theory.Intensity) / experiment.Intensity);
             }
 
-            score = Math.Sqrt(theory.intensity) * mass_accuracy * abundance_diff;
+            score = Math.Sqrt(theory.Intensity) * mass_accuracy * abundance_diff;
 
             return score;
         }
@@ -651,14 +651,14 @@ namespace MassSpectrometry
         }
 
         //Scale Theoretical Envelope
-        private (double mz, double intensity)[] ScaleTheoEnvelop((double mz, double intensity)[] experiment, (double mz, double intensity)[] theory, string method = "sum")
+        private MzPeak[] ScaleTheoEnvelop(MzPeak[] experiment, MzPeak[] theory, string method = "sum")
         {
-            var scale_Theory = new (double, double)[theory.Length];
+            var scale_Theory = new MzPeak[theory.Length];
             switch (method)
             {
                 case "sum":
-                    var total_abundance = experiment.Sum(p => p.intensity);
-                    scale_Theory = theory.Select(p => (p.mz, p.intensity * total_abundance)).ToArray();
+                    var total_abundance = experiment.Sum(p => p.Intensity);
+                    scale_Theory = theory.Select(p => new MzPeak(p.Mz, p.Intensity * total_abundance)).ToArray();
                     break;
                 default:
                     break;
@@ -667,25 +667,16 @@ namespace MassSpectrometry
         }
 
         //Change the workflow for different score method.
-        private IsoEnvelop GetETEnvelopForPeakAtChargeState(double candidateForMostIntensePeakMz, int chargeState, DeconvolutionParameter deconvolutionParameter, double noiseLevel)
+        public IsoEnvelop GetETEnvelopForPeakAtChargeState(double candidateForMostIntensePeakMz, int chargeState, DeconvolutionParameter deconvolutionParameter, double noiseLevel, out int[] arrayOfTheoPeakIndexes)
         {
             var testMostIntenseMass = candidateForMostIntensePeakMz.ToMass(chargeState);
 
-            var massIndex = Array.BinarySearch(mostIntenseMasses, testMostIntenseMass);
-            if (massIndex < 0)
-                massIndex = ~massIndex;
-            if (massIndex == mostIntenseMasses.Length)
-            {
-                return null;
-            }
+            var massIndex = GetClosestIndexInArray(testMostIntenseMass, mostIntenseMasses).Value;
 
-            // Assuming the test peak is most intense...
-            // Try to find the rest of the isotopes!
+            var differenceBetweenTheorAndActual = candidateForMostIntensePeakMz.ToMass(chargeState) - mostIntenseMasses[massIndex];
 
-            double differenceBetweenTheorAndActual = candidateForMostIntensePeakMz.ToMass(chargeState) - mostIntenseMasses[massIndex];
-
+            var theoryIsoEnvelopLength = 0;
             double theoryIntensityCut = 0;
-            int theoryIsoEnvelopLength = 0;
             for (int i = 0; i < allIntensities[massIndex].Length; i++)
             {
                 theoryIsoEnvelopLength++;
@@ -696,14 +687,14 @@ namespace MassSpectrometry
                 }
             }
 
-            var arrayOfPeaks = new (double mz, double intensity)[theoryIsoEnvelopLength];
-            var arrayOfTheoPeaks = new (double mz, double intensity)[theoryIsoEnvelopLength];
-            var arrayOfTheoPeakIndexes = new int[theoryIsoEnvelopLength];
+            var arrayOfPeaks = new MzPeak[theoryIsoEnvelopLength];
+            var arrayOfTheoPeaks = new MzPeak[theoryIsoEnvelopLength];
+            arrayOfTheoPeakIndexes = new int[theoryIsoEnvelopLength]; //For top-down to calculate MsDeconvSignificance
 
             for (int indexToLookAt = 0; indexToLookAt < theoryIsoEnvelopLength; indexToLookAt++)
             {
                 double theorMassThatTryingToFind = allMasses[massIndex][indexToLookAt] + differenceBetweenTheorAndActual;
-                arrayOfTheoPeaks[indexToLookAt] = (theorMassThatTryingToFind.ToMz(chargeState), allIntensities[massIndex][indexToLookAt]);
+                arrayOfTheoPeaks[indexToLookAt] = new MzPeak(theorMassThatTryingToFind.ToMz(chargeState), allIntensities[massIndex][indexToLookAt]);
 
                 var closestPeakToTheorMassIndex = GetClosestPeakIndex(theorMassThatTryingToFind.ToMz(chargeState));
                 var closestPeakmz = XArray[closestPeakToTheorMassIndex.Value];
@@ -716,7 +707,7 @@ namespace MassSpectrometry
                     closestPeakIntensity = 0;
                 }
 
-                arrayOfPeaks[indexToLookAt] = (closestPeakmz, closestPeakIntensity);
+                arrayOfPeaks[indexToLookAt] = new MzPeak(closestPeakmz, closestPeakIntensity);
             }
 
             if (FilterEEnvelop(arrayOfPeaks))
@@ -725,7 +716,7 @@ namespace MassSpectrometry
 
                 //The following 3 lines are for calculating monoisotopicMass, origin from Stephan, I don't understand it, and may optimize it in the future. (Lei)
                 var extrapolatedMonoisotopicMass = candidateForMostIntensePeakMz.ToMass(chargeState) - diffToMonoisotopic[massIndex]; // Optimized for proteoforms!!
-                var lowestMass = arrayOfPeaks.Min(b => b.mz).ToMass(chargeState); // But may actually observe this small peak
+                var lowestMass = arrayOfPeaks.Min(b => b.Mz).ToMass(chargeState); // But may actually observe this small peak
                 var monoisotopicMass = Math.Abs(extrapolatedMonoisotopicMass - lowestMass) < 0.5 ? lowestMass : extrapolatedMonoisotopicMass;
 
                 IsoEnvelop isoEnvelop = new IsoEnvelop(arrayOfPeaks, scaleArrayOfTheoPeaks, monoisotopicMass, chargeState, arrayOfTheoPeakIndexes);
@@ -735,12 +726,13 @@ namespace MassSpectrometry
             return null;
         }
 
-        private int GetConsecutiveLength((double mz, double intensity)[] experiment, out int secondConsecutiveLenth)
+        private int GetConsecutiveLength(MzPeak[] experiment, out int secondConsecutiveLenth)
         {
+            var experimentOrderByMz = experiment.OrderBy(p => p.Mz).ToArray();
             List<int> inds = new List<int>();
-            for (int i = 0; i < experiment.Length; i++)
+            for (int i = 0; i < experimentOrderByMz.Length; i++)
             {
-                if (experiment[i].intensity == 0)
+                if (experimentOrderByMz[i].Intensity == 0)
                 {
                     inds.Add(i);
                 }
@@ -768,7 +760,7 @@ namespace MassSpectrometry
             return experiment.Length;
         }
 
-        private bool FilterEEnvelop((double mz, double intensity)[] experiment)
+        private bool FilterEEnvelop(MzPeak[] experiment)
         {
             int secondConsecutiveLength = 0;
             int consecutiveLength = GetConsecutiveLength(experiment, out secondConsecutiveLength);
@@ -810,11 +802,24 @@ namespace MassSpectrometry
 
             foreach (var chargeState in allPossibleChargeState)
             {
-                var isoEnvelop = GetETEnvelopForPeakAtChargeState(candidateForMostIntensePeakMz, chargeState, deconvolutionParameter, noiseLevel);
+                int[] arrayOfTheoPeakIndexes; //Is not used here, is used in ChargeDecon
+
+                var isoEnvelop = GetETEnvelopForPeakAtChargeState(candidateForMostIntensePeakMz, chargeState, deconvolutionParameter, noiseLevel, out arrayOfTheoPeakIndexes);
 
                 if (MsDeconvScore(isoEnvelop) > MsDeconvScore(bestIsotopeEnvelopeForThisPeak))
                 {
+                    var temp = bestIsotopeEnvelopeForThisPeak;
                     bestIsotopeEnvelopeForThisPeak = isoEnvelop;
+
+                    //This is to refine mis charge ones. But not working perfect.
+                    if (temp != null && bestIsotopeEnvelopeForThisPeak != null)
+                    {
+                        int cd = temp.Charge / bestIsotopeEnvelopeForThisPeak.Charge;
+                        if (cd > 1 && temp.Charge == bestIsotopeEnvelopeForThisPeak.Charge*cd)
+                        {
+                            bestIsotopeEnvelopeForThisPeak = temp;
+                        }
+                    }
                 }
             }
             return bestIsotopeEnvelopeForThisPeak;
@@ -834,7 +839,7 @@ namespace MassSpectrometry
                 intensityInRange += YArray[i];
             }
 
-            double ratio = (isoEnvelop.TotalIntensity / intensityInRange) * ((double)isoEnvelop.ExperimentIsoEnvelop.Where(p=>p.intensity!=0).Count()/((double)maxInd - (double)minInd + 1));
+            double ratio = (isoEnvelop.TotalIntensity / intensityInRange) * ((double)isoEnvelop.ExperimentIsoEnvelop.Where(p=>p.Intensity!=0).Count()/((double)maxInd - (double)minInd + 1));
 
             return ratio;
 
@@ -888,11 +893,11 @@ namespace MassSpectrometry
 
             foreach (var ok in isolatedMassesAndCharges.OrderByDescending(b => MsDeconvScore(b)))
             {
-                if (seen.Overlaps(ok.ExperimentIsoEnvelop.Select(b => b.mz)))
+                if (seen.Overlaps(ok.ExperimentIsoEnvelop.Select(b => b.Mz)))
                 {
                     continue;
                 }
-                foreach (var ah in ok.ExperimentIsoEnvelop.Select(b => b.mz))
+                foreach (var ah in ok.ExperimentIsoEnvelop.Select(b => b.Mz))
                 {
                     seen.Add(ah);
                 }
@@ -900,7 +905,7 @@ namespace MassSpectrometry
                 isoEnvelops.Add(ok);
             }
 
-            var orderedIsoEnvelops = isoEnvelops.OrderBy(p => p.ExperimentIsoEnvelop.First().mz).ToList();
+            var orderedIsoEnvelops = isoEnvelops.OrderBy(p => p.ExperimentIsoEnvelop.First().Mz).ToList();
             FindLabelPair(orderedIsoEnvelops, deconvolutionParameter);
             foreach (var iso in orderedIsoEnvelops)
             {
@@ -912,7 +917,7 @@ namespace MassSpectrometry
         //TO DO: need to be improved
         private void FindLabelPair(List<IsoEnvelop> isoEnvelops, DeconvolutionParameter deconvolutionParameter)
         {
-            double[] monoMzs = isoEnvelops.Select(p => p.ExperimentIsoEnvelop.First().mz).ToArray();
+            double[] monoMzs = isoEnvelops.Select(p => p.ExperimentIsoEnvelop.First().Mz).ToArray();
 
             foreach (var iso in isoEnvelops)
             {
@@ -926,7 +931,7 @@ namespace MassSpectrometry
                     var possiblePairMass = iso.MonoisotopicMass + deconvolutionParameter.PartnerMassDiff * i;
                     var possiblePairMz = possiblePairMass.ToMz(iso.Charge);
 
-                    var closestIsoIndex = GetClosestIsoIndex(possiblePairMz, monoMzs);                       
+                    var closestIsoIndex = GetClosestIndexInArray(possiblePairMz, monoMzs);                       
 
                     if (isoEnvelops.ElementAt(closestIsoIndex.Value).MonoisotopicMass != iso.MonoisotopicMass 
                         && deconvolutionParameter.PartnerAcceptor.Within(isoEnvelops.ElementAt(closestIsoIndex.Value).MonoisotopicMass, possiblePairMass)
@@ -946,20 +951,20 @@ namespace MassSpectrometry
             }
         }
 
-        private static int? GetClosestIsoIndex(double x, double[] masses)
+        private static int? GetClosestIndexInArray(double x, double[] array)
         {
-            if (masses.Length == 0)
+            if (array.Length == 0)
             {
                 return null;
             }
-            int index = Array.BinarySearch(masses, x);
+            int index = Array.BinarySearch(array, x);
             if (index >= 0)
             {
                 return index;
             }
             index = ~index;
 
-            if (index >= masses.Length)
+            if (index >= array.Length)
             {
                 return index - 1;
             }
@@ -968,7 +973,7 @@ namespace MassSpectrometry
                 return index;
             }
 
-            if (x - masses[index - 1] > masses[index] - x)
+            if (x - array[index - 1] > array[index] - x)
             {
                 return index;
             }
@@ -976,5 +981,6 @@ namespace MassSpectrometry
         }
 
         #endregion
+
     }
 }
