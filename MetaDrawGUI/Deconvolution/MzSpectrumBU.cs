@@ -900,7 +900,7 @@ namespace MassSpectrometry
                 isoEnvelops.Add(ok);
             }
 
-            var orderedIsoEnvelops = isoEnvelops.OrderBy(p => p.MonoisotopicMass).ToList();
+            var orderedIsoEnvelops = isoEnvelops.OrderBy(p => p.ExperimentIsoEnvelop.First().mz).ToList();
             FindLabelPair(orderedIsoEnvelops, deconvolutionParameter);
             foreach (var iso in orderedIsoEnvelops)
             {
@@ -912,7 +912,7 @@ namespace MassSpectrometry
         //TO DO: need to be improved
         private void FindLabelPair(List<IsoEnvelop> isoEnvelops, DeconvolutionParameter deconvolutionParameter)
         {
-            double[] monoMasses = isoEnvelops.Select(p => p.MonoisotopicMass).ToArray();
+            double[] monoMzs = isoEnvelops.Select(p => p.ExperimentIsoEnvelop.First().mz).ToArray();
 
             foreach (var iso in isoEnvelops)
             {
@@ -924,11 +924,12 @@ namespace MassSpectrometry
                 for (int i = 1; i <= deconvolutionParameter.MaxmiumLabelNumber; i++)
                 {
                     var possiblePairMass = iso.MonoisotopicMass + deconvolutionParameter.PartnerMassDiff * i;
+                    var possiblePairMz = possiblePairMass.ToMz(iso.Charge);
 
-                    var closestIsoIndex = GetClosestIsoIndex(possiblePairMass, monoMasses);
+                    var closestIsoIndex = GetClosestIsoIndex(possiblePairMz, monoMzs);                       
 
                     if (isoEnvelops.ElementAt(closestIsoIndex.Value).MonoisotopicMass != iso.MonoisotopicMass 
-                        && deconvolutionParameter.PartnerAcceptor.Within(monoMasses[closestIsoIndex.Value], possiblePairMass)
+                        && deconvolutionParameter.PartnerAcceptor.Within(isoEnvelops.ElementAt(closestIsoIndex.Value).MonoisotopicMass, possiblePairMass)
                         && iso.Charge == isoEnvelops.ElementAt(closestIsoIndex.Value).Charge)
                     {
                         var ratio = iso.TotalIntensity / isoEnvelops.ElementAt(closestIsoIndex.Value).TotalIntensity;
