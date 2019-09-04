@@ -9,9 +9,9 @@ using MathNet.Numerics.LinearAlgebra.Double;
 using MzLibUtil;
 using Chemistry;
 
-namespace MetaDrawGUI
+namespace MassSpectrometry
 {
-    public class ChargeDecon
+    public static class ChargeDecon
     {
         static Tolerance tolerance = new PpmTolerance(5);
 
@@ -145,8 +145,9 @@ namespace MetaDrawGUI
                     matched_mz_z.Clear();
                     for (int j = 0; j < matchedIndexes.Count(); j++)
                     {
-                        matched_mz_z.Add(matchedCharges[j], new MzPeak(mzSpectrumBU.XArray[matchedIndexes[j]], mzSpectrumBU.YArray[matchedIndexes[j]]));
+                        matched_mz_z.Add(matchedCharges[j], new MzPeak(mzSpectrumBU.XArray[matchedIndexes[j]], mzSpectrumBU.YArray[matchedIndexes[j]]));                      
                     }
+
                     score = theScore;
                 }
             }
@@ -165,30 +166,46 @@ namespace MetaDrawGUI
                 {
                     continue;
                 }
-            
+
                 var mz_zs = FindChargesForPeak(mzSpectrumBU, peakIndex);
 
                 if (mz_zs.Count >= 3)
                 {
                     var chargeEnve = new ChargeEnvelop();
+                    int un_used_mzs = 0;
+                    int total_mzs = 0;
 
                     foreach (var mzz in mz_zs)
                     {
-                        int[] arrayOfTheoPeakIndexes;
-                        var iso = mzSpectrumBU.GetETEnvelopForPeakAtChargeState(mzz.Value.Mz, mzz.Key, deconvolutionParameter, 0, out arrayOfTheoPeakIndexes);
+
+                        List<int> arrayOfMatchedTheoPeakIndexes;
+                        var iso = IsoDecon.GetETEnvelopForPeakAtChargeState(mzSpectrumBU, mzz.Value.Mz, mzz.Key, deconvolutionParameter, 0, out arrayOfMatchedTheoPeakIndexes);
 
                         chargeEnve.FirstIndex = peakIndex;
                         chargeEnve.FirstMz = mzSpectrumBU.XArray[peakIndex];
                         chargeEnve.FirstIntensity = mzSpectrumBU.YArray[peakIndex];
                         chargeEnve.distributions.Add((mzz.Key, mzz.Value, iso));                     
 
-                        for (int i = arrayOfTheoPeakIndexes.Min(); i <= arrayOfTheoPeakIndexes.Max(); i++)
+                        foreach(var ind in arrayOfMatchedTheoPeakIndexes)
                         {
-                            seenPeakIndex.Add(i);
-                        } 
+                            if (seenPeakIndex.Contains(ind))
+                            {
+                                un_used_mzs++;
+                            }
+                            else
+                            {
+                                seenPeakIndex.Add(ind);
+                            }
+                            total_mzs++;
+                        }                 
                     }
+
+                    chargeEnve.UnUsedMzsRatio = (double)un_used_mzs / (double)total_mzs;
                     chargeEnve.GetMSE();
-                    chargeEnvelops.Add(chargeEnve);
+                    if (chargeEnve.UnUsedMzsRatio < 0.1 && chargeEnve.IsoEnveNum >=1)
+                    {
+                        chargeEnvelops.Add(chargeEnve);
+                    }
                 }
             }
 

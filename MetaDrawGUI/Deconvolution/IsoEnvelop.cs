@@ -10,7 +10,7 @@ namespace MassSpectrometry
     {
         public IsoEnvelop() { }
 
-        public IsoEnvelop(MzPeak[] exp, MzPeak[] theo, double mass, int charge, int[] theoPeakIndex)
+        public IsoEnvelop(MzPeak[] exp, MzPeak[] theo, double mass, int charge, List<int> theoPeakIndex)
         {
             ExperimentIsoEnvelop = exp;
             TheoIsoEnvelop = theo;
@@ -23,7 +23,7 @@ namespace MassSpectrometry
 
         public MzPeak[] TheoIsoEnvelop { get; set; }
 
-        public int[] TheoPeakIndex { get; set; }
+        public List<int> TheoPeakIndex { get; set; }
 
         public double MonoisotopicMass { get; set; }
 

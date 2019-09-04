@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 using MassSpectrometry;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
+using MetaDrawGUI;
 
-namespace MetaDrawGUI
+namespace MassSpectrometry
 {
     public class ChargeEnvelop
     {
@@ -21,7 +22,15 @@ namespace MetaDrawGUI
 
         public double Mse { get; set; }
 
-        public double[] IntensityModel{get; set;}
+        public double UnUsedMzsRatio { get; set; }
+
+        public int IsoEnveNum
+        {
+            get
+            {
+                return distributions.Where(p => p.isoEnvelop != null).Count();
+            }
+        }
 
         //This MSE method cannot distinguish anything
         public void GetMSE()
@@ -39,5 +48,7 @@ namespace MetaDrawGUI
             IntensityModel = model.GetPowerETo1ValueVector(pointCount, dataX, iterations[iterations.Count - 1]).ToArray();
             Mse = model.GetPowerEMSE(pointCount, dataX, dataY, iterations[iterations.Count - 1]);
         }
+
+        public double[] IntensityModel { get; set; }
     }
 }

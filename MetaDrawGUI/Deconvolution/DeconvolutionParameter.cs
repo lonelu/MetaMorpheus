@@ -1,6 +1,6 @@
 ﻿using MzLibUtil;
 
-namespace MetaDrawGUI
+namespace MassSpectrometry
 {
     public class DeconvolutionParameter
     {

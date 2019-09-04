@@ -667,7 +667,7 @@ namespace MassSpectrometry
         }
 
         //Change the workflow for different score method.
-        public IsoEnvelop GetETEnvelopForPeakAtChargeState(double candidateForMostIntensePeakMz, int chargeState, DeconvolutionParameter deconvolutionParameter, double noiseLevel, out int[] arrayOfTheoPeakIndexes)
+        public IsoEnvelop GetETEnvelopForPeakAtChargeState(double candidateForMostIntensePeakMz, int chargeState, DeconvolutionParameter deconvolutionParameter, double noiseLevel, out List<int> arrayOfTheoPeakIndexes)
         {
             var testMostIntenseMass = candidateForMostIntensePeakMz.ToMass(chargeState);
 
@@ -689,7 +689,7 @@ namespace MassSpectrometry
 
             var arrayOfPeaks = new MzPeak[theoryIsoEnvelopLength];
             var arrayOfTheoPeaks = new MzPeak[theoryIsoEnvelopLength];
-            arrayOfTheoPeakIndexes = new int[theoryIsoEnvelopLength]; //For top-down to calculate MsDeconvSignificance
+            arrayOfTheoPeakIndexes = new List<int>(); //For top-down to calculate MsDeconvSignificance
 
             for (int indexToLookAt = 0; indexToLookAt < theoryIsoEnvelopLength; indexToLookAt++)
             {
@@ -699,12 +699,16 @@ namespace MassSpectrometry
                 var closestPeakToTheorMassIndex = GetClosestPeakIndex(theorMassThatTryingToFind.ToMz(chargeState));
                 var closestPeakmz = XArray[closestPeakToTheorMassIndex.Value];
                 var closestPeakIntensity = YArray[closestPeakToTheorMassIndex.Value];
-                arrayOfTheoPeakIndexes[indexToLookAt] = closestPeakToTheorMassIndex.Value;
+                
 
                 if (!deconvolutionParameter.DeconvolutionAcceptor.Within(theorMassThatTryingToFind, closestPeakmz.ToMass(chargeState)) || closestPeakIntensity < noiseLevel)
                 {
                     closestPeakmz = theorMassThatTryingToFind.ToMz(chargeState);
                     closestPeakIntensity = 0;
+                }
+                else
+                {
+                    arrayOfTheoPeakIndexes.Add(closestPeakToTheorMassIndex.Value);
                 }
 
                 arrayOfPeaks[indexToLookAt] = new MzPeak(closestPeakmz, closestPeakIntensity);
@@ -802,7 +806,7 @@ namespace MassSpectrometry
 
             foreach (var chargeState in allPossibleChargeState)
             {
-                int[] arrayOfTheoPeakIndexes; //Is not used here, is used in ChargeDecon
+                List<int> arrayOfTheoPeakIndexes; //Is not used here, is used in ChargeDecon
 
                 var isoEnvelop = GetETEnvelopForPeakAtChargeState(candidateForMostIntensePeakMz, chargeState, deconvolutionParameter, noiseLevel, out arrayOfTheoPeakIndexes);
 

@@ -155,7 +155,7 @@ namespace MetaDrawGUI
             //IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
             //IsotopicEnvelopes = mzSpectrumBU.Deconvolute(msDataScan.ScanWindowRange, _thanos.DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
             //IsotopicEnvelopes = mzSpectrumBU.ParallelDeconvolute(msDataScan.ScanWindowRange, DeconvolutionParameter, 8).OrderBy(p => p.monoisotopicMass).ToList();
-            IsotopicEnvelopes = mzSpectrumBU.MsDeconv_Deconvolute(_thanos.msDataScan.ScanWindowRange, _thanos.DeconvolutionParameter).OrderBy(p => p.MonoisotopicMass).ToList();
+            IsotopicEnvelopes = IsoDecon.MsDeconv_Deconvolute(mzSpectrumBU, _thanos.msDataScan.ScanWindowRange, _thanos.DeconvolutionParameter).OrderBy(p => p.MonoisotopicMass).ToList();
 
             int i = 1;
             foreach (var item in IsotopicEnvelopes)
@@ -173,7 +173,7 @@ namespace MetaDrawGUI
             int ind = 1;
             foreach (var mz_z in _thanos.deconvolutor.Mz_zs)
             {
-                _thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.Value.Mz, mz_z.Key, mz_z.Value.Intensity));
+                _thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.Value.Mz, mz_z.Key, mz_z.Value.Intensity, 0, 0, null));
                 ind++;
             }
             chargeEnvelopesCollection = chargeEnvelopesObservableCollection;
@@ -196,7 +196,7 @@ namespace MetaDrawGUI
 
             int index = ChargeDecon.GetCloestIndex(deconChargeMass, mzSpectrumBU.XArray);
 
-            var envo = mzSpectrumBU.MsDeconvExperimentPeak(index, _thanos.DeconvolutionParameter, 0);
+            var envo = IsoDecon.MsDeconvExperimentPeak(mzSpectrumBU, index, _thanos.DeconvolutionParameter, 0);
 
             if (envo != null)
             {
@@ -320,7 +320,7 @@ namespace MetaDrawGUI
             int ind = 1;
             foreach (var mz_z in theMz_zs)
             {
-                _thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.Value.Mz, mz_z.Key, mz_z.Value.Intensity));
+                _thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.Value.Mz, mz_z.Key, mz_z.Value.Intensity, 0, 0, null));
                 ind++;
             }
             chargeEnvelopesCollection = chargeEnvelopesObservableCollection;
