@@ -10,12 +10,6 @@ namespace MassSpectrometry
     {
         static Tolerance tolerance = new PpmTolerance(5);
 
-        static DeconvolutionParameter deconvolutionParameter = new DeconvolutionParameter()
-        {
-            DeconvolutionMinAssumedChargeState = 2, 
-            DeconvolutionMaxAssumedChargeState = 50
-        };
-
         public static int GetCloestIndex(double x, double[] array)
         {
             if (array.Length == 0)
@@ -106,7 +100,7 @@ namespace MassSpectrometry
 
         }
 
-        public static Dictionary<int, MzPeak> FindChargesForPeak(MzSpectrumXY mzSpectrumXY, int index)
+        public static Dictionary<int, MzPeak> FindChargesForPeak(MzSpectrumXY mzSpectrumXY, int index, DeconvolutionParameter deconvolutionParameter)
         {
             var mz = mzSpectrumXY.XArray[index];
 
@@ -150,7 +144,7 @@ namespace MassSpectrometry
             return matched_mz_z;
         }
 
-        public static List<ChargeEnvelop> FindChargesForScan(MzSpectrumXY mzSpectrumXY)
+        public static List<ChargeEnvelop> FindChargesForScan(MzSpectrumXY mzSpectrumXY, DeconvolutionParameter deconvolutionParameter)
         {
             List<ChargeEnvelop> chargeEnvelops = new List<ChargeEnvelop>();
             HashSet<int> seenPeakIndex = new HashSet<int>();
@@ -162,13 +156,14 @@ namespace MassSpectrometry
                     continue;
                 }
 
-                var mz_zs = FindChargesForPeak(mzSpectrumXY, peakIndex);
+                var mz_zs = FindChargesForPeak(mzSpectrumXY, peakIndex, deconvolutionParameter);
 
                 if (mz_zs.Count >= 3)
                 {
-                    var chargeEnve = new ChargeEnvelop();
+                    var chargeEnve = new ChargeEnvelop(peakIndex, mzSpectrumXY.XArray[peakIndex], mzSpectrumXY.YArray[peakIndex]);
                     int un_used_mzs = 0;
                     int total_mzs = 0;
+                    double matched_intensities = 0;
 
                     foreach (var mzz in mz_zs)
                     {
@@ -176,9 +171,6 @@ namespace MassSpectrometry
                         List<int> arrayOfMatchedTheoPeakIndexes;
                         var iso = IsoDecon.GetETEnvelopForPeakAtChargeState(mzSpectrumXY, mzz.Value.Mz, mzz.Key, deconvolutionParameter, 0, out arrayOfMatchedTheoPeakIndexes);
 
-                        chargeEnve.FirstIndex = peakIndex;
-                        chargeEnve.FirstMz = mzSpectrumXY.XArray[peakIndex];
-                        chargeEnve.FirstIntensity = mzSpectrumXY.YArray[peakIndex];
                         chargeEnve.distributions.Add((mzz.Key, mzz.Value, iso));                     
 
                         foreach(var ind in arrayOfMatchedTheoPeakIndexes)
@@ -192,13 +184,15 @@ namespace MassSpectrometry
                                 seenPeakIndex.Add(ind);
                             }
                             total_mzs++;
+                            matched_intensities += mzSpectrumXY.YArray[ind];
                         }                 
                     }
 
                     chargeEnve.UnUsedMzsRatio = (double)un_used_mzs / (double)total_mzs;
-                    chargeEnve.GetMSE();
+
                     if (chargeEnve.UnUsedMzsRatio < 0.1 && chargeEnve.IsoEnveNum >=1)
                     {
+                        chargeEnve.MatchedIntensityRatio = matched_intensities / mzSpectrumXY.TotalIntensity;
                         chargeEnvelops.Add(chargeEnve);
                     }
                 }

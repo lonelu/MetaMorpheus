@@ -169,7 +169,7 @@ namespace MetaDrawGUI
             double max = _thanos.deconvolutor.mzSpectrumXY.YArray.Max();
             int indexMax = _thanos.deconvolutor.mzSpectrumXY.YArray.ToList().IndexOf(max);
 
-            _thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(_thanos.deconvolutor.mzSpectrumXY, indexMax);
+            _thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(_thanos.deconvolutor.mzSpectrumXY, indexMax, _thanos.DeconvolutionParameter);
             int ind = 1;
             foreach (var mz_z in _thanos.deconvolutor.Mz_zs)
             {
@@ -313,7 +313,7 @@ namespace MetaDrawGUI
 
             int index = ChargeDecon.GetCloestIndex(deconChargeMass, mzSpectrumXY.XArray);
 
-            var theMz_zs = ChargeDecon.FindChargesForPeak(_thanos.deconvolutor.mzSpectrumXY, index);
+            var theMz_zs = ChargeDecon.FindChargesForPeak(_thanos.deconvolutor.mzSpectrumXY, index, _thanos.DeconvolutionParameter);
 
             int ind = 1;
             foreach (var mz_z in theMz_zs)

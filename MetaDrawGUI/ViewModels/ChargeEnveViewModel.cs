@@ -28,8 +28,8 @@ namespace ViewModels
         {
             var x = chargeDeconEnvelope.distributions.Select(p=>p.peak.Mz).ToArray();
             var y = chargeDeconEnvelope.distributions.Select(p=>p.peak.Intensity).ToArray();
-            var scale = y.Sum() / chargeDeconEnvelope.IntensityModel.Sum();
-            var intensityModel = chargeDeconEnvelope.IntensityModel.Select(p=>p*scale).ToArray();
+            //var scale = y.Sum() / chargeDeconEnvelope.IntensityModel.Sum();
+            //var intensityModel = chargeDeconEnvelope.IntensityModel.Select(p=>p*scale).ToArray();
             var charges = chargeDeconEnvelope.distributions.Select(p=>p.charge);
             string scanNum = MsScanForDraw.OneBasedScanNumber.ToString();
 
@@ -63,15 +63,15 @@ namespace ViewModels
                 model.Series.Add(line);
             }
 
-            for (int i = 0; i < x.Length; i++)
-            {
-                var line = new LineSeries();
-                line.Color = OxyColors.Red;
-                line.StrokeThickness = 1.5;
-                line.Points.Add(new DataPoint(x[i], 0));
-                line.Points.Add(new DataPoint(x[i], intensityModel[i]));
-                model.Series.Add(line);
-            }
+            //for (int i = 0; i < x.Length; i++)
+            //{
+            //    var line = new LineSeries();
+            //    line.Color = OxyColors.Red;
+            //    line.StrokeThickness = 1.5;
+            //    line.Points.Add(new DataPoint(x[i], 0));
+            //    line.Points.Add(new DataPoint(x[i], intensityModel[i]));
+            //    model.Series.Add(line);
+            //}
             
             return model;
         }

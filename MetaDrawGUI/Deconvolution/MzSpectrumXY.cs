@@ -68,6 +68,8 @@ namespace MassSpectrometry
 
         public int Size { get { return XArray.Length; } }
 
+        public double TotalIntensity { get { return YArray.Sum(); } }
+
         #endregion
 
         #region Basic Method

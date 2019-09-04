@@ -397,9 +397,9 @@ namespace MetaDrawGUI
                 double max = thanos.deconvolutor.mzSpectrumXY.YArray.Max();
                 int indexMax = thanos.deconvolutor.mzSpectrumXY.YArray.ToList().IndexOf(max);
 
-                thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(thanos.deconvolutor.mzSpectrumXY, indexMax);
+                thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(thanos.deconvolutor.mzSpectrumXY, indexMax, thanos.DeconvolutionParameter);
 
-                thanos.deconvolutor.ChargeEnvelops = ChargeDecon.FindChargesForScan(thanos.deconvolutor.mzSpectrumXY);
+                thanos.deconvolutor.ChargeEnvelops = ChargeDecon.FindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
 
                 int ind = 1;
                 foreach (var chargeEnvelop in thanos.deconvolutor.ChargeEnvelops)
@@ -412,7 +412,7 @@ namespace MetaDrawGUI
                             monoMasses.Add(dist.isoEnvelop.MonoisotopicMass);
                         }
                     }
-                    thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, chargeEnvelop.FirstMz, chargeEnvelop.FirstIntensity, chargeEnvelop.Mse, chargeEnvelop.UnUsedMzsRatio, chargeEnvelop.IsoEnveNum, monoMasses));
+                    thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, chargeEnvelop.FirstMz, chargeEnvelop.FirstIntensity, chargeEnvelop.MatchedIntensityRatio, chargeEnvelop.UnUsedMzsRatio, chargeEnvelop.IsoEnveNum, monoMasses));
                     ind++;
                 }
             }
@@ -457,7 +457,7 @@ namespace MetaDrawGUI
             double max = thanos.deconvolutor.mzSpectrumXY.YArray.Max();
             int indexMax = thanos.deconvolutor.mzSpectrumXY.YArray.ToList().IndexOf(max);
 
-            thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(thanos.deconvolutor.mzSpectrumXY, indexMax);
+            thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(thanos.deconvolutor.mzSpectrumXY, indexMax, thanos.DeconvolutionParameter);
             int ind = 1;
             foreach (var mz_z in thanos.deconvolutor.Mz_zs)
             {
