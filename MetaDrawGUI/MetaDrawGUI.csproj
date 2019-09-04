@@ -191,9 +191,9 @@
     <Compile Include="BoxCar\BoxcarRange.cs" />
     <Compile Include="BoxCar\SetOfScans.cs" />
     <Compile Include="BoxMerger.cs" />
-    <Compile Include="ChargeDecon\ChargeDeconEnvelope.cs" />
-    <Compile Include="ChargeDecon\ChargeDeconPerMS1Scan.cs" />
-    <Compile Include="ChargeDecon\ChargeParsi.cs" />
+    <Compile Include="Deconvolution_old\ChargeDeconEnvelope.cs" />
+    <Compile Include="Deconvolution_old\ChargeDeconPerMS1Scan.cs" />
+    <Compile Include="Deconvolution_old\ChargeParsi.cs" />
     <Compile Include="ControlParameter.cs" />
     <Compile Include="DataGrids\AllScansForDataGrid.cs" />
     <Compile Include="DataGrids\ChargeEnvelopesForDataGrid.cs" />
@@ -206,9 +206,9 @@
     <Compile Include="Deconvolution\ChargeDecon.cs" />
     <Compile Include="Deconvolution\IsoEnvelop.cs" />
     <Compile Include="Deconvolutor.cs" />
-    <Compile Include="ChargeDecon\MsDataFileDecon.cs" />
+    <Compile Include="Deconvolution_old\MsDataFileDecon.cs" />
     <Compile Include="MsFeature.cs" />
-    <Compile Include="Deconvolution\MzSpectrumBU.cs" />
+    <Compile Include="Deconvolution_old\MzSpectrumBU.cs" />
     <Compile Include="Regression\GaussianModel.cs" />
     <Compile Include="Regression\LevenbergMarquardtSolver.cs" />
     <Compile Include="Regression\Model.cs" />
