@@ -66,6 +66,9 @@ namespace MassSpectrometry
             }
         }
 
+        public static double[][] AllMasses { get { return allMasses; } }
+        public static double[][] AllIntensities { get { return allIntensities; } }
+
         #region New deconvolution method optimized from MsDeconv (by Lei)
 
         //MsDeconv Score peak
@@ -135,7 +138,7 @@ namespace MassSpectrometry
         }
 
         //Change the workflow for different score method.
-        public static IsoEnvelop GetETEnvelopForPeakAtChargeState(MzSpectrumBU mzSpectrumBU, double candidateForMostIntensePeakMz, int chargeState, DeconvolutionParameter deconvolutionParameter, double noiseLevel, out List<int> arrayOfTheoPeakIndexes)
+        public static IsoEnvelop GetETEnvelopForPeakAtChargeState(MzSpectrumXY mzSpectrumXY, double candidateForMostIntensePeakMz, int chargeState, DeconvolutionParameter deconvolutionParameter, double noiseLevel, out List<int> arrayOfTheoPeakIndexes)
         {
             var testMostIntenseMass = candidateForMostIntensePeakMz.ToMass(chargeState);
 
@@ -164,9 +167,9 @@ namespace MassSpectrometry
                 double theorMassThatTryingToFind = allMasses[massIndex][indexToLookAt] + differenceBetweenTheorAndActual;
                 arrayOfTheoPeaks[indexToLookAt] = new MzPeak(theorMassThatTryingToFind.ToMz(chargeState), allIntensities[massIndex][indexToLookAt]);
 
-                var closestPeakToTheorMassIndex = GetClosestIndexInArray(theorMassThatTryingToFind.ToMz(chargeState), mzSpectrumBU.XArray);
-                var closestPeakmz = mzSpectrumBU.XArray[closestPeakToTheorMassIndex.Value];
-                var closestPeakIntensity = mzSpectrumBU.YArray[closestPeakToTheorMassIndex.Value];
+                var closestPeakToTheorMassIndex = GetClosestIndexInArray(theorMassThatTryingToFind.ToMz(chargeState), mzSpectrumXY.XArray);
+                var closestPeakmz = mzSpectrumXY.XArray[closestPeakToTheorMassIndex.Value];
+                var closestPeakIntensity = mzSpectrumXY.YArray[closestPeakToTheorMassIndex.Value];
 
 
                 if (!deconvolutionParameter.DeconvolutionAcceptor.Within(theorMassThatTryingToFind, closestPeakmz.ToMass(chargeState)) || closestPeakIntensity < noiseLevel)
@@ -244,21 +247,21 @@ namespace MassSpectrometry
             return true;
         }
 
-        public static IsoEnvelop MsDeconvExperimentPeak(MzSpectrumBU mzSpectrumBU, int candidateForMostIntensePeak, DeconvolutionParameter deconvolutionParameter, double noiseLevel)
+        public static IsoEnvelop MsDeconvExperimentPeak(MzSpectrumXY mzSpectrumXY, int candidateForMostIntensePeak, DeconvolutionParameter deconvolutionParameter, double noiseLevel)
         {
             IsoEnvelop bestIsotopeEnvelopeForThisPeak = null;
 
-            var candidateForMostIntensePeakMz = mzSpectrumBU.XArray[candidateForMostIntensePeak];
+            var candidateForMostIntensePeakMz = mzSpectrumXY.XArray[candidateForMostIntensePeak];
 
             //Find possible chargeStates.
             List<int> allPossibleChargeState = new List<int>();
-            for (int i = candidateForMostIntensePeak + 1; i < mzSpectrumBU.XArray.Length; i++)
+            for (int i = candidateForMostIntensePeak + 1; i < mzSpectrumXY.XArray.Length; i++)
             {
-                if (mzSpectrumBU.XArray[i] - candidateForMostIntensePeakMz < 1.1) //In case charge is +1
+                if (mzSpectrumXY.XArray[i] - candidateForMostIntensePeakMz < 1.1) //In case charge is +1
                 {
-                    var chargeDouble = 1.00289 / (mzSpectrumBU.XArray[i] - candidateForMostIntensePeakMz);
+                    var chargeDouble = 1.00289 / (mzSpectrumXY.XArray[i] - candidateForMostIntensePeakMz);
                     int charge = Convert.ToInt32(chargeDouble);
-                    if (deconvolutionParameter.DeconvolutionAcceptor.Within(candidateForMostIntensePeakMz + 1.00289 / chargeDouble, mzSpectrumBU.XArray[i])
+                    if (deconvolutionParameter.DeconvolutionAcceptor.Within(candidateForMostIntensePeakMz + 1.00289 / chargeDouble, mzSpectrumXY.XArray[i])
                         && charge >= deconvolutionParameter.DeconvolutionMinAssumedChargeState
                         && charge <= deconvolutionParameter.DeconvolutionMaxAssumedChargeState
                         && !allPossibleChargeState.Contains(charge))
@@ -276,7 +279,7 @@ namespace MassSpectrometry
             {
                 List<int> arrayOfTheoPeakIndexes; //Is not used here, is used in ChargeDecon
 
-                var isoEnvelop = GetETEnvelopForPeakAtChargeState(mzSpectrumBU, candidateForMostIntensePeakMz, chargeState, deconvolutionParameter, noiseLevel, out arrayOfTheoPeakIndexes);
+                var isoEnvelop = GetETEnvelopForPeakAtChargeState(mzSpectrumXY, candidateForMostIntensePeakMz, chargeState, deconvolutionParameter, noiseLevel, out arrayOfTheoPeakIndexes);
 
                 if (MsDeconvScore(isoEnvelop) > MsDeconvScore(bestIsotopeEnvelopeForThisPeak))
                 {
@@ -298,7 +301,7 @@ namespace MassSpectrometry
         }
 
         //Kind of similar as a S/N filter. It works for top-down, Not working for bottom-up.
-        private static double CalIsoEnvelopNoise(MzSpectrumBU mzSpectrumBU, IsoEnvelop isoEnvelop)
+        private static double CalIsoEnvelopNoise(MzSpectrumXY mzSpectrumXY, IsoEnvelop isoEnvelop)
         {
             double intensityInRange = 0;
 
@@ -308,7 +311,7 @@ namespace MassSpectrometry
 
             for (int i = minInd; i <= maxInd; i++)
             {
-                intensityInRange += mzSpectrumBU.YArray[i];
+                intensityInRange += mzSpectrumXY.YArray[i];
             }
 
             double ratio = (isoEnvelop.TotalIntensity / intensityInRange) * ((double)isoEnvelop.ExperimentIsoEnvelop.Where(p => p.Intensity != 0).Count() / ((double)maxInd - (double)minInd + 1));
@@ -322,9 +325,9 @@ namespace MassSpectrometry
             return 0;
         }
 
-        public static IEnumerable<IsoEnvelop> MsDeconv_Deconvolute(MzSpectrumBU mzSpectrumBU, MzRange theRange, DeconvolutionParameter deconvolutionParameter)
+        public static IEnumerable<IsoEnvelop> MsDeconv_Deconvolute(MzSpectrumXY mzSpectrumXY, MzRange theRange, DeconvolutionParameter deconvolutionParameter)
         {
-            if (mzSpectrumBU.Size == 0)
+            if (mzSpectrumXY.Size == 0)
             {
                 yield break;
             }
@@ -336,7 +339,7 @@ namespace MassSpectrometry
             ////Deconvolution by Intensity decending order
             //foreach (var candidateForMostIntensePeak in ExtractIndicesByY())
             ////Deconvolution by MZ increasing order
-            foreach (var candidateForMostIntensePeak in mzSpectrumBU.ExtractIndices(theRange.Minimum, theRange.Maximum))
+            foreach (var candidateForMostIntensePeak in mzSpectrumXY.ExtractIndices(theRange.Minimum, theRange.Maximum))
             {
                 //if (seenPeaks.Contains(XArray[candidateForMostIntensePeak]))
                 //{
@@ -345,11 +348,11 @@ namespace MassSpectrometry
 
                 double noiseLevel = CalNoiseLevel();
 
-                IsoEnvelop bestIsotopeEnvelopeForThisPeak = MsDeconvExperimentPeak(mzSpectrumBU, candidateForMostIntensePeak, deconvolutionParameter, noiseLevel);
+                IsoEnvelop bestIsotopeEnvelopeForThisPeak = MsDeconvExperimentPeak(mzSpectrumXY, candidateForMostIntensePeak, deconvolutionParameter, noiseLevel);
 
                 if (bestIsotopeEnvelopeForThisPeak != null)
                 {
-                    bestIsotopeEnvelopeForThisPeak.MsDeconvSignificance = CalIsoEnvelopNoise(mzSpectrumBU, bestIsotopeEnvelopeForThisPeak);
+                    bestIsotopeEnvelopeForThisPeak.MsDeconvSignificance = CalIsoEnvelopNoise(mzSpectrumXY, bestIsotopeEnvelopeForThisPeak);
 
                     isolatedMassesAndCharges.Add(bestIsotopeEnvelopeForThisPeak);
                     //foreach (var peak in bestIsotopeEnvelopeForThisPeak.ExperimentIsoEnvelop.Select(p => p.Item1))

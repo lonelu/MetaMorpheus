@@ -76,7 +76,7 @@ namespace MassSpectrometry
             return mz_z;
         }
 
-        private static double ScoreCurrentCharge(MzSpectrumBU mzSpectrumBU_log, List<int> matchedCharges)
+        private static double ScoreCurrentCharge(MzSpectrumXY mzSpectrumBU_log, List<int> matchedCharges)
         {
             List<int> continuousChangeLength = new List<int>();
 
@@ -111,9 +111,9 @@ namespace MassSpectrometry
 
         }
 
-        public static Dictionary<int, MzPeak> FindChargesForPeak(MzSpectrumBU mzSpectrumBU, int index)
+        public static Dictionary<int, MzPeak> FindChargesForPeak(MzSpectrumXY mzSpectrumXY, int index)
         {
-            var mz = mzSpectrumBU.XArray[index];
+            var mz = mzSpectrumXY.XArray[index];
 
             Dictionary<int, MzPeak> matched_mz_z = new Dictionary<int, MzPeak>();
 
@@ -129,23 +129,23 @@ namespace MassSpectrometry
 
                 foreach (var amz in mz_z)
                 {
-                    var ind = GetCloestIndex(amz.Value, mzSpectrumBU.XArray);
+                    var ind = GetCloestIndex(amz.Value, mzSpectrumXY.XArray);
 
-                    if (tolerance.Within(amz.Value, mzSpectrumBU.XArray[ind]))
+                    if (tolerance.Within(amz.Value, mzSpectrumXY.XArray[ind]))
                     {
                         matchedIndexes.Add(ind);
                         matchedCharges.Add(amz.Key);
                     }
                 }
 
-                double theScore = ScoreCurrentCharge(mzSpectrumBU, matchedCharges);
+                double theScore = ScoreCurrentCharge(mzSpectrumXY, matchedCharges);
 
                 if (theScore > score)
                 {
                     matched_mz_z.Clear();
                     for (int j = 0; j < matchedIndexes.Count(); j++)
                     {
-                        matched_mz_z.Add(matchedCharges[j], new MzPeak(mzSpectrumBU.XArray[matchedIndexes[j]], mzSpectrumBU.YArray[matchedIndexes[j]]));                      
+                        matched_mz_z.Add(matchedCharges[j], new MzPeak(mzSpectrumXY.XArray[matchedIndexes[j]], mzSpectrumXY.YArray[matchedIndexes[j]]));                      
                     }
 
                     score = theScore;
@@ -155,19 +155,19 @@ namespace MassSpectrometry
             return matched_mz_z;
         }
 
-        public static List<ChargeEnvelop> FindChargesForScan(MzSpectrumBU mzSpectrumBU)
+        public static List<ChargeEnvelop> FindChargesForScan(MzSpectrumXY mzSpectrumXY)
         {
             List<ChargeEnvelop> chargeEnvelops = new List<ChargeEnvelop>();
             HashSet<int> seenPeakIndex = new HashSet<int>();
 
-            foreach (var peakIndex in mzSpectrumBU.ExtractIndicesByY())
+            foreach (var peakIndex in mzSpectrumXY.ExtractIndicesByY())
             {
                 if (seenPeakIndex.Contains(peakIndex))
                 {
                     continue;
                 }
 
-                var mz_zs = FindChargesForPeak(mzSpectrumBU, peakIndex);
+                var mz_zs = FindChargesForPeak(mzSpectrumXY, peakIndex);
 
                 if (mz_zs.Count >= 3)
                 {
@@ -179,11 +179,11 @@ namespace MassSpectrometry
                     {
 
                         List<int> arrayOfMatchedTheoPeakIndexes;
-                        var iso = IsoDecon.GetETEnvelopForPeakAtChargeState(mzSpectrumBU, mzz.Value.Mz, mzz.Key, deconvolutionParameter, 0, out arrayOfMatchedTheoPeakIndexes);
+                        var iso = IsoDecon.GetETEnvelopForPeakAtChargeState(mzSpectrumXY, mzz.Value.Mz, mzz.Key, deconvolutionParameter, 0, out arrayOfMatchedTheoPeakIndexes);
 
                         chargeEnve.FirstIndex = peakIndex;
-                        chargeEnve.FirstMz = mzSpectrumBU.XArray[peakIndex];
-                        chargeEnve.FirstIntensity = mzSpectrumBU.YArray[peakIndex];
+                        chargeEnve.FirstMz = mzSpectrumXY.XArray[peakIndex];
+                        chargeEnve.FirstIntensity = mzSpectrumXY.YArray[peakIndex];
                         chargeEnve.distributions.Add((mzz.Key, mzz.Value, iso));                     
 
                         foreach(var ind in arrayOfMatchedTheoPeakIndexes)

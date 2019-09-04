@@ -131,11 +131,11 @@ namespace MetaDrawGUI
             }
         }
 
-        public MzSpectrumBU mzSpectrumBU
+        public MzSpectrumXY mzSpectrumXY
         {
             get
             {
-                return new MzSpectrumBU(_thanos.msDataScan.MassSpectrum.XArray, _thanos.msDataScan.MassSpectrum.YArray, true);
+                return new MzSpectrumXY(_thanos.msDataScan.MassSpectrum.XArray, _thanos.msDataScan.MassSpectrum.YArray, true);
             }
         }
 
@@ -143,19 +143,19 @@ namespace MetaDrawGUI
         {
             get
             {
-                return mzSpectrumBU.ExtractIndicesByY().ToArray();
+                return mzSpectrumXY.ExtractIndicesByY().ToArray();
             }
         }
 
         public void Decon()
         {
             _thanos.msDataScan = _thanos.msDataScans.Where(p => p.OneBasedScanNumber == _thanos.ControlParameter.deconScanNum).First();
-            MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(_thanos.msDataScan.MassSpectrum.XArray, _thanos.msDataScan.MassSpectrum.YArray, true);
+            MzSpectrumXY mzSpectrumXY = new MzSpectrumXY(_thanos.msDataScan.MassSpectrum.XArray, _thanos.msDataScan.MassSpectrum.YArray, true);
 
             //IsotopicEnvelopes = mzSpectrumBU.DeconvoluteBU(msDataScan.ScanWindowRange, DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
             //IsotopicEnvelopes = mzSpectrumBU.Deconvolute(msDataScan.ScanWindowRange, _thanos.DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
             //IsotopicEnvelopes = mzSpectrumBU.ParallelDeconvolute(msDataScan.ScanWindowRange, DeconvolutionParameter, 8).OrderBy(p => p.monoisotopicMass).ToList();
-            IsotopicEnvelopes = IsoDecon.MsDeconv_Deconvolute(mzSpectrumBU, _thanos.msDataScan.ScanWindowRange, _thanos.DeconvolutionParameter).OrderBy(p => p.MonoisotopicMass).ToList();
+            IsotopicEnvelopes = IsoDecon.MsDeconv_Deconvolute(mzSpectrumXY, _thanos.msDataScan.ScanWindowRange, _thanos.DeconvolutionParameter).OrderBy(p => p.MonoisotopicMass).ToList();
 
             int i = 1;
             foreach (var item in IsotopicEnvelopes)
@@ -166,10 +166,10 @@ namespace MetaDrawGUI
 
             Model = MainViewModel.DrawScan(_thanos.msDataScan);
 
-            double max = _thanos.deconvolutor.mzSpectrumBU.YArray.Max();
-            int indexMax = _thanos.deconvolutor.mzSpectrumBU.YArray.ToList().IndexOf(max);
+            double max = _thanos.deconvolutor.mzSpectrumXY.YArray.Max();
+            int indexMax = _thanos.deconvolutor.mzSpectrumXY.YArray.ToList().IndexOf(max);
 
-            _thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(_thanos.deconvolutor.mzSpectrumBU, indexMax);
+            _thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(_thanos.deconvolutor.mzSpectrumXY, indexMax);
             int ind = 1;
             foreach (var mz_z in _thanos.deconvolutor.Mz_zs)
             {
@@ -190,13 +190,13 @@ namespace MetaDrawGUI
 
         public void DeconIsoByPeak()
         {
-            MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(_thanos.msDataScan.MassSpectrum.XArray, _thanos.msDataScan.MassSpectrum.YArray, true);
+            MzSpectrumXY mzSpectrumXY = new MzSpectrumXY(_thanos.msDataScan.MassSpectrum.XArray, _thanos.msDataScan.MassSpectrum.YArray, true);
 
             double deconChargeMass = _thanos.ControlParameter.DeconChargeMass;
 
-            int index = ChargeDecon.GetCloestIndex(deconChargeMass, mzSpectrumBU.XArray);
+            int index = ChargeDecon.GetCloestIndex(deconChargeMass, mzSpectrumXY.XArray);
 
-            var envo = IsoDecon.MsDeconvExperimentPeak(mzSpectrumBU, index, _thanos.DeconvolutionParameter, 0);
+            var envo = IsoDecon.MsDeconvExperimentPeak(mzSpectrumXY, index, _thanos.DeconvolutionParameter, 0);
 
             if (envo != null)
             {
@@ -208,15 +208,13 @@ namespace MetaDrawGUI
         public void PlotDeconModel()
         {
             if (_thanos.msDataScan != null)
-            {
-                MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(_thanos.msDataScan.MassSpectrum.XArray, _thanos.msDataScan.MassSpectrum.YArray, true);                
-                Model = DeconViewModel.DrawDeconModel(mzSpectrumBU, _thanos.ControlParameter.modelStartNum);
+            {             
+                Model = DeconViewModel.DrawDeconModel(_thanos.ControlParameter.modelStartNum);
             }
-            else
-            {
 
-                var mzSpectrumBU = new MzSpectrumBU(new double[] { 1 }, new double[] { 1 }, true);                
-                Model = DeconViewModel.DrawDeconModel(mzSpectrumBU, _thanos.ControlParameter.modelStartNum);
+            else
+            {     
+                Model = DeconViewModel.DrawDeconModel(_thanos.ControlParameter.modelStartNum);
             }
         }
         
@@ -277,11 +275,11 @@ namespace MetaDrawGUI
             {
                 var theScanNum = MS1Scans[i].OneBasedScanNumber;
                 var theRT = MS1Scans[i].RetentionTime;
-                MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(MS1Scans[i].MassSpectrum.XArray, MS1Scans[i].MassSpectrum.YArray, true);
+                MzSpectrumXY mzSpectrumXY = new MzSpectrumXY(MS1Scans[i].MassSpectrum.XArray, MS1Scans[i].MassSpectrum.YArray, true);
 
                 var watch = System.Diagnostics.Stopwatch.StartNew();
 
-                var isotopicEnvelopes = mzSpectrumBU.Deconvolute(MS1Scans[i].ScanWindowRange, _thanos.DeconvolutionParameter).OrderBy(p => p.monoisotopicMass).ToList();
+                var isotopicEnvelopes = IsoDecon.MsDeconv_Deconvolute(mzSpectrumXY, MS1Scans[i].ScanWindowRange, _thanos.DeconvolutionParameter).OrderBy(p => p.MsDeconvScore).ToList();
                 watch.Stop();
 
                 var watch1 = System.Diagnostics.Stopwatch.StartNew();
@@ -309,13 +307,13 @@ namespace MetaDrawGUI
 
         public void DeconChargeByPeak()
         {
-            MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(_thanos.msDataScan.MassSpectrum.XArray, _thanos.msDataScan.MassSpectrum.YArray, true);
+            MzSpectrumXY mzSpectrumXY = new MzSpectrumXY(_thanos.msDataScan.MassSpectrum.XArray, _thanos.msDataScan.MassSpectrum.YArray, true);
 
             double deconChargeMass = _thanos.ControlParameter.DeconChargeMass;
 
-            int index = ChargeDecon.GetCloestIndex(deconChargeMass, mzSpectrumBU.XArray);
+            int index = ChargeDecon.GetCloestIndex(deconChargeMass, mzSpectrumXY.XArray);
 
-            var theMz_zs = ChargeDecon.FindChargesForPeak(_thanos.deconvolutor.mzSpectrumBU, index);
+            var theMz_zs = ChargeDecon.FindChargesForPeak(_thanos.deconvolutor.mzSpectrumXY, index);
 
             int ind = 1;
             foreach (var mz_z in theMz_zs)

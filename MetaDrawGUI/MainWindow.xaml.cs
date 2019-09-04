@@ -380,8 +380,8 @@ namespace MetaDrawGUI
                     thanos.deconvolutor.Model = MainViewModel.DrawScan(thanos.msDataScan);
                 }
 
-                MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(thanos.msDataScan.MassSpectrum.XArray, thanos.msDataScan.MassSpectrum.YArray, true);
-                thanos.deconvolutor.IsotopicEnvelopes = IsoDecon.MsDeconv_Deconvolute(mzSpectrumBU, thanos.msDataScan.ScanWindowRange, thanos.DeconvolutionParameter).OrderBy(p => p.MonoisotopicMass).ToList();
+                MzSpectrumXY mzSpectrumXY = new MzSpectrumXY(thanos.msDataScan.MassSpectrum.XArray, thanos.msDataScan.MassSpectrum.YArray, true);
+                thanos.deconvolutor.IsotopicEnvelopes = IsoDecon.MsDeconv_Deconvolute(mzSpectrumXY, thanos.msDataScan.ScanWindowRange, thanos.DeconvolutionParameter).OrderBy(p => p.MonoisotopicMass).ToList();
 
 
                 int i = 1;
@@ -394,12 +394,12 @@ namespace MetaDrawGUI
                 }
 
 
-                double max = thanos.deconvolutor.mzSpectrumBU.YArray.Max();
-                int indexMax = thanos.deconvolutor.mzSpectrumBU.YArray.ToList().IndexOf(max);
+                double max = thanos.deconvolutor.mzSpectrumXY.YArray.Max();
+                int indexMax = thanos.deconvolutor.mzSpectrumXY.YArray.ToList().IndexOf(max);
 
-                thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(thanos.deconvolutor.mzSpectrumBU, indexMax);
+                thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(thanos.deconvolutor.mzSpectrumXY, indexMax);
 
-                thanos.deconvolutor.ChargeEnvelops = ChargeDecon.FindChargesForScan(thanos.deconvolutor.mzSpectrumBU);
+                thanos.deconvolutor.ChargeEnvelops = ChargeDecon.FindChargesForScan(thanos.deconvolutor.mzSpectrumXY);
 
                 int ind = 1;
                 foreach (var chargeEnvelop in thanos.deconvolutor.ChargeEnvelops)
@@ -436,7 +436,7 @@ namespace MetaDrawGUI
             thanos.deconvolutor.Model = MainViewModel.DrawPeptideSpectralMatch(ms2DataScan, psm);
             thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.PrecursorScanNum).First();
 
-            thanos.deconvolutor.IsotopicEnvelopes = IsoDecon.MsDeconv_Deconvolute(thanos.deconvolutor.mzSpectrumBU, thanos.msDataScan.ScanWindowRange, thanos.DeconvolutionParameter).OrderBy(p => p.MonoisotopicMass).ToList();
+            thanos.deconvolutor.IsotopicEnvelopes = IsoDecon.MsDeconv_Deconvolute(thanos.deconvolutor.mzSpectrumXY, thanos.msDataScan.ScanWindowRange, thanos.DeconvolutionParameter).OrderBy(p => p.MonoisotopicMass).ToList();
 
             int i = 1;
             foreach (var item in thanos.deconvolutor.IsotopicEnvelopes)
@@ -454,10 +454,10 @@ namespace MetaDrawGUI
             //    ind++;
             //}
 
-            double max = thanos.deconvolutor.mzSpectrumBU.YArray.Max();
-            int indexMax = thanos.deconvolutor.mzSpectrumBU.YArray.ToList().IndexOf(max);
+            double max = thanos.deconvolutor.mzSpectrumXY.YArray.Max();
+            int indexMax = thanos.deconvolutor.mzSpectrumXY.YArray.ToList().IndexOf(max);
 
-            thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(thanos.deconvolutor.mzSpectrumBU, indexMax);
+            thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(thanos.deconvolutor.mzSpectrumXY, indexMax);
             int ind = 1;
             foreach (var mz_z in thanos.deconvolutor.Mz_zs)
             {

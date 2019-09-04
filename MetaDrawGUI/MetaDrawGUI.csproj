@@ -180,6 +180,7 @@
     <Compile Include="BasicClasses\GlycanStructureAnnotation.cs" />
     <Compile Include="BasicClasses\NeucodeDoublet.cs" />
     <Compile Include="Deconvolution\IsoDecon.cs" />
+    <Compile Include="Deconvolution\MzSpectrumXY.cs" />
     <Compile Include="Deconvolution\NeuCodeIsotopicEnvelop.cs" />
     <Compile Include="BasicClasses\SimplePsm.cs" />
     <Compile Include="BasicClasses\Timepoint.cs" />

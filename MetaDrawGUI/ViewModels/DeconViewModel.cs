@@ -103,14 +103,14 @@ namespace ViewModels
             return model;
         }
 
-        public static PlotModel DrawDeconModel(MzSpectrumBU mzSpectrumBU, int ind)
+        public static PlotModel DrawDeconModel(int ind)
         {
             PlotModel model = new PlotModel { Title = "Decon Model", DefaultFontSize = 15 };
             model.Axes.Add(new LinearAxis {
                 Position = AxisPosition.Bottom,
                 Title = "m/z",
                 Minimum = 0,
-                Maximum = mzSpectrumBU.AllMasses.Last().Last(),
+                Maximum = IsoDecon.AllMasses.Last().Last(),
             });
             model.Axes.Add(new LinearAxis {
                 Position = AxisPosition.Left,
@@ -123,13 +123,13 @@ namespace ViewModels
             List<LineSeries> lsPeaks = new List<LineSeries>();
             for (int i = ind; i < ind+50; i++)
             {
-                for (int j = 0; j < mzSpectrumBU.AllMasses[i].Length; j++)
+                for (int j = 0; j < IsoDecon.AllMasses[i].Length; j++)
                 {
                     var line = new LineSeries();
                     line.Color = OxyColors.Red;
                     line.StrokeThickness = 1;
-                    line.Points.Add(new DataPoint(mzSpectrumBU.AllMasses[i][j], 0));
-                    line.Points.Add(new DataPoint(mzSpectrumBU.AllMasses[i][j], mzSpectrumBU.AllIntensities[i][j]));
+                    line.Points.Add(new DataPoint(IsoDecon.AllMasses[i][j], 0));
+                    line.Points.Add(new DataPoint(IsoDecon.AllMasses[i][j], IsoDecon.AllIntensities[i][j]));
                     model.Series.Add(line);
                 }
             }
