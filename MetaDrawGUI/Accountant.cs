@@ -6,11 +6,44 @@ using MassSpectrometry;
 using EngineLayer;
 using TaskLayer;
 using System.Linq;
+using System.ComponentModel;
+using ViewModels;
+using OxyPlot;
 
 namespace MetaDrawGUI
 {
-    public class Accountant
+    public class Accountant : INotifyPropertyChanged
     {
+        //View model
+        private ScanInfoViewModel ScanInfoViewModel = new ScanInfoViewModel();
+        public PlotModel ScanInfoModel
+        {
+            get
+            {
+                return ScanInfoViewModel.privateModel;
+            }
+            set
+            {
+                ScanInfoViewModel.privateModel = value;
+                NotifyPropertyChanged("ScanInfoModel");
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void NotifyPropertyChanged(string propertyName)
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+            if (handler != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+        //Scan Info
+        public List<ScanInfo> ScanInfos { get; set; } = new List<ScanInfo>();
+
+
         //For BoxCar study
         public void ExtractBoxCarScanNumTime(List<string> MsDataFilePaths, MyFileManager spectraFileManager, Tuple<double, double> timeRange)
         {
@@ -33,7 +66,7 @@ namespace MetaDrawGUI
 
                 var times = ExtractTime(scans);
 
-                WriteExtractedTime(filePath, Path.GetFileNameWithoutExtension(filePath) + "_time", times);
+                //WriteExtractedTime(filePath, Path.GetFileNameWithoutExtension(filePath) + "_time", times);
 
             }
 
@@ -157,20 +190,17 @@ namespace MetaDrawGUI
 
                 var scans = msDataFile.GetAllScansList();
 
-                var times = ExtractTime_Glyco(scans);
+                ExtractTime_Glyco(scans);
 
-                WriteExtractedTime_Shotgun(filePath, Path.GetFileNameWithoutExtension(filePath) + "_time", times);
+                WriteExtractedTime_Shotgun(filePath, Path.GetFileNameWithoutExtension(filePath) + "_time");
 
             }
 
             WriteExtractedNum_Shotgun(MsDataFilePaths.First(), "scan_count", tuples);
         }
 
-        private List<Tuple<double, double, double, double, string, string, string>> ExtractTime_Glyco(List<MsDataScan> scans)
+        private void ExtractTime_Glyco(List<MsDataScan> scans)
         {
-            List<Tuple<double, double, double, double, string, string, string>> times = new List<Tuple<double, double, double, double, string, string, string>>();
-
-
             for (int i = 1; i < scans.Count - 1; i++)
             {
                 string scanType = "";
@@ -239,23 +269,22 @@ namespace MetaDrawGUI
 
                 double nextTime = (scans[i + 1].RetentionTime - scans[i].RetentionTime) * 60000;
 
+                ScanInfo scanInfo = new ScanInfo(scans[i].RetentionTime, scans[i].InjectionTime.Value, previousTime, nextTime, scanType, previousScanType, nextScanType);
 
-                times.Add(new Tuple<double, double, double, double, string, string, string>(scans[i].RetentionTime, scans[i].InjectionTime.Value, previousTime, nextTime, scanType, previousScanType, nextScanType));
-
+                ScanInfos.Add(scanInfo);
             }
-
-            return times;
+           
         }
 
-        private void WriteExtractedTime_Shotgun(string FilePath, string name, List<Tuple<double, double, double, double, string, string, string>> times)
+        private void WriteExtractedTime_Shotgun(string FilePath, string name)
         {
             var writtenFile = Path.Combine(Path.GetDirectoryName(FilePath), name + ".tsv");
             using (StreamWriter output = new StreamWriter(writtenFile))
             {
                 output.WriteLine("RetentionTime\tInjectTime\tPreviousTime\tNextTime\tScanType\tPreviousScanType\tNextScanType");
-                for (int i = 0; i < times.Count; i++)
+                foreach(var s in ScanInfos)
                 {
-                    output.WriteLine(times[i].Item1 + "\t" + times[i].Item2 + "\t" + times[i].Item3 + "\t" + times[i].Item4 + "\t" + times[i].Item5 + "\t" + times[i].Item6 + "\t" + times[i].Item7);
+                    output.WriteLine(s.RententionTime + "\t" + s.InjectTime + "\t" + s.PreviousTime + "\t" + s.NextTime + "\t" + s.ScanType + "\t" + s.PreviousScanType + "\t" + s.NextScanType);
                 }
             }
         }
@@ -281,7 +310,7 @@ namespace MetaDrawGUI
             {
                 var msDataFile = spectraFileManager.LoadFile(filePath, new CommonParameters());
 
-                var ms2Scans = msDataFile.GetAllScansList().Where(p=>p.MsnOrder!=1);
+                var ms2Scans = msDataFile.GetAllScansList().Where(p => p.MsnOrder != 1);
 
                 WriteExtractPrecursorInfo(filePath, Path.GetFileNameWithoutExtension(filePath) + "_PrecursorInfo", ms2Scans);
             }
@@ -299,12 +328,12 @@ namespace MetaDrawGUI
                     output.WriteLine(
                         s.OneBasedScanNumber + "\t" +
                         s.RetentionTime + "\t" +
-                        (s.IsolationMz.HasValue? s.IsolationMz: -1) + "\t" +                    
-                        (s.SelectedIonMZ.HasValue ? s.SelectedIonMZ.Value : -1) + "\t" +                       
+                        (s.IsolationMz.HasValue ? s.IsolationMz : -1) + "\t" +
+                        (s.SelectedIonMZ.HasValue ? s.SelectedIonMZ.Value : -1) + "\t" +
                         (s.SelectedIonMonoisotopicGuessMz.HasValue ? s.SelectedIonMonoisotopicGuessMz : -1) + "\t" +
                         (s.SelectedIonChargeStateGuess.HasValue ? s.SelectedIonChargeStateGuess.Value : -1) + "\t" +
                         (s.SelectedIonIntensity.HasValue ? s.SelectedIonIntensity : -1) + "\t" +
-                        (s.SelectedIonMonoisotopicGuessIntensity.HasValue? s.SelectedIonMonoisotopicGuessIntensity: -1)
+                        (s.SelectedIonMonoisotopicGuessIntensity.HasValue ? s.SelectedIonMonoisotopicGuessIntensity : -1)
                     );
                 }
 
@@ -318,7 +347,7 @@ namespace MetaDrawGUI
             {
                 var msDataFile = spectraFileManager.LoadFile(filePath, new CommonParameters());
                 var commonPara = new CommonParameters(deconvolutionMaxAssumedChargeState: 6);
-                var scans = MetaMorpheusTask.GetMs2Scans(msDataFile, null, commonPara).Where(p=>p.PrecursorCharge>1);
+                var scans = MetaMorpheusTask.GetMs2Scans(msDataFile, null, commonPara).Where(p => p.PrecursorCharge > 1);
 
 
 
@@ -340,10 +369,42 @@ namespace MetaDrawGUI
                         s.PrecursorMass + "\t" +
                         s.PrecursorMonoisotopicPeakMz + "\t" +
                         s.PrecursorCharge
-                        
+
                     );
                 }
 
+            }
+        }
+
+    }
+
+    public class ScanInfo
+    {
+        public ScanInfo(double rt, double it, double pt, double nt, string scan, string pscan, string nscan)
+        {
+            RententionTime = rt;
+            InjectTime = it;
+            PreviousTime = pt;
+            NextTime = nt;
+
+            ScanType = scan;
+            PreviousScanType = pscan;
+            NextScanType = nscan;
+        }
+
+        public double RententionTime { get; set; }
+        public double InjectTime { get; set; }
+        public double PreviousTime { get; set; }
+        public double NextTime { get; set; }
+        public string ScanType { get; set; }
+        public string PreviousScanType { get; set; }
+        public string NextScanType { get; set; }
+
+        public string types
+        {
+            get
+            {
+                return PreviousScanType + "_" + ScanType;
             }
         }
 

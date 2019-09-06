@@ -19,6 +19,7 @@ using OxyPlot;
 using OxyPlot.Annotations;
 using OxyPlot.Axes;
 using OxyPlot.Series;
+using OxyPlot.Wpf;
 
 namespace MetaDrawGUI
 {
@@ -148,5 +149,12 @@ namespace MetaDrawGUI
         {
             accountant.ExtractPrecursorInfo_Decon(MsDataFilePaths, spectraFileManager);
         }
+
+        public void SavePNG(PlotModel plotModel)
+        {
+            string fileName = Path.GetDirectoryName(this.MsDataFilePaths.First()) + "\\" + Path.GetFileNameWithoutExtension(this.MsDataFilePaths.First()) + "_" + plotModel.Title + "_.png";
+            PngExporter.Export(plotModel, fileName, 1200, 800, OxyColors.White);
+        }
+
     }
 }

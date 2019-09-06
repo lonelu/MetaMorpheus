@@ -226,6 +226,7 @@
     <Compile Include="ViewModels\PeakViewModel.cs" />
     <Compile Include="ViewModels\PsmAnnotationViewModel.cs" />
     <Compile Include="ViewModels\ScanCompareViewModel.cs" />
+    <Compile Include="ViewModels\ScanInfoViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

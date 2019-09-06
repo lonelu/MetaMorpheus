@@ -66,6 +66,8 @@ namespace MetaDrawGUI
 
             plotAnnoView.DataContext = thanos;
 
+            plotView_ScanInfo.DataContext = thanos.accountant;
+
             dataGridMassSpectraFiles.DataContext = spectraFilesObservableCollection;
 
             dataGridResultFiles.DataContext = resultFilesObservableCollection;
@@ -399,8 +401,8 @@ namespace MetaDrawGUI
 
                 thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(thanos.deconvolutor.mzSpectrumXY, indexMax, thanos.DeconvolutionParameter);
 
-                //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.FindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
-                thanos.deconvolutor.ChargeEnvelops = ChargeDecon.QuickFindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
+                thanos.deconvolutor.ChargeEnvelops = ChargeDecon.FindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
+                //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.QuickFindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
 
                 int ind = 1;
                 foreach (var chargeEnvelop in thanos.deconvolutor.ChargeEnvelops)
@@ -652,6 +654,31 @@ namespace MetaDrawGUI
             var sele = (GlycanDatabaseForDataGrid)dataGridGlycan.SelectedItem;
             glyCanvasLeft.Children.Clear();
             GlycanStructureAnnotation.DrawGlycan(glyCanvasLeft, sele.Structure, 50);
+        }
+
+        #endregion
+
+        #region ScanInfo Control
+
+        private void BtnLoadScanInfo_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void BtnDrawInfo_Click(object sender, RoutedEventArgs e)
+        {
+            thanos.accountant.ScanInfoModel = ScanInfoViewModel.DrawScanInfo_PT_Model(thanos.accountant.ScanInfos);
+        }
+
+
+        private void BtnDrawInfo_IJ_Click(object sender, RoutedEventArgs e)
+        {
+            thanos.accountant.ScanInfoModel = ScanInfoViewModel.DrawScanInfo_IJ_Model(thanos.accountant.ScanInfos);
+        }
+
+        private void BtnSavePNG_Click(object sender, RoutedEventArgs e)
+        {
+            thanos.SavePNG(thanos.accountant.ScanInfoModel);
         }
 
         #endregion

@@ -271,7 +271,7 @@
                               SelectedCellsChanged ="DataGridFlashDeconEnvelopes_SelectedCellsChanged"  CanUserDeleteRows="false" CanUserAddRows="false">
                                         </DataGrid>
                                     </GroupBox>
-    
+
                                 </Grid>
                                 <GridSplitter Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Stretch" Background="Silver" Height="3" />
                                 <GroupBox Header="Spectra" Name="gbSpectra" Grid.Row="4">
@@ -301,6 +301,63 @@
                             </Grid>
                         </Expander>
                     </Grid>
+                </Grid>
+            </TabItem>
+            <TabItem x:Name="TabScanInfo" Width="150" Height="30" Header="Scan Info">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="4*"/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <GroupBox Grid.Column="0" Header="Scan Info Viewer">
+                        <oxy:PlotView x:Name="plotView_ScanInfo" Model="{Binding ScanInfoModel}" FontSize="16" FontStretch="Expanded"/>
+                    </GroupBox>
+                    <GridSplitter Grid.Column="1" 
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Stretch"
+                          Background="Silver"
+                          Width="5"/>
+                    <GroupBox Grid.Column="2">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="1*"/>
+                            </Grid.RowDefinitions>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="30"/>
+                                </Grid.RowDefinitions>
+                                <DataGrid x:Name="dataGridScanInfoFiles" ItemsSource="{Binding}" >
+
+                                    <DataGrid.Resources>
+
+                                    </DataGrid.Resources>
+                                </DataGrid>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
+                                    <Button x:Name="btnAddScanInfoFiles" Content="Add" Click="btnAddResults_Click" Height="30" VerticalAlignment="Top"/>
+                                    <Button x:Name="btnClearScanInfoFiles" Content="Clear" Click="btnClearFiles_Click"/>
+                                    <Button x:Name="BtnLoadScanInfo" Content="Load" Click="BtnLoadScanInfo_Click"/>
+                                </StackPanel>
+                            </Grid>
+                            <GridSplitter Grid.Row="1"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Stretch"
+                                Background="Silver"
+                                Height="3" />
+
+                            <Grid Grid.Row="2" >
+                                <StackPanel>
+                                    <Button x:Name="BtnDrawInfo" Content="Draw Info PreScan Time" Click="BtnDrawInfo_Click"/>
+                                    <Button x:Name="BtnDrawInfo_IJ" Content="Draw Info Inject Time" Click="BtnDrawInfo_IJ_Click"/>
+                                    <Button x:Name="BtnSavePNG" Content="Save PNG" Click="BtnSavePNG_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Grid>
+                        
+                    </GroupBox>
                 </Grid>
             </TabItem>
             <TabItem x:Name="TabGlycopeptides" Width="150" Height="30" Header="Glycopeptides">
