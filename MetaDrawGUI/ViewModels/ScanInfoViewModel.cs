@@ -42,7 +42,7 @@ namespace ViewModels
                 AbsoluteMaximum = 2000
             });
 
-            var x = scanInfos.GroupBy(p => p.types);
+            var x = scanInfos.GroupBy(p => p.types).OrderBy(p=>p.Key);
 
             foreach (var y in x)
             {
@@ -93,13 +93,13 @@ namespace ViewModels
                 AbsoluteMaximum = 2000
             });
 
-            var x = scanInfos.GroupBy(p => p.ScanType);
+            var x = scanInfos.GroupBy(p => p.ScanType).OrderBy(p=>p.Key);
 
             foreach (var y in x)
             {
                 var scatter = new ScatterSeries()
                 {
-                    Title = y.First().types,
+                    Title = y.First().ScanType,
                     MarkerType = MarkerType.Circle,
                     MarkerSize = 2,
 
@@ -107,7 +107,7 @@ namespace ViewModels
 
                 foreach (var z in y)
                 {
-                    scatter.Points.Add(new ScatterPoint(z.RententionTime, z.PreviousTime));
+                    scatter.Points.Add(new ScatterPoint(z.RententionTime, z.InjectTime));
                 }
 
                 model.Series.Add(scatter);
