@@ -113,11 +113,6 @@ namespace MetaDrawGUI
             boxMerger.MergeBoxScans(MsDataFilePaths, spectraFileManager);
         }
 
-        public void ExtractScanInfo_BoxCar()
-        {
-            accountant.ExtractBoxCarScanNumTime(MsDataFilePaths, spectraFileManager, ControlParameter.LCTimeRange);
-        }
-
         public void WritePGlycoResult()
         {
             sweetor.WritePGlycoResult(ResultFilePaths, simplePsms);
@@ -129,9 +124,9 @@ namespace MetaDrawGUI
             PsmAnnoModel = sweetor.PlotGlycoRT(simplePsms.Where(p => p.QValue < 0.01).ToList());
         }
 
-        public void ExtractScanInfo_Shotgun()
+        public void ExtractScanInfo()
         {
-            accountant.ExtractNumTime_ShotgunScan(MsDataFilePaths, spectraFileManager, ControlParameter.LCTimeRange);
+            accountant.ExtractNumTime(MsDataFilePaths, spectraFileManager, ControlParameter.LCTimeRange);
         }
 
         public void BuildGlycoFamily()

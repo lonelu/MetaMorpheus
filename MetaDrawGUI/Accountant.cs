@@ -46,23 +46,34 @@ namespace MetaDrawGUI
         //Extract Scan Info: scan type number and time.
         public void ExtractNumTime(List<string> MsDataFilePaths, MyFileManager spectraFileManager, Tuple<double, double> timeRange)
         {
+            List<List<ScanInfo>> scanInfoSet = new List<List<ScanInfo>>();
+
+            List<string> filePaths = new List<string>();
+
             foreach (var filePath in MsDataFilePaths)
-            {
+            {          
                 var msDataFile = spectraFileManager.LoadFile(filePath, new CommonParameters());
 
                 var scans = msDataFile.GetAllScansList();
 
-                ExtractTime(scans);
+                var scanInfos = ExtractTime(scans);
+
+                scanInfoSet.Add(scanInfos);
+                filePaths.Add(filePath);
+
+                ScanInfos = scanInfos;
 
                 WriteExtractedTime(filePath, Path.GetFileNameWithoutExtension(filePath) + "_time");
 
             }
 
-            WriteExtractedNum(MsDataFilePaths.First(), "scan_count");
+            WriteExtractedNum(filePaths, scanInfoSet);
         }
 
-        private void ExtractTime(List<MsDataScan> scans)
+        private List<ScanInfo> ExtractTime(List<MsDataScan> scans)
         {
+            List<ScanInfo> scanInfos = new List<ScanInfo>();
+
             for (int i = 1; i < scans.Count - 1; i++)
             {
                 string scanType = "";
@@ -73,7 +84,7 @@ namespace MetaDrawGUI
                 {
                     scanType = "Full";
                 }
-                else if (scans[i].ScanFilter.Contains("msx ms"))
+                else if (scans[i].ScanFilter.Contains("msx ms "))
                 {
                     scanType = "Msx";
 
@@ -108,7 +119,7 @@ namespace MetaDrawGUI
                 {
                     previousScanType = "Full";
                 }
-                else if (scans[i-1].ScanFilter.Contains("msx ms"))
+                else if (scans[i-1].ScanFilter.Contains("msx ms "))
                 {
                     previousScanType = "Msx";
 
@@ -144,7 +155,7 @@ namespace MetaDrawGUI
                 {
                     nextScanType = "Full";
                 }
-                else if (scans[i + 1].ScanFilter.Contains("msx ms"))
+                else if (scans[i + 1].ScanFilter.Contains("msx ms "))
                 {
                     nextScanType = "Msx";
 
@@ -181,9 +192,9 @@ namespace MetaDrawGUI
 
                 ScanInfo scanInfo = new ScanInfo(scans[i].RetentionTime, scans[i].InjectionTime.Value, previousTime, nextTime, scanType, previousScanType, nextScanType);
 
-                ScanInfos.Add(scanInfo);
+                scanInfos.Add(scanInfo);
             }
-           
+            return scanInfos;
         }
 
         private void WriteExtractedTime(string FilePath, string name)
@@ -199,21 +210,27 @@ namespace MetaDrawGUI
             }
         }
 
-        private void WriteExtractedNum(string FilePath, string name)
+        private void WriteExtractedNum(List<string> filePaths, List<List<ScanInfo>> scanInfoSet)
         {
-            var writtenFile = Path.Combine(Path.GetDirectoryName(FilePath), name + ".tsv");
+            var writtenFile = Path.Combine(Path.GetDirectoryName(filePaths.First()), "scan_count_" + Path.GetRandomFileName() + ".tsv");
             using (StreamWriter output = new StreamWriter(writtenFile))
             {
-                output.WriteLine("File\tFullTotal\tMsxMs\tMs2Total\tMsxMs2\tHcdTotal\tEtdTotal\tEThcDTotal");
+                output.WriteLine("File\tFullTotal\tMsxMs\tMsxMs2\tHcdTotal\tEtdTotal\tEThcDTotal");
 
-                output.WriteLine(FilePath 
-                    + "\t" + ScanInfos.Where(p=>p.ScanType == "Full").Count()
-                    + "\t" + ScanInfos.Where(p => p.ScanType == "Msx").Count()
-                    + "\t" + ScanInfos.Where(p => p.ScanType == "MsxMs2").Count()
-                    + "\t" + ScanInfos.Where(p => p.ScanType == "hcd").Count()
-                    + "\t" + ScanInfos.Where(p => p.ScanType == "etd").Count()
-                    + "\t" + ScanInfos.Where(p => p.ScanType == "ethcd").Count()
-                    );               
+                int i = 0;
+                foreach (var s in scanInfoSet)
+                {
+                    output.WriteLine(filePaths[i]
+                        + "\t" + s.Where(p => p.ScanType == "Full").Count()
+                        + "\t" + s.Where(p => p.ScanType == "Msx").Count()
+                        + "\t" + s.Where(p => p.ScanType == "MsxMs2").Count()
+                        + "\t" + s.Where(p => p.ScanType == "hcd").Count()
+                        + "\t" + s.Where(p => p.ScanType == "etd").Count()
+                        + "\t" + s.Where(p => p.ScanType == "ethcd").Count()
+                    );
+                    i++;
+                }
+        
             }
         }
 

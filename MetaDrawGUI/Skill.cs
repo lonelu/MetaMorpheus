@@ -10,12 +10,11 @@ namespace MetaDrawGUI
     {
         accumulate_intensity = 0,
         merge_boxcarScan = 1,
-        account_ScanInfo_BoxCar = 2,
+        account_ScanInfo = 2,
         sweet_pGlcoResult = 3,
-        plot_glycoFamilcy = 4,
-        account_ScanInfo_Shotgun = 5,
-        sweetor_glycoFamily = 6,
-        account_ExtractPrecursorInfo = 7,
-        acount_ExtractPrecursorInfo_Decon = 8
+        plot_glycoFamilcy = 4,    
+        sweetor_glycoFamily = 5,
+        account_ExtractPrecursorInfo = 6,
+        acount_ExtractPrecursorInfo_Decon = 7
     }
 }
