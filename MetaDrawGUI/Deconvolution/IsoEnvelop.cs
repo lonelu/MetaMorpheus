@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Proteomics.Fragmentation;
 
 namespace MassSpectrometry
 {
@@ -45,6 +46,9 @@ namespace MassSpectrometry
         public bool HasPartner { get; set; } = false;
 
         public IsoEnvelop Partner { get; set; }
+
+        //For Ms2 Spectrum Match
+        public Product Product { get; set; }
 
     }
 }

@@ -221,5 +221,77 @@ namespace ViewModels
             return model;
         }
 
-    }
+        public static PlotModel DrawScanMatch(MsDataScan msDataScan, List<IsoEnvelop> isoEnvelops)
+        {
+            // x is m/z, y is intensity
+            var spectrumMzs = msDataScan.MassSpectrum.XArray;
+            var spectrumIntensities = msDataScan.MassSpectrum.YArray;
+
+            PlotModel model = new PlotModel { Title = "Spectrum Annotation of Scan #" + msDataScan.OneBasedScanNumber, DefaultFontSize = 15 };
+            model.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom, Title = "m/z", Minimum = 0, Maximum = spectrumMzs.Max() * 1.02, AbsoluteMinimum = 0, AbsoluteMaximum = spectrumMzs.Max() * 5 });
+            model.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Title = "Intensity", Minimum = 0, Maximum = spectrumIntensities.Max() * 1.2, AbsoluteMinimum = 0, AbsoluteMaximum = spectrumIntensities.Max() * 1.3 });
+            model.Axes[1].Zoom(0, spectrumIntensities.Max() * 1.1);
+
+            // draw the remaining unmatched peaks
+            for (int i = 0; i < spectrumMzs.Length; i++)
+            {
+                // peak has already been drawn (it is a matched peak)
+                var allIons = new LineSeries();
+                allIons.Color = OxyColors.DimGray;
+                allIons.StrokeThickness = STROKE_THICKNESS_UNANNOTATED;
+                allIons.Points.Add(new DataPoint(spectrumMzs[i], 0));
+                allIons.Points.Add(new DataPoint(spectrumMzs[i], spectrumIntensities[i]));
+                model.Series.Add(allIons);
+            }
+
+            // draw the matched peaks; if the PSM is null, we're just drawing the peaks in the scan without annotation, so skip this part
+            foreach (var iso in isoEnvelops)
+            {
+                OxyColor ionColor;
+
+                if (productTypeDrawColors.ContainsKey(iso.Product.ProductType))
+                {
+                    ionColor = productTypeDrawColors[iso.Product.ProductType];
+                }
+                else
+                {
+                    ionColor = OxyColors.Turquoise;
+                }
+
+                foreach (var peak in iso.ExperimentIsoEnvelop)
+                {
+                    // peak line
+                    var allIons = new LineSeries();
+                    allIons.Color = ionColor;
+                    allIons.StrokeThickness = STROKE_THICKNESS_ANNOTATED;
+                    allIons.Points.Add(new DataPoint(peak.Mz, 0));
+                    allIons.Points.Add(new DataPoint(peak.Mz, peak.Intensity));
+
+                    model.Series.Add(allIons);
+                }
+                var highestPeak = iso.ExperimentIsoEnvelop.First();
+                // peak annotation
+                string peakAnnotationText = iso.Product.ProductType.ToString().ToLower() + iso.Product.TerminusFragment.FragmentNumber + " (" + iso.MonoisotopicMass.ToString("F2") + "+" + iso.Charge.ToString() + ")";
+                if (iso.Product.NeutralLoss != 0)
+                {
+                    peakAnnotationText = iso.Product.ProductType.ToString().ToLower() + iso.Product.TerminusFragment.FragmentNumber + "-" + iso.Product.NeutralLoss.ToString("F2") + " (" + iso.MonoisotopicMass.ToString("F3") + iso.Charge.ToString() + ")";
+                }
+
+                var peakAnnotation = new TextAnnotation();
+                peakAnnotation.TextRotation = -60;
+                peakAnnotation.Font = "Arial";
+                peakAnnotation.FontSize = 12;
+                peakAnnotation.FontWeight = 2.0;
+                peakAnnotation.TextColor = ionColor;
+                peakAnnotation.StrokeThickness = 0;
+                peakAnnotation.Text = peakAnnotationText;
+                peakAnnotation.TextPosition = new DataPoint(highestPeak.Mz, highestPeak.Intensity + peakAnnotation.Text.Length * 1.5 / 4);
+                peakAnnotation.TextHorizontalAlignment = HorizontalAlignment.Left;
+                model.Annotations.Add(peakAnnotation);            
+            }
+
+            // Axes are created automatically if they are not defined      
+            return model;
+        }
+    } 
 }

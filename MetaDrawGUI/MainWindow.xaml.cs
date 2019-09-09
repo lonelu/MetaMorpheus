@@ -126,6 +126,7 @@ namespace MetaDrawGUI
             TxtPartnerMassDiff.Text = thanos.DeconvolutionParameter.PartnerMassDiff.ToString();
             TxtMaxLabelNum.Text = thanos.DeconvolutionParameter.MaxmiumLabelNumber.ToString();
             TxtPartnerRatio.Text = thanos.DeconvolutionParameter.PartnerPairRatio.ToString();
+            TxtParnerTolerance.Text = thanos.DeconvolutionParameter.ParterMassTolerance.ToString();
             TxtScanNumCountRangeLow.Text = thanos.ControlParameter.LCTimeRange.Item1.ToString();
             TxtScanNumCountRangeHigh.Text = thanos.ControlParameter.LCTimeRange.Item2.ToString();
         }
@@ -139,6 +140,7 @@ namespace MetaDrawGUI
             thanos.DeconvolutionParameter.PartnerMassDiff = double.Parse(TxtPartnerMassDiff.Text);
             thanos.DeconvolutionParameter.MaxmiumLabelNumber = int.Parse(TxtMaxLabelNum.Text);
             thanos.DeconvolutionParameter.PartnerPairRatio = double.Parse(TxtPartnerRatio.Text);
+            thanos.DeconvolutionParameter.ParterMassTolerance = double.Parse(TxtParnerTolerance.Text);
 
             thanos.ControlParameter.LCTimeRange = new Tuple<double, double>(  double.Parse(TxtScanNumCountRangeLow.Text), double.Parse(TxtScanNumCountRangeHigh.Text));
             thanos.ControlParameter.deconScanNum = Convert.ToInt32(txtDeconScanNum.Text);

@@ -23,6 +23,7 @@ using OxyPlot.Wpf;
 using Proteomics;
 using Proteomics.Fragmentation;
 using Proteomics.ProteolyticDigestion;
+using Proteomics.Fragmentation;
 
 namespace MetaDrawGUI
 {
@@ -171,7 +172,7 @@ namespace MetaDrawGUI
             return pwsm;
         }
 
-        public List<MatchedFragmentIon> DoPeptideSpectrumMatch(PeptideWithSetModifications pep)
+        public List<IsoEnvelop> DoPeptideSpectrumMatch(PeptideWithSetModifications pep)
         {
             List<Product> peptideTheorProducts = pep.Fragment(CommonParameters.DissociationType, FragmentationTerminus.Both).ToList();
 

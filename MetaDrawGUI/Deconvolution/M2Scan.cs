@@ -12,14 +12,14 @@ namespace MetaDrawGUI
 {
     public class M2Scan
     {
-        public static List<MatchedFragmentIon> MatchFragments(MzSpectrumXY mzSpectrumXY, List<Product> theoreticalProducts, DeconvolutionParameter deconParam, int PrecursorCharge)
+        public static List<IsoEnvelop> MatchFragments(MzSpectrumXY mzSpectrumXY, List<Product> theoreticalProducts, DeconvolutionParameter deconParam, int PrecursorCharge)
         {
-            var matchedFragmentIons = new List<MatchedFragmentIon>();
+            var matchedIsos = new List<IsoEnvelop>();
 
             // if the spectrum has no peaks
             if (mzSpectrumXY.XArray.Length == 0)
             {
-                return matchedFragmentIons;
+                return matchedIsos;
             }
 
             var isoEnvelops = GetNeutralExperimentalFragments(mzSpectrumXY, deconParam);
@@ -35,18 +35,18 @@ namespace MetaDrawGUI
                 }
 
                 // get the closest peak in the spectrum to the theoretical peak
-                var closestExperimentalMass = isoEnvelops[GetClosestFragmentMass(product.NeutralMass, DeconvolutedMonoisotopicMasses).Value];
+                var closestIso = isoEnvelops[GetClosestFragmentMass(product.NeutralMass, DeconvolutedMonoisotopicMasses).Value];
 
                 // is the mass error acceptable?
-                if (deconParam.PartnerAcceptor.Within(closestExperimentalMass.MonoisotopicMass, product.NeutralMass) && closestExperimentalMass.Charge <= PrecursorCharge)
+                if (deconParam.PartnerAcceptor.Within(closestIso.MonoisotopicMass, product.NeutralMass) && closestIso.Charge <= PrecursorCharge)
                 {
-                    matchedFragmentIons.Add(new MatchedFragmentIon(product, closestExperimentalMass.MonoisotopicMass.ToMz(closestExperimentalMass.Charge),
-                        closestExperimentalMass.ExperimentIsoEnvelop.First().Intensity, closestExperimentalMass.Charge));
+                    closestIso.Product = product;
+                    matchedIsos.Add(closestIso);
                 }
 
             }
 
-            return matchedFragmentIons;
+            return matchedIsos;
         }
 
         private static int? GetClosestFragmentMass(double mass, double[] DeconvolutedMonoisotopicMasses)
@@ -82,20 +82,24 @@ namespace MetaDrawGUI
         {
             var neutralExperimentalFragmentMasses = IsoDecon.MsDeconv_Deconvolute(mzSpectrumXY, mzSpectrumXY.Range, deconParam).ToList();
 
-            HashSet<double> alreadyClaimedMzs = new HashSet<double>(neutralExperimentalFragmentMasses
-                .SelectMany(p => p.ExperimentIsoEnvelop.Select(v => Chemistry.ClassExtensions.RoundedDouble(v.Mz).Value)));
+            //HashSet<double> alreadyClaimedMzs = new HashSet<double>(neutralExperimentalFragmentMasses
+            //    .SelectMany(p => p.ExperimentIsoEnvelop.Select(v => Chemistry.ClassExtensions.RoundedDouble(v.Mz).Value)));
+
+            HashSet<int> alreadyClaimedMzIndexes = new HashSet<int>(neutralExperimentalFragmentMasses.SelectMany(p=>p.TheoPeakIndex));
 
             for (int i = 0; i < mzSpectrumXY.XArray.Length; i++)
             {
                 double mz = mzSpectrumXY.XArray[i];
                 double intensity = mzSpectrumXY.YArray[i];
 
-                if (!alreadyClaimedMzs.Contains(Chemistry.ClassExtensions.RoundedDouble(mz).Value))
+                //if (!alreadyClaimedMzs.Contains(Chemistry.ClassExtensions.RoundedDouble(mz).Value))
+                if (!alreadyClaimedMzIndexes.Contains(i))
                 {
                     var isoEnvelop = new IsoEnvelop();
                     isoEnvelop.ExperimentIsoEnvelop = new MzPeak[] { new MzPeak(mz, intensity) };
                     isoEnvelop.MonoisotopicMass = mz.ToMass(1);
                     isoEnvelop.Charge = 1;
+                    neutralExperimentalFragmentMasses.Add(isoEnvelop);
                 }
             }
 
