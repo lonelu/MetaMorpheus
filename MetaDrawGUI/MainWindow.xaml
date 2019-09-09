@@ -91,10 +91,11 @@
             <TabItem x:Name="TabDecon" Width="150" Height="30" Header="Deconvolution">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="6*"/>
+                        <ColumnDefinition Width="8*"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="1.5*"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="1.5*"/>
                     </Grid.ColumnDefinitions>
 
                     <Grid Grid.Column="0">
@@ -231,75 +232,108 @@
                             </Grid>
                         </Grid>
                     </Grid>
-                    <Grid Grid.Column="3">
-                        <Expander x:Name="DeconvolutionInformation" ExpandDirection="Right">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="1*"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="1*"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="2*"/>
-                                </Grid.RowDefinitions>
-                                <Grid Grid.Row="0">
-                                    <GroupBox Header="MetaMorpheus Result Files" Name="gbResultFiles" Grid.Row="2">
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="*"/>
-                                                <RowDefinition Height="30"/>
-                                            </Grid.RowDefinitions>
-                                            <DataGrid x:Name="dataGridResultFiles" ItemsSource="{Binding}" >
-
-                                                <DataGrid.Resources>
-
-                                                </DataGrid.Resources>
-                                            </DataGrid>
-                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
-                                                <Button x:Name="btnAddResultFiles" Content="Add" Click="btnAddResults_Click" Height="30" VerticalAlignment="Top"/>
-                                                <Button x:Name="btnClearResultFiles" Content="Clear" Click="btnClearFiles_Click"/>
-                                                <Button x:Name="BtnLoadResults" Content="Load" Click="BtnLoadResults_Click"/>
-                                                <Button x:Name="BtnLoadFlashDeconResults" Content="Load Flash" Click="BtnLoadFlashDeconResults_Click"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </GroupBox>
-                                </Grid>
-                                <GridSplitter Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" Background="Silver" Height="3" />
-                                <Grid Grid.Row="2">
-                                    <GroupBox Header="FlashDecon Charge Envelope" Name="gbFlashDeconEnvelop">
-                                        <DataGrid x:Name="DataGridFlashDeconEnvelopes" VerticalAlignment="Stretch" ItemsSource="{Binding MsFeatureCollection}" 
-                              IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="0" Margin="0,0,0,0"
-                              SelectedCellsChanged ="DataGridFlashDeconEnvelopes_SelectedCellsChanged"  CanUserDeleteRows="false" CanUserAddRows="false">
-                                        </DataGrid>
-                                    </GroupBox>
-
-                                </Grid>
-                                <GridSplitter Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Stretch" Background="Silver" Height="3" />
-                                <GroupBox Header="Spectra" Name="gbSpectra" Grid.Row="4">
+                    <GridSplitter Grid.Column="3" 
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Stretch"
+                          Background="Silver"
+                          Width="5"/>
+                    <Grid Grid.Column="4">
+                        <TabControl>
+                            <TabItem Name="TabManual" Header="Manual">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="2*"/>
+                                        <RowDefinition Height="auto"/>
+                                        <RowDefinition Height="1*"/>
+                                    </Grid.RowDefinitions>
                                     <Grid>
                                         <Grid.RowDefinitions>
-                                            <RowDefinition Height="5*"/>
+                                            <RowDefinition Height="2*"/>
                                             <RowDefinition Height="1*"/>
                                         </Grid.RowDefinitions>
-
-                                        <DataGrid x:Name="dataGridPsms" VerticalAlignment="Stretch" ItemsSource="{Binding }" 
-                                  IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="0" Margin="0,0,0,0"
-                                  SelectedCellsChanged ="DataGridScanNums_SelectedCellsChanged">
-                                        </DataGrid>
-                                        <GroupBox Header="Fragment Ion match Parameters" Grid.Row="1">
+                                        <TextBox Grid.Row="0" Name="TxtBaseSeq" TextWrapping="Wrap"/>
+                                        <StackPanel Grid.Row="1">
+                                            <TextBox Name="TxtMod1"/>
+                                            <TextBox Name ="TxtMod2"/>
+                                            <TextBox Name ="TxtMod3"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Grid Grid.Row="1">
+                                        <StackPanel>
+                                            <Button x:Name="BtnMatch" Content="Match" Click="BtnMatch_Click"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Grid>
+                            </TabItem>
+                            <TabItem Name="TabResults" Header="Results">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="1*"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="1*"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="2*"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid Grid.Row="0">
+                                        <GroupBox Header="MetaMorpheus Result Files" Name="gbResultFiles" Grid.Row="2">
                                             <Grid>
-                                                <StackPanel>
-                                                    <StackPanel Orientation="Horizontal" Margin="5">
-                                                        <Label x:Name="label2_Copy" Content="Product Mass Tolerance" />
-                                                        <TextBox x:Name="productMassToleranceTextBox" HorizontalAlignment="Left"  TextWrapping="Wrap" Width="45"/>
-                                                        <ComboBox x:Name="productMassToleranceComboBox" HorizontalAlignment="Left"  />
-                                                    </StackPanel>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="30"/>
+                                                </Grid.RowDefinitions>
+                                                <DataGrid x:Name="dataGridResultFiles" ItemsSource="{Binding}" >
+
+                                                    <DataGrid.Resources>
+
+                                                    </DataGrid.Resources>
+                                                </DataGrid>
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
+                                                    <Button x:Name="btnAddResultFiles" Content="Add" Click="btnAddResults_Click" Height="30" VerticalAlignment="Top"/>
+                                                    <Button x:Name="btnClearResultFiles" Content="Clear" Click="btnClearFiles_Click"/>
+                                                    <Button x:Name="BtnLoadResults" Content="Load" Click="BtnLoadResults_Click"/>
+                                                    <Button x:Name="BtnLoadFlashDeconResults" Content="Load Flash" Click="BtnLoadFlashDeconResults_Click"/>
                                                 </StackPanel>
                                             </Grid>
                                         </GroupBox>
                                     </Grid>
-                                </GroupBox>
-                            </Grid>
-                        </Expander>
+                                    <GridSplitter Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" Background="Silver" Height="3" />
+                                    <Grid Grid.Row="2">
+                                        <GroupBox Header="FlashDecon Charge Envelope" Name="gbFlashDeconEnvelop">
+                                            <DataGrid x:Name="DataGridFlashDeconEnvelopes" VerticalAlignment="Stretch" ItemsSource="{Binding MsFeatureCollection}" 
+                              IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="0" Margin="0,0,0,0"
+                              SelectedCellsChanged ="DataGridFlashDeconEnvelopes_SelectedCellsChanged"  CanUserDeleteRows="false" CanUserAddRows="false">
+                                            </DataGrid>
+                                        </GroupBox>
+
+                                    </Grid>
+                                    <GridSplitter Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Stretch" Background="Silver" Height="3" />
+                                    <GroupBox Header="Spectra" Name="gbSpectra" Grid.Row="4">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="5*"/>
+                                                <RowDefinition Height="1*"/>
+                                            </Grid.RowDefinitions>
+
+                                            <DataGrid x:Name="dataGridPsms" VerticalAlignment="Stretch" ItemsSource="{Binding }" 
+                                  IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="0" Margin="0,0,0,0"
+                                  SelectedCellsChanged ="DataGridScanNums_SelectedCellsChanged">
+                                            </DataGrid>
+                                            <GroupBox Header="Fragment Ion match Parameters" Grid.Row="1">
+                                                <Grid>
+                                                    <StackPanel>
+                                                        <StackPanel Orientation="Horizontal" Margin="5">
+                                                            <Label x:Name="label2_Copy" Content="Product Mass Tolerance" />
+                                                            <TextBox x:Name="productMassToleranceTextBox" HorizontalAlignment="Left"  TextWrapping="Wrap" Width="45"/>
+                                                            <ComboBox x:Name="productMassToleranceComboBox" HorizontalAlignment="Left"  />
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </GroupBox>
+                                        </Grid>
+                                    </GroupBox>
+                                </Grid>
+                            </TabItem>
+                        </TabControl>
                     </Grid>
                 </Grid>
             </TabItem>
@@ -326,21 +360,6 @@
                                 <RowDefinition Height="1*"/>
                             </Grid.RowDefinitions>
                             <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="30"/>
-                                </Grid.RowDefinitions>
-                                <DataGrid x:Name="dataGridScanInfoFiles" ItemsSource="{Binding}" >
-
-                                    <DataGrid.Resources>
-
-                                    </DataGrid.Resources>
-                                </DataGrid>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
-                                    <Button x:Name="btnAddScanInfoFiles" Content="Add" Click="btnAddResults_Click" Height="30" VerticalAlignment="Top"/>
-                                    <Button x:Name="btnClearScanInfoFiles" Content="Clear" Click="btnClearFiles_Click"/>
-                                    <Button x:Name="BtnLoadScanInfo" Content="Load" Click="BtnLoadScanInfo_Click"/>
-                                </StackPanel>
                             </Grid>
                             <GridSplitter Grid.Row="1"
                                 VerticalAlignment="Center"

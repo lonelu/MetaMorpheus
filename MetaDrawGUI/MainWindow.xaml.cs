@@ -62,8 +62,6 @@ namespace MetaDrawGUI
 
             plotViewXIC.DataContext = thanos.deconvolutor;
 
-            thanos.psmAnnotationViewModel = new PsmAnnotationViewModel();
-
             plotAnnoView.DataContext = thanos;
 
             plotView_ScanInfo.DataContext = thanos.accountant;
@@ -282,7 +280,7 @@ namespace MetaDrawGUI
             (sender as Button).IsEnabled = false;
             btnAddFiles.IsEnabled = false;
             btnClearFiles.IsEnabled = false;
-            thanos.msDataFile = thanos.spectraFileManager.LoadFile(spectraFilePath, new CommonParameters());
+            thanos.msDataFile = thanos.spectraFileManager.LoadFile(spectraFilePath, new CommonParameters(trimMs1Peaks:false, trimMsMsPeaks:false));
             thanos.msDataScans = thanos.msDataFile.GetAllScansList();
 
             foreach (var iScan in thanos.msDataScans)
@@ -363,7 +361,7 @@ namespace MetaDrawGUI
             var sele = (AllScansForDataGrid)dataGridAllScanNums.SelectedItem;
 
             thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
-            thanos.psmAnnotationViewModel.DrawPeptideSpectralMatch(thanos.msDataScan);
+            thanos.PsmAnnoModel = PsmAnnotationViewModel.DrawScan(thanos.msDataScan);
 
             if (TabDecon.IsSelected)
             {
@@ -371,9 +369,8 @@ namespace MetaDrawGUI
 
                 if (sele.MsOrder == 2)
                 {
-                    var ms2DataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
-                    thanos.deconvolutor.Model = MainViewModel.DrawScan(ms2DataScan);
-                    thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.PrecursorScanNum).First();
+                    thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
+                    thanos.deconvolutor.Model = MainViewModel.DrawScan(thanos.msDataScan);
 
                 }
                 else
@@ -395,29 +392,32 @@ namespace MetaDrawGUI
                     i++;
                 }
 
-
-                double max = thanos.deconvolutor.mzSpectrumXY.YArray.Max();
-                int indexMax = thanos.deconvolutor.mzSpectrumXY.YArray.ToList().IndexOf(max);
-
-                thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(thanos.deconvolutor.mzSpectrumXY, indexMax, thanos.DeconvolutionParameter);
-
-                thanos.deconvolutor.ChargeEnvelops = ChargeDecon.FindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
-                //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.QuickFindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
-
-                int ind = 1;
-                foreach (var chargeEnvelop in thanos.deconvolutor.ChargeEnvelops)
+                if (thanos.msDataScan.MsnOrder == 1)
                 {
-                    List<double> monoMasses = new List<double>();
-                    foreach (var dist in chargeEnvelop.distributions)
+                    double max = thanos.deconvolutor.mzSpectrumXY.YArray.Max();
+                    int indexMax = thanos.deconvolutor.mzSpectrumXY.YArray.ToList().IndexOf(max);
+
+                    thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(thanos.deconvolutor.mzSpectrumXY, indexMax, thanos.DeconvolutionParameter);
+
+                    thanos.deconvolutor.ChargeEnvelops = ChargeDecon.FindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
+                    //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.QuickFindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
+
+                    int ind = 1;
+                    foreach (var chargeEnvelop in thanos.deconvolutor.ChargeEnvelops)
                     {
-                        if (dist.isoEnvelop!=null)
+                        List<double> monoMasses = new List<double>();
+                        foreach (var dist in chargeEnvelop.distributions)
                         {
-                            monoMasses.Add(dist.isoEnvelop.MonoisotopicMass);
+                            if (dist.isoEnvelop != null)
+                            {
+                                monoMasses.Add(dist.isoEnvelop.MonoisotopicMass);
+                            }
                         }
+                        thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, chargeEnvelop.FirstMz, chargeEnvelop.FirstIntensity, chargeEnvelop.MatchedIntensityRatio, chargeEnvelop.UnUsedMzsRatio, chargeEnvelop.IsoEnveNum, monoMasses));
+                        ind++;
                     }
-                    thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, chargeEnvelop.FirstMz, chargeEnvelop.FirstIntensity, chargeEnvelop.MatchedIntensityRatio, chargeEnvelop.UnUsedMzsRatio, chargeEnvelop.IsoEnveNum, monoMasses));
-                    ind++;
                 }
+               
             }
         }
 
@@ -610,7 +610,7 @@ namespace MetaDrawGUI
             thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
             var selePsm = thanos.simplePsms.Where(p => p.ScanNum == sele.ScanNum).First();
             selePsm.MatchedIons = SimplePsm.GetMatchedIons(selePsm.glycoPwsm, selePsm.PrecursorMass, selePsm.ChargeState, thanos.CommonParameters, thanos.msDataScan);
-            thanos.psmAnnotationViewModel.DrawPeptideSpectralMatch(thanos.msDataScan, selePsm);
+            thanos.PsmAnnoModel =  PsmAnnotationViewModel.DrawScanMatch(thanos.msDataScan, selePsm.MatchedIons);
 
             //Draw Glycan
             glyCanvas.Children.Clear();          
@@ -659,11 +659,6 @@ namespace MetaDrawGUI
         #endregion
 
         #region ScanInfo Control
-
-        private void BtnLoadScanInfo_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
 
         private void BtnDrawInfo_Click(object sender, RoutedEventArgs e)
         {
@@ -788,5 +783,37 @@ namespace MetaDrawGUI
             }
         }
 
+        private void BtnMatch_Click(object sender, RoutedEventArgs e)
+        {
+            if (TxtBaseSeq.Text==null && TxtBaseSeq.Text.Trim()=="")
+            {
+                return;
+            }
+
+            List<(int, string, double)> mods = new List<(int, string, double)>();
+            if (TxtMod1.Text != null && TxtMod1.Text.Trim() != "")
+            {
+                var x = TxtMod1.Text.Split(',');
+                mods.Add((int.Parse(x[0]), x[1], double.Parse(x[2])));
+            }
+            if (TxtMod2.Text != null && TxtMod2.Text.Trim() != "")
+            {
+                var y = TxtMod2.Text.Split(',');
+                mods.Add((int.Parse(y[0]), y[1], double.Parse(y[2])));
+            }
+            if (TxtMod3.Text != null && TxtMod3.Text.Trim() != "")
+            {
+                var z = TxtMod3.Text.Split(',');
+                mods.Add((int.Parse(z[0]), z[1], double.Parse(z[2])));
+            }
+
+            var pep = thanos.PeptideFromInput(TxtBaseSeq.Text.Trim(), mods);
+            if (thanos.msDataScan!=null)
+            {
+                var matched = thanos.DoPeptideSpectrumMatch(pep);
+
+                thanos.deconvolutor.Model = PsmAnnotationViewModel.DrawScanMatch(thanos.msDataScan, matched);
+            }
+        }
     }
 }

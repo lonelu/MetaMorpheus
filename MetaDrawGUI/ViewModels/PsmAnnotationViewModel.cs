@@ -45,21 +45,7 @@ namespace ViewModels
             privateModel = new PlotModel { Title = "Spectrum Annotation", Subtitle = "using OxyPlot" };
         }
 
-        // single peptides 
-        public void DrawPeptideSpectralMatch(MsDataScan msDataScan, SimplePsm psmToDraw = null)
-        {
-            // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            if (psmToDraw == null)
-            {
-                this.privateModel = DrawScan(msDataScan);
-            }
-            else
-            {
-                this.privateModel = Draw(msDataScan, psmToDraw);
-            }
-        }
-
-        public PlotModel DrawScan(MsDataScan MsScanForDraw)
+        public static PlotModel DrawScan(MsDataScan MsScanForDraw)
         {
             var x = MsScanForDraw.MassSpectrum.XArray;
             var y = MsScanForDraw.MassSpectrum.YArray;
@@ -106,15 +92,13 @@ namespace ViewModels
 
         }
 
-        private PlotModel Draw(MsDataScan msDataScan, SimplePsm psmToDraw)
+        public static PlotModel DrawScanMatch(MsDataScan msDataScan, List<MatchedFragmentIon> matchedFragmentIons =null, List<MatchedFragmentIon> betaMatchedFragmentIons = null)
         {
             // x is m/z, y is intensity
             var spectrumMzs = msDataScan.MassSpectrum.XArray;
             var spectrumIntensities = msDataScan.MassSpectrum.YArray;
 
-            string subtitle = psmToDraw.BaseSeq;
-
-            PlotModel model = new PlotModel { Title = "Spectrum Annotation of Scan #" + msDataScan.OneBasedScanNumber, DefaultFontSize = 15, Subtitle = subtitle };
+            PlotModel model = new PlotModel { Title = "Spectrum Annotation of Scan #" + msDataScan.OneBasedScanNumber, DefaultFontSize = 15 };
             model.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom, Title = "m/z", Minimum = 0, Maximum = spectrumMzs.Max() * 1.02, AbsoluteMinimum = 0, AbsoluteMaximum = spectrumMzs.Max() * 5 });
             model.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Title = "Intensity", Minimum = 0, Maximum = spectrumIntensities.Max() * 1.2, AbsoluteMinimum = 0, AbsoluteMaximum = spectrumIntensities.Max() * 1.3 });
             model.Axes[1].Zoom(0, spectrumIntensities.Max() * 1.1);
@@ -122,9 +106,9 @@ namespace ViewModels
             LineSeries[] allIons = new LineSeries[spectrumMzs.Length];
 
             // draw the matched peaks; if the PSM is null, we're just drawing the peaks in the scan without annotation, so skip this part
-            if (psmToDraw != null)
+            if (matchedFragmentIons!=null)
             {
-                foreach (var peak in psmToDraw.MatchedIons)
+                foreach (var peak in matchedFragmentIons)
                 {
                     OxyColor ionColor;
 
@@ -168,9 +152,9 @@ namespace ViewModels
                     model.Series.Add(allIons[i]);
                 }
 
-                if (psmToDraw.BetaPeptideBaseSequence != null)
+                if (betaMatchedFragmentIons!=null)
                 {
-                    foreach (var peak in psmToDraw.BetaPeptideMatchedIons)
+                    foreach (var peak in betaMatchedFragmentIons)
                     {
                         OxyColor ionColor;
 
@@ -236,5 +220,6 @@ namespace ViewModels
             // Axes are created automatically if they are not defined      
             return model;
         }
+
     }
 }

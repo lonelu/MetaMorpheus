@@ -23,31 +23,51 @@ namespace ViewModels
             var y2 = anotherScan.MassSpectrum.YArray;
             var ymax2 = y2.Max();
 
+            if (x.Length < 1 || x2.Length < 1)
+            {
+                PlotModel model_test = new PlotModel { Title = "There is no peaks in one of Scan " + msDataScan.OneBasedScanNumber.ToString() + " and " + anotherScan.OneBasedScanNumber.ToString(), DefaultFontSize = 15 };
+
+                return model_test;
+            }
+
+            var xmin = x[0] < x2[0] ? x[0] : x2[0];
+            var xmax = x.Last() > x2.Last() ? x.Last() : x2.Last();
+
+
             PlotModel model = new PlotModel { Title = "Spectrum anotation of Scan " + msDataScan.OneBasedScanNumber.ToString() + " and " + anotherScan.OneBasedScanNumber.ToString(), DefaultFontSize = 15 };
             model.Axes.Add(new LinearAxis
             {
                 Position = AxisPosition.Bottom,
                 Title = "m/z",
-                Minimum = 500,
-                Maximum = 1600,
-                AbsoluteMinimum = 500,
-                AbsoluteMaximum = 1600
+                Minimum = xmin,
+                Maximum = xmax,
+                AbsoluteMinimum = 0,
+                AbsoluteMaximum = xmax * 1.2
             });
             model.Axes.Add(new LinearAxis
             {
                 Position = AxisPosition.Left,
                 Title = "Intensity(counts)",
-                Minimum = -100,
-                Maximum = 100,
-                AbsoluteMinimum = -100,
-                AbsoluteMaximum = 100
+                Minimum = -105,
+                Maximum = 105,
+                AbsoluteMinimum = -110,
+                AbsoluteMaximum = 110
             });
+
+            var xline = new LineSeries
+            {
+                Color = OxyColors.Black,
+                StrokeThickness = 2,
+            };
+            xline.Points.Add(new DataPoint(xmin, 0));
+            xline.Points.Add(new DataPoint(xmax, 0));
+            model.Series.Add(xline);
 
             //Draw the ms/ms scan peaks
             for (int i = 0; i < x.Length; i++)
             {
                 var line = new LineSeries();
-                line.Color = OxyColors.Black;
+                line.Color = OxyColors.DarkGray;
                 line.StrokeThickness = 1;
                 line.Points.Add(new DataPoint(x[i], 0));
                 line.Points.Add(new DataPoint(x[i], y[i] / ymax * 100));
@@ -57,7 +77,7 @@ namespace ViewModels
             for (int i = 0; i < x2.Length; i++)
             {
                 var line = new LineSeries();
-                line.Color = OxyColors.Black;
+                line.Color = OxyColors.DarkGray;
                 line.StrokeThickness = 1;
                 line.Points.Add(new DataPoint(x2[i], 0));
                 line.Points.Add(new DataPoint(x2[i], -y2[i] / ymax2 * 100));

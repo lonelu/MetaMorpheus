@@ -20,6 +20,9 @@ using OxyPlot.Annotations;
 using OxyPlot.Axes;
 using OxyPlot.Series;
 using OxyPlot.Wpf;
+using Proteomics;
+using Proteomics.Fragmentation;
+using Proteomics.ProteolyticDigestion;
 
 namespace MetaDrawGUI
 {
@@ -86,7 +89,7 @@ namespace MetaDrawGUI
 
         public MsDataScan msDataScan { get; set; }
 
-        public PsmAnnotationViewModel psmAnnotationViewModel{ get; set; }
+        private PsmAnnotationViewModel psmAnnotationViewModel = new PsmAnnotationViewModel();
 
         public PlotModel PsmAnnoModel
         {
@@ -149,6 +152,38 @@ namespace MetaDrawGUI
         {
             string fileName = Path.GetDirectoryName(this.MsDataFilePaths.First()) + "\\" + Path.GetFileNameWithoutExtension(this.MsDataFilePaths.First()) + "_" + plotModel.Title + "_.png";
             PngExporter.Export(plotModel, fileName, 1200, 800, OxyColors.White);
+        }
+
+        public PeptideWithSetModifications PeptideFromInput(string baseSeq, List<(int, string, double)> mods)
+        {
+            Dictionary<int, Modification> allModsOneIsNterminus = new Dictionary<int, Modification>();
+            foreach (var mod in mods)
+            {
+                ModificationMotif.TryGetMotif(mod.Item2, out ModificationMotif motif);
+                Modification modification = new Modification(_originalId: "mod", _modificationType: "myModType", _target: motif, _locationRestriction: "Anywhere.", _monoisotopicMass: mod.Item3);
+                allModsOneIsNterminus.Add(mod.Item1, modification);
+            }
+
+            Protein protein = new Protein(baseSeq, "prot");
+
+            PeptideWithSetModifications pwsm = new PeptideWithSetModifications(protein, new DigestionParams(), 1, baseSeq.Length, CleavageSpecificity.Unknown, null, 0, allModsOneIsNterminus, 0);
+
+            return pwsm;
+        }
+
+        public List<MatchedFragmentIon> DoPeptideSpectrumMatch(PeptideWithSetModifications pep)
+        {
+            List<Product> peptideTheorProducts = pep.Fragment(CommonParameters.DissociationType, FragmentationTerminus.Both).ToList();
+
+            //Ms2ScanWithSpecificMass scan = new Ms2ScanWithSpecificMass(msDataScan, 4, 1, null, new CommonParameters());
+
+            //List<MatchedFragmentIon> matchedIons = MetaMorpheusEngine.MatchFragmentIons(scan, peptideTheorProducts, CommonParameters);
+
+            MzSpectrumXY mzSpectrumXY = new MzSpectrumXY(this.msDataScan.MassSpectrum.XArray, this.msDataScan.MassSpectrum.YArray, true);
+
+            var matchedIons = M2Scan.MatchFragments(mzSpectrumXY, peptideTheorProducts, DeconvolutionParameter, 50);
+
+            return matchedIons;
         }
 
     }
