@@ -1,5 +1,4 @@
 ﻿using Chemistry;
-using EngineLayer;
 using MassSpectrometry;
 using OxyPlot;
 using OxyPlot.Annotations;
@@ -7,9 +6,8 @@ using OxyPlot.Axes;
 using OxyPlot.Series;
 using Proteomics.Fragmentation;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using MetaDrawGUI;
+
 
 namespace ViewModels
 {

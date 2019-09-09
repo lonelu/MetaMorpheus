@@ -34,19 +34,49 @@ namespace MetaDrawGUI
                     continue;
                 }
 
-                // get the closest peak in the spectrum to the theoretical peak
-                var closestIso = isoEnvelops[GetClosestFragmentMass(product.NeutralMass, DeconvolutedMonoisotopicMasses).Value];
+                var indexes = GetAllMassInRange(product.NeutralMass, DeconvolutedMonoisotopicMasses, deconParam.PartnerAcceptor);
 
-                // is the mass error acceptable?
-                if (deconParam.PartnerAcceptor.Within(closestIso.MonoisotopicMass, product.NeutralMass) && closestIso.Charge <= PrecursorCharge)
+                HashSet<int> seenCharge = new HashSet<int>();
+
+                foreach (var ind in indexes)
                 {
-                    closestIso.Product = product;
-                    matchedIsos.Add(closestIso);
+                    if (seenCharge.Contains(isoEnvelops[ind].Charge))
+                    {
+                        continue;
+                    }
+                    seenCharge.Add(isoEnvelops[ind].Charge);
+                    isoEnvelops[ind].Product = product;
+                    matchedIsos.Add(isoEnvelops[ind]);
                 }
-
             }
 
             return matchedIsos;
+        }
+
+        private static List<int> GetAllMassInRange(double mass, double[] DeconvolutedMonoisotopicMasses, PpmTolerance tolerance)
+        {
+            List<int> indexes = new List<int>();
+            if (DeconvolutedMonoisotopicMasses.Length == 0)
+            {
+                return indexes;
+            }
+
+            var minMass = tolerance.GetMinimumValue(mass);
+            int index = Array.BinarySearch(DeconvolutedMonoisotopicMasses, minMass);
+
+            if (index < 0)
+            {
+                index = ~index;
+            }
+
+            int ind = index;
+            while (ind < DeconvolutedMonoisotopicMasses.Length && DeconvolutedMonoisotopicMasses[ind] < tolerance.GetMaximumValue(mass))
+            {
+                indexes.Add(ind);
+                ind++;
+            }
+
+            return indexes;
         }
 
         private static int? GetClosestFragmentMass(double mass, double[] DeconvolutedMonoisotopicMasses)
@@ -60,6 +90,7 @@ namespace MetaDrawGUI
             {
                 return index;
             }
+
             index = ~index;
 
             if (index >= DeconvolutedMonoisotopicMasses.Length)

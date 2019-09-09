@@ -52,7 +52,7 @@ namespace MassSpectrometry
             }
         }
 
-        public Tolerance DeconvolutionAcceptor
+        public PpmTolerance DeconvolutionAcceptor
         {
             get
             {
@@ -60,7 +60,7 @@ namespace MassSpectrometry
             }
         }
 
-        public Tolerance PartnerAcceptor
+        public PpmTolerance PartnerAcceptor
         {
             get
             {
