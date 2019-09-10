@@ -10,11 +10,11 @@ namespace MetaDrawGUI
     {
         public NeucodeDoublet(FlashLFQ.ChromatographicPeak aPeak, FlashLFQ.ChromatographicPeak bPeak)
         {
-            aMass = aPeak.Identifications.First().monoisotopicMass;
-            bMass = bPeak.Identifications.First().monoisotopicMass;
+            aMass = aPeak.Identifications.First().MonoisotopicMass;
+            bMass = bPeak.Identifications.First().MonoisotopicMass;
 
-            aRT = aPeak.Identifications.First().ms2RetentionTimeInMinutes;
-            bRT = bPeak.Identifications.First().ms2RetentionTimeInMinutes;
+            aRT = aPeak.Identifications.First().Ms2RetentionTimeInMinutes;
+            bRT = bPeak.Identifications.First().Ms2RetentionTimeInMinutes;
 
             aIntensity = aPeak.Intensity;
             bIntensity = bPeak.Intensity;

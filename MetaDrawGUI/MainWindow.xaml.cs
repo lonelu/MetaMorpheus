@@ -373,7 +373,6 @@ namespace MetaDrawGUI
                 {
                     thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
                     thanos.deconvolutor.Model = MainViewModel.DrawScan(thanos.msDataScan);
-
                 }
                 else
                 {
@@ -711,6 +710,9 @@ namespace MetaDrawGUI
                     break;
                 case Skill.acount_ExtractPrecursorInfo_Decon:
                     action = thanos.ExtractPrecursorInfo_Decon;
+                    break;
+                case Skill.fixPrecursor_BoxCarScan:
+                    action = thanos.FixPrecursorBoxCarScan;
                     break;
                 default:
                     break;

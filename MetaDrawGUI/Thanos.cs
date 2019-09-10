@@ -32,8 +32,6 @@ namespace MetaDrawGUI
         //Thanos' subordinate
         public Accumulator accumulator = new Accumulator();
 
-        public BoxMerger boxMerger = new BoxMerger();
-
         public Accountant accountant = new Accountant();
 
         public Sweetor sweetor = new Sweetor();
@@ -114,7 +112,7 @@ namespace MetaDrawGUI
 
         public void MergeBoxCarScan()
         {
-            boxMerger.MergeBoxScans(MsDataFilePaths, spectraFileManager);
+            BoxMerger.MergeBoxScans(MsDataFilePaths, spectraFileManager);
         }
 
         public void WritePGlycoResult()
@@ -147,6 +145,11 @@ namespace MetaDrawGUI
         public void ExtractPrecursorInfo_Decon()
         {
             accountant.ExtractPrecursorInfo_Decon(MsDataFilePaths, spectraFileManager);
+        }
+
+        public void FixPrecursorBoxCarScan()
+        {
+            BoxMerger.FixPrecursorAndWriteFile(MsDataFilePaths, spectraFileManager);
         }
 
         public void SavePNG(PlotModel plotModel)

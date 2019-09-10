@@ -172,7 +172,7 @@ namespace MetaDrawGUI
             FlashLfqEngine engine = new FlashLfqEngine(idList, integrate:true, ppmTolerance:5, isotopeTolerancePpm:3);
             var results = engine.Run();
             var peaks = new List<FlashLFQ.ChromatographicPeak>();
-            List<NeucodeDoublet> neucodeDoublets = CheckNeocodeDoublet(results.Peaks.First().Value.OrderBy(p => p.Identifications.First().monoisotopicMass).ToList(), deconvolutionParameter, out peaks);
+            List<NeucodeDoublet> neucodeDoublets = CheckNeocodeDoublet(results.Peaks.First().Value.OrderBy(p => p.Identifications.First().MonoisotopicMass).ToList(), deconvolutionParameter, out peaks);
             WritePeakResults(Path.Combine(Path.GetDirectoryName(filePath), @"Peaks.tsv"), peaks);
             WriteResults(Path.Combine(Path.GetDirectoryName(filePath), @"NeucodesDoublets.tsv"), neucodeDoublets);
 
@@ -253,7 +253,7 @@ namespace MetaDrawGUI
                 peaks.Add(chromatographicPeaks[i]);
                 for (int j = i+1; j < chromatographicPeaks.Count; j++)
                 {
-                    if (chromatographicPeaks[j].Identifications.First().monoisotopicMass - chromatographicPeaks[i].Identifications.First().monoisotopicMass > deconvolutionParameter.PartnerMassDiff * (deconvolutionParameter.MaxmiumLabelNumber + 1))
+                    if (chromatographicPeaks[j].Identifications.First().MonoisotopicMass - chromatographicPeaks[i].Identifications.First().MonoisotopicMass > deconvolutionParameter.PartnerMassDiff * (deconvolutionParameter.MaxmiumLabelNumber + 1))
                     {
                         break;
                     }
@@ -284,8 +284,8 @@ namespace MetaDrawGUI
                 if (aPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Min() <= bPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Max()
                     && bPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Min() <= aPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Max())
                 {
-                    if (deconvolutionParameter.DeconvolutionAcceptor.Within(aPeak.Identifications.First().monoisotopicMass,
-                        bPeak.Identifications.First().monoisotopicMass - deconvolutionParameter.PartnerMassDiff * i / 1000))
+                    if (deconvolutionParameter.DeconvolutionAcceptor.Within(aPeak.Identifications.First().MonoisotopicMass,
+                        bPeak.Identifications.First().MonoisotopicMass - deconvolutionParameter.PartnerMassDiff * i / 1000))
                     {
                         return true;
                     }

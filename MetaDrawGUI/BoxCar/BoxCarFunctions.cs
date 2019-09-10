@@ -159,7 +159,7 @@ namespace BoxCar
                     }                   
                     set.AddToMs1Scans(scans[i]);
                 }
-                else if (scans[i].ScanFilter.Contains("msx ms"))
+                else if (scans[i].ScanFilter.Contains("msx ms "))
                 {
                     set.AddToBoxcarScans(scans[i]);
                 }

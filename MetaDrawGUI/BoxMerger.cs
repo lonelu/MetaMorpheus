@@ -12,7 +12,8 @@ namespace MetaDrawGUI
 {
     public class BoxMerger
     {
-        public void MergeBoxScans(List<string> MsDataFilePaths, MyFileManager spectraFileManager)
+        //BoxCar for bottom-up
+        public static void MergeBoxScans(List<string> MsDataFilePaths, MyFileManager spectraFileManager)
         {
             var boxcarRanges = GenerateRealRanges_td2_2_12();
 
@@ -26,11 +27,11 @@ namespace MetaDrawGUI
 
                 var scans = BoxCarFunctions.OutputMergedBoxScans(scanSets);
 
-                WriteBoxMzmlFile(scans, msDataFile, filePath + "_MergedBox_allScans2.mzML");
+                WriteMzmlFile(scans, msDataFile, filePath + "_MergedBox_allScans2.mzML");
             }
         }
 
-        public static void WriteBoxMzmlFile(List<MsDataScan> scans, MsDataFile originalFile, string fileName)
+        public static void WriteMzmlFile(List<MsDataScan> scans, MsDataFile originalFile, string fileName)
         {
 
             SourceFile sourceFile = originalFile.SourceFile;
@@ -39,7 +40,7 @@ namespace MetaDrawGUI
             IO.MzML.MzmlMethods.CreateAndWriteMyMzmlWithCalibratedSpectra(msDataFile, fileName, false);
         }
 
-        private List<BoxcarRange>[] GenerateRealRanges_bottomup_3_12()
+        private static List<BoxcarRange>[] GenerateRealRanges_bottomup_3_12()
         {
             List<BoxcarRange> toAddA = new List<BoxcarRange>();
             toAddA.Add(new BoxcarRange(400, 416.3));
@@ -87,7 +88,7 @@ namespace MetaDrawGUI
             return boxcarRanges;
         }
 
-        private List<BoxcarRange>[] GenerateRealRanges_td_2_12()
+        private static List<BoxcarRange>[] GenerateRealRanges_td_2_12()
         {
             List<BoxcarRange> toAddA = new List<BoxcarRange>();
             toAddA.Add(new BoxcarRange(400, 423.2));
@@ -121,7 +122,7 @@ namespace MetaDrawGUI
             return boxcarRanges;
         }
 
-        private List<BoxcarRange>[] GenerateRealRanges_td2_2_12()
+        private static List<BoxcarRange>[] GenerateRealRanges_td2_2_12()
         {
             List<BoxcarRange> toAddA = new List<BoxcarRange>();
             toAddA.Add(new BoxcarRange(499, 546.8));
@@ -153,6 +154,67 @@ namespace MetaDrawGUI
 
             var boxcarRanges = new List<BoxcarRange>[2] { new List<BoxcarRange>(toAddA), new List<BoxcarRange>(toAddB) };
             return boxcarRanges;
+        }
+
+        //BoxCar for top-down
+        public static void FixPrecursorAndWriteFile(List<string> MsDataFilePaths, MyFileManager spectraFileManager)
+        {
+            foreach (var filePath in MsDataFilePaths)
+            {
+                var msDataFile = spectraFileManager.LoadFile(filePath, new CommonParameters());
+
+                var scanSets = GenerateScanSetForFixPrecursor(msDataFile);
+
+                var scans = FixPrecursorAndGenerateScanList(scanSets);
+
+                WriteMzmlFile(scans, msDataFile, filePath + "_MergedBox_allScans2.mzML");
+            }
+        }
+
+        private static List<SetOfScans> GenerateScanSetForFixPrecursor(MsDataFile file)
+        {
+            List<SetOfScans> sorted = new List<SetOfScans>();
+
+            var scans = file.GetAllScansList();
+            SetOfScans set = new SetOfScans();
+            for (int i = 0; i < file.NumSpectra; i++)
+            {
+                if (scans[i].ScanFilter.Contains("Full ms "))
+                {
+                    if (i > 0)
+                    {
+                        sorted.Add(set);
+                        set = new SetOfScans();
+                    }
+                    set.AddToMs1Scans(scans[i]);
+                }
+                else
+                {
+                    set.AddToMs2Scans(scans[i]);
+                }
+            }
+            return sorted;
+        }
+
+        private static List<MsDataScan> FixPrecursorAndGenerateScanList(List<SetOfScans> setOfScans)
+        {
+            List<MsDataScan> scans = new List<MsDataScan>();
+            foreach (var set in setOfScans)
+            {
+                scans.Add(set.Ms1scans.First());
+
+                if (set.Ms2scans.Count == 0)
+                {
+                    continue;
+                }
+                for (int i = 0; i < set.Ms2scans.Count - 1; i = i + 2)
+                {
+                    set.Ms2scans[i].SetIsolationMz(set.Ms2scans[i + 1].IsolationMz.Value);
+                    scans.Add(set.Ms2scans[i]);
+                    scans.Add(set.Ms2scans[i+1]);
+                }
+            }
+            return scans;
         }
 
     }
