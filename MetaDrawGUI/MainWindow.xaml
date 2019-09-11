@@ -289,7 +289,8 @@
                                                     <Button x:Name="btnAddResultFiles" Content="Add" Click="btnAddResults_Click" Height="30" VerticalAlignment="Top"/>
                                                     <Button x:Name="btnClearResultFiles" Content="Clear" Click="btnClearFiles_Click"/>
                                                     <Button x:Name="BtnLoadResults" Content="Load" Click="BtnLoadResults_Click"/>
-                                                    <Button x:Name="BtnLoadFlashDeconResults" Content="Load Flash" Click="BtnLoadFlashDeconResults_Click"/>
+                                                    <Button x:Name="BtnLoadFlashDeconResults" Content="FlashDeconv" Click="BtnLoadFlashDeconResults_Click"/>
+                                                    <Button x:Name="BtnLoadpTopResults" Content="pTop" Click="BtnLoadpTopResults_Click"/>
                                                 </StackPanel>
                                             </Grid>
                                         </GroupBox>

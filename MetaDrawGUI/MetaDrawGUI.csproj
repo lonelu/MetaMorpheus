@@ -188,7 +188,7 @@
     <Compile Include="Deconvolution_old\NeuCodeIsotopicEnvelop.cs" />
     <Compile Include="BasicClasses\SimplePsm.cs" />
     <Compile Include="BasicClasses\Timepoint.cs" />
-    <Compile Include="BasicClasses\TsvReader_Glyco.cs" />
+    <Compile Include="BasicClasses\TsvReader_Id.cs" />
     <Compile Include="BasicClasses\TsvReader_MsFeature.cs" />
     <Compile Include="BasicClasses\WatchEvaluation.cs" />
     <Compile Include="BoxCar\BoxCarFunctions.cs" />

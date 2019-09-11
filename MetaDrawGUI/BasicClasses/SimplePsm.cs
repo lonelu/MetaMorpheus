@@ -28,20 +28,22 @@ namespace MetaDrawGUI
                 case TsvType.Byonic:
                     generateSimplePsm_Byonic(line, split, parsedHeader);
                     break;
+                case TsvType.pTOP:
+                    generateSimplePsm_pTop(line, split, parsedHeader);
+                    break;
                 default:
                     break;
             }
             
         }
 
-        public string iD { get; set; }
         public string FileName { get; set; }
         public int ScanNum { get; set; }
         public double RT { get; set; }
         public double PrecursorMass { get; set; }
+        public double PrecursorMz { get; set; }
         public int ChargeState { get; set; }
         public double MonoisotopicMass { get; set; }  
-        public double PeptideMassNoGlycan { get; set; }
         public string BaseSeq { get; set; }
         public string FullSeq { get; set; }
         public string Mod { get; set; }
@@ -50,8 +52,15 @@ namespace MetaDrawGUI
         public string ProteinName { get; set; }       
         public string ProteinAccess { get; set; }
         public string ProteinStartEnd { get; set; }
+        public List<MatchedFragmentIon> MatchedIons { get; set; }
 
+        //Crosslink
         public string BetaPeptideBaseSequence { get; set; }
+        public List<MatchedFragmentIon> BetaPeptideMatchedIons { get; set; }
+
+        //Glycopeptide
+        public string iD { get; set; }
+        public double PeptideMassNoGlycan { get; set; }
         public double glycanMass { get; set; }
         private string GlycanStructure { get; set; }
         public byte[] glycanKind { get; set; }
@@ -59,8 +68,14 @@ namespace MetaDrawGUI
         public string glycanString { get; set; }
         public Glycan glycan { get; set; }
         public PeptideWithSetModifications glycoPwsm { get; set; }
-        public List<MatchedFragmentIon> MatchedIons { get; set; }
-        public List<MatchedFragmentIon> BetaPeptideMatchedIons { get; set; }
+
+        //pTOP
+        public int MatchedPeakNum { get; set; }
+        public int NterMatchedPeakNum { get; set; }
+        public int CTerMatchedPeakNum { get; set; }
+        public double NTerMatchedPeakIntensityRatio { get; set; }
+        public double CTerMatchedPeakIntensityRatio { get; set; }
+
 
         private void generateSimplePsm_pGlyco(string line, char[] split, Dictionary<string, int> parsedHeader)
         {
@@ -184,6 +199,23 @@ namespace MetaDrawGUI
             FullSeq = spl[parsedHeader[PsmTsvHeader_Byonic.FullSeq]];
             int peptideLength = BaseSeq.Count();
 
+        }
+
+        private void generateSimplePsm_pTop(string line, char[] split, Dictionary<string, int> parsedHeader)
+        {
+            var spl = line.Split(split);
+            ScanNum = int.Parse(spl[parsedHeader[PsmTsvHeader_pTop.ScanNum]]);
+            ChargeState = int.Parse(spl[parsedHeader[PsmTsvHeader_pTop.ChargeState]]);
+            PrecursorMz = double.Parse(spl[parsedHeader[PsmTsvHeader_pTop.PrecursorMz]]);
+            PrecursorMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pTop.PrecursorMass]]);
+            BaseSeq = spl[parsedHeader[PsmTsvHeader_pTop.BaseSequence]];
+            Mod = spl[parsedHeader[PsmTsvHeader_pTop.PTMs]];
+
+            MatchedPeakNum = int.Parse(spl[parsedHeader[PsmTsvHeader_pTop.MatchedPeaks]]);
+            NterMatchedPeakNum = int.Parse(spl[parsedHeader[PsmTsvHeader_pTop.NtermMatchedIons]]);
+            CTerMatchedPeakNum  = int.Parse(spl[parsedHeader[PsmTsvHeader_pTop.CtermMatchedIons]]);
+            NTerMatchedPeakIntensityRatio = double.Parse(spl[parsedHeader[PsmTsvHeader_pTop.NtermMatchedIntensityRatio]]);
+            CTerMatchedPeakIntensityRatio = double.Parse(spl[parsedHeader[PsmTsvHeader_pTop.CtermMatchedIntensityRatio]]);
         }
 
         //TO DO: Bug may exist for the PrecursorMH, which is different from PrecursorMass.

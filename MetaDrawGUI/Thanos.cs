@@ -69,6 +69,7 @@ namespace MetaDrawGUI
         }
 
         //Thanos' resource
+        public List<PsmFromTsv> psms = new List<PsmFromTsv>();
 
         public List<SimplePsm> simplePsms = new List<SimplePsm>();
 

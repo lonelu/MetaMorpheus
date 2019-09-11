@@ -32,7 +32,6 @@ namespace MetaDrawGUI
     
         private string resultsFilePath;            
 
-        private List<PsmFromTsv> psms = new List<PsmFromTsv>();
         public Thanos thanos = new Thanos();
         public Action action { get; set; }
 
@@ -307,8 +306,8 @@ namespace MetaDrawGUI
 
             // load the PSMs
             List<string> warnings;
-            psms = PsmTsvReader.ReadTsv(resultsFilePath, out warnings);
-            foreach (var psm in psms)
+            thanos.psms = PsmTsvReader.ReadTsv(resultsFilePath, out warnings);
+            foreach (var psm in thanos.psms)
             {
                 spectrumNumsObservableCollection.Add(new SpectrumForDataGrid(psm.Ms2ScanNumber, psm.PrecursorScanNum, psm.PrecursorMz, psm.OrganismName));
             }
@@ -334,6 +333,25 @@ namespace MetaDrawGUI
             foreach (var feature in thanos.msFeatures)
             {
                 thanos.deconvolutor.MsFeatureCollection.Add(new MsFeatureForDataGrid(feature));
+            }
+        }
+
+        private void BtnLoadpTopResults_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (var collection in resultFilesObservableCollection)
+            {
+                resultsFilePath = collection.FilePath;
+                if (resultsFilePath == null)
+                {
+                    continue;
+                }
+                // load the PSMs
+                thanos.simplePsms.AddRange(TsvReader_Id.ReadTsv(resultsFilePath));
+            }
+
+            foreach (var psm in thanos.simplePsms)
+            {
+                spectrumNumsObservableCollection.Add(new SpectrumForDataGrid(psm.ScanNum, 0, psm.PrecursorMz, ""));
             }
         }
 
@@ -436,7 +454,7 @@ namespace MetaDrawGUI
             var sele = (SpectrumForDataGrid)dataGridPsms.SelectedItem;
 
             var ms2DataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
-            var psm = psms.Where(p => p.Ms2ScanNumber == sele.ScanNum).First();
+            var psm = thanos.psms.Where(p => p.Ms2ScanNumber == sele.ScanNum).First();
             thanos.deconvolutor.Model = MainViewModel.DrawPeptideSpectralMatch(ms2DataScan, psm);
             thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.PrecursorScanNum).First();
 
@@ -572,7 +590,7 @@ namespace MetaDrawGUI
                     continue;
                 }
                 // load the PSMs
-                thanos.simplePsms.AddRange(TsvReader_Glyco.ReadTsv(resultsFilePath));
+                thanos.simplePsms.AddRange(TsvReader_Id.ReadTsv(resultsFilePath));
             }
 
             foreach (var psm in thanos.simplePsms)
@@ -665,7 +683,6 @@ namespace MetaDrawGUI
         {
             thanos.accountant.ScanInfoModel = ScanInfoViewModel.DrawScanInfo_PT_Model(thanos.accountant.ScanInfos);
         }
-
 
         private void BtnDrawInfo_IJ_Click(object sender, RoutedEventArgs e)
         {
@@ -819,5 +836,6 @@ namespace MetaDrawGUI
                 thanos.deconvolutor.Model = PsmAnnotationViewModel.DrawScanMatch(thanos.msDataScan, matched);
             }
         }
+
     }
 }
