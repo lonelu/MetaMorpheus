@@ -290,7 +290,7 @@
                                                     <Button x:Name="btnClearResultFiles" Content="Clear" Click="btnClearFiles_Click"/>
                                                     <Button x:Name="BtnLoadResults" Content="Load" Click="BtnLoadResults_Click"/>
                                                     <Button x:Name="BtnLoadFlashDeconResults" Content="FlashDeconv" Click="BtnLoadFlashDeconResults_Click"/>
-                                                    <Button x:Name="BtnLoadpTopResults" Content="pTop" Click="BtnLoadpTopResults_Click"/>
+                                                    <Button x:Name="BtnLoadTopResults" Content="Top" Click="BtnLoadTopResults_Click"/>
                                                 </StackPanel>
                                             </Grid>
                                         </GroupBox>

@@ -336,7 +336,7 @@ namespace MetaDrawGUI
             }
         }
 
-        private void BtnLoadpTopResults_Click(object sender, RoutedEventArgs e)
+        private void BtnLoadTopResults_Click(object sender, RoutedEventArgs e)
         {
             foreach (var collection in resultFilesObservableCollection)
             {
