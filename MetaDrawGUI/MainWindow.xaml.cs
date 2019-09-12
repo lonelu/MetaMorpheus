@@ -345,6 +345,7 @@ namespace MetaDrawGUI
                 {
                     continue;
                 }
+                thanos.ResultFilePaths.Add(resultsFilePath);
                 // load the PSMs
                 thanos.simplePsms.AddRange(TsvReader_Id.ReadTsv(resultsFilePath));
             }
@@ -793,6 +794,9 @@ namespace MetaDrawGUI
                     break;
                 case DeconvolutorSkill.DeconDrawIntensityDistribution:
                     action = thanos.deconvolutor.PlotIntensityDistribution;
+                    break;
+                case DeconvolutorSkill.DeconCompareBoxVsNormalId:
+                    action = thanos.deconvolutor.DeconCompareBoxVsNormalId;
                     break;
                 default:
                     break;

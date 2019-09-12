@@ -19,7 +19,7 @@ namespace MetaDrawGUI
 
             foreach (var filePath in MsDataFilePaths)
             {
-                var msDataFile = spectraFileManager.LoadFile(filePath, new CommonParameters());
+                var msDataFile = spectraFileManager.LoadFile(filePath, new CommonParameters(trimMs1Peaks: false, trimMsMsPeaks: false));
 
                 var scanSets = BoxCarFunctions.GenerateScanSet(msDataFile);
 
@@ -157,11 +157,12 @@ namespace MetaDrawGUI
         }
 
         //BoxCar for top-down
+
         public static void FixPrecursorAndWriteFile(List<string> MsDataFilePaths, MyFileManager spectraFileManager)
         {
             foreach (var filePath in MsDataFilePaths)
             {
-                var msDataFile = spectraFileManager.LoadFile(filePath, new CommonParameters());
+                var msDataFile = spectraFileManager.LoadFile(filePath, new CommonParameters(trimMs1Peaks:false, trimMsMsPeaks:false));
 
                 var scanSets = GenerateScanSetForFixPrecursor(msDataFile);
 
@@ -217,5 +218,17 @@ namespace MetaDrawGUI
             return scans;
         }
 
+        public static void WriteExtractedBoxVsNormal(string FilePath, List<(int scanNum, double RT, int isMatch, double diff, int same)> diff_plot)
+        {
+            var writtenFile = Path.Combine(Path.GetDirectoryName(FilePath), "box_vs_normal.tsv");
+            using (StreamWriter output = new StreamWriter(writtenFile))
+            {
+                output.WriteLine("Scan\tRT\tIsMatched\tDiff\tSame");
+                foreach (var s in diff_plot)
+                {
+                    output.WriteLine(s.scanNum + "\t" + s.RT + "\t" + s.isMatch + "\t" + s.diff + "\t" + s.same);
+                }
+            }
+        }
     }
 }

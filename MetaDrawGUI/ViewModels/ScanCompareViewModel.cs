@@ -89,5 +89,57 @@ namespace ViewModels
 
         }
 
+        public static PlotModel DrawBoxVsNormalId(List<(int scanNum, double RT, int isMatch, double diff, int same)> ps)
+        {
+
+            PlotModel model = new PlotModel { Title = "Box vs Normal", DefaultFontSize = 15 };
+
+            if (ps.Count < 1)
+            {
+                return model;
+            }
+
+            model.Axes.Add(new LinearAxis
+            {
+                Position = AxisPosition.Bottom,
+                Title = "RT",
+                Minimum = ps.First().RT,
+                Maximum = ps.Last().RT,
+                AbsoluteMinimum = 0,
+                AbsoluteMaximum = ps.Last().RT * 1.2
+            });
+            model.Axes.Add(new LinearAxis
+            {
+                Position = AxisPosition.Left,
+                Title = "Diff",
+                Minimum = ps.Max(p=>p.diff) + 5,
+                Maximum = ps.Min(p=> p.diff) - 5,
+                AbsoluteMinimum = -100,
+                AbsoluteMaximum = 100
+            });
+
+            var x = ps.GroupBy(p => p.isMatch);
+
+            foreach (var y in x)
+            {
+                var scatter = new ScatterSeries()
+                {
+                    Title = y.First().isMatch.ToString(),
+                    MarkerType = MarkerType.Circle,
+                    MarkerSize = 2,
+
+                };
+
+                foreach (var z in y)
+                {
+                    scatter.Points.Add(new ScatterPoint(z.RT, z.diff));
+                }
+
+                model.Series.Add(scatter);
+            }
+
+            return model;
+        }
+
     }
 }

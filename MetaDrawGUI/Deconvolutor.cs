@@ -20,7 +20,8 @@ namespace MetaDrawGUI
         DeconIsoByPeak = 5,
         DeconChargeByPeak = 6,
         DeconDrawTwoScan = 7,
-        DeconDrawIntensityDistribution = 8
+        DeconDrawIntensityDistribution = 8,
+        DeconCompareBoxVsNormalId = 9
     }
 
     public class Deconvolutor: INotifyPropertyChanged
@@ -343,6 +344,71 @@ namespace MetaDrawGUI
                 Model = DeconViewModel.DrawIntensityDistibution(_thanos.msDataScan);
             }
         }
+
+        public void DeconCompareBoxVsNormalId()
+        {
+            HashSet<int> seenMs2ScanNum = new HashSet<int>();
+            List<(int scanNum, double RT, int isMatch, double diff, int same)> diff_plot = new List<(int scanNum, double RT, int isMatch, double diff, int same)>();
+
+            for (int i = 0; i < _thanos.msDataScans.Count; i++)
+            {
+                if (_thanos.msDataScans[i].MsnOrder == 1 || seenMs2ScanNum.Contains(i))
+                {
+                    continue;
+                }
+
+                seenMs2ScanNum.Add(i);
+                seenMs2ScanNum.Add(i+1);
+
+                if (_thanos.msDataScans[i+1].MsnOrder == 1)
+                {
+                    break;
+                }
+
+
+                var scanNum = i+1;
+                var RT = _thanos.msDataScans[i].RetentionTime;
+                var isMatch = 0;
+                var diff = 0;
+                var same = 0;
+
+                var matched_d = _thanos.simplePsms.Where(p => p.ScanNum == i+1).ToList();
+                var matched_n = _thanos.simplePsms.Where(p => p.ScanNum == i+2).ToList();
+
+                if (matched_d.Count > 0 && matched_n.Count >0)
+                {
+                     isMatch = 3;
+                     diff = matched_d.First().MatchedPeakNum - matched_n.First().MatchedPeakNum;
+                    if (matched_d.First().PrecursorMz == matched_n.First().PrecursorMz)
+                    {
+                        same = 1;
+                    }
+                }
+                else if(matched_d.Count == 0 && matched_n.Count > 0)
+                {
+                    isMatch = 2;
+                    diff = -20;
+                }
+                else if (matched_d.Count > 0 && matched_n.Count == 0 )
+                {
+                    isMatch = 1;
+                    diff = 20;
+                }
+                else
+                {
+                    isMatch = 0;
+                }
+
+                diff_plot.Add((scanNum, RT, isMatch, diff, same));
+            }
+
+            BoxMerger.WriteExtractedBoxVsNormal(_thanos.ResultFilePaths.First(), diff_plot);
+
+            var test = diff_plot.Where(p => p.isMatch == 3 && p.same == 0).ToList();
+
+            Model = ScanCompareViewModel.DrawBoxVsNormalId(diff_plot);
+        }
+
 
     }
 }

@@ -13,7 +13,8 @@ namespace MetaDrawGUI
         pGlyco,
         GlycReSoft,
         Byonic,
-        pTOP
+        pTOP,
+        Promex
     }
 
     public class TsvReader_Id
@@ -59,6 +60,10 @@ namespace MetaDrawGUI
                         tsvType = TsvType.pTOP;
                         Split = new char[] { ',' };
                     }
+                    else if (line.StartsWith("Scan"))
+                    {
+                        tsvType = TsvType.Promex;
+                    }
 
                     switch (tsvType)
                     {
@@ -73,6 +78,9 @@ namespace MetaDrawGUI
                             break;
                         case TsvType.pTOP:
                             parsedHeader = ParseHeader_pTop(line, Split);
+                            break;
+                        case TsvType.Promex:
+                            parsedHeader = ParseHeader_Promex(line, Split);
                             break;
                         default:
                             break;
@@ -191,6 +199,21 @@ namespace MetaDrawGUI
 
             return parsedHeader;
         }
+
+        private static Dictionary<string, int> ParseHeader_Promex(string header, char[] Split)
+        {
+            var parsedHeader = new Dictionary<string, int>();
+            var spl = header.Split(Split);
+            parsedHeader.Add(PsmTsvHeader_Promex.ScanNum, Array.IndexOf(spl, PsmTsvHeader_Promex.ScanNum));
+            parsedHeader.Add(PsmTsvHeader_Promex.ChargeState, Array.IndexOf(spl, PsmTsvHeader_Promex.ChargeState));
+            parsedHeader.Add(PsmTsvHeader_Promex.PrecursorMz, Array.IndexOf(spl, PsmTsvHeader_Promex.PrecursorMz));
+            parsedHeader.Add(PsmTsvHeader_Promex.PrecursorMass, Array.IndexOf(spl, PsmTsvHeader_Promex.PrecursorMass));
+            parsedHeader.Add(PsmTsvHeader_Promex.BaseSequence, Array.IndexOf(spl, PsmTsvHeader_Promex.BaseSequence));
+            parsedHeader.Add(PsmTsvHeader_Promex.PTMs, Array.IndexOf(spl, PsmTsvHeader_Promex.PTMs));
+            parsedHeader.Add(PsmTsvHeader_Promex.MatchedPeaks, Array.IndexOf(spl, PsmTsvHeader_Promex.MatchedPeaks));
+
+            return parsedHeader;
+        }
     }
 
     public static class PsmTsvHeader_pGlyco
@@ -255,6 +278,16 @@ namespace MetaDrawGUI
         public const string CtermMatchedIons = "Cterm Matched Ions";
         public const string NtermMatchedIntensityRatio = "Nterm Matched Intensity Ratio";
         public const string CtermMatchedIntensityRatio = "Cterm Matched Intensity Ratio";
+    }
 
+    public static class PsmTsvHeader_Promex
+    {
+        public const string ScanNum = "Scan";
+        public const string ChargeState = "Charge";
+        public const string PrecursorMz = "MostAbundantIsotopeMz";
+        public const string PrecursorMass = "Mass";
+        public const string BaseSequence = "Sequence";
+        public const string PTMs = "Modifications";
+        public const string MatchedPeaks = "#MatchedFragments";
     }
 }

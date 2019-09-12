@@ -31,6 +31,9 @@ namespace MetaDrawGUI
                 case TsvType.pTOP:
                     generateSimplePsm_pTop(line, split, parsedHeader);
                     break;
+                case TsvType.Promex:
+                    generateSimplePsm_Promex(line, split, parsedHeader);
+                    break;
                 default:
                     break;
             }
@@ -216,6 +219,18 @@ namespace MetaDrawGUI
             CTerMatchedPeakNum  = int.Parse(spl[parsedHeader[PsmTsvHeader_pTop.CtermMatchedIons]]);
             NTerMatchedPeakIntensityRatio = double.Parse(spl[parsedHeader[PsmTsvHeader_pTop.NtermMatchedIntensityRatio]]);
             CTerMatchedPeakIntensityRatio = double.Parse(spl[parsedHeader[PsmTsvHeader_pTop.CtermMatchedIntensityRatio]]);
+        }
+
+        private void generateSimplePsm_Promex(string line, char[] split, Dictionary<string, int> parsedHeader)
+        {
+            var spl = line.Split(split);
+            ScanNum = int.Parse(spl[parsedHeader[PsmTsvHeader_Promex.ScanNum]]);
+            ChargeState = int.Parse(spl[parsedHeader[PsmTsvHeader_Promex.ChargeState]]);
+            PrecursorMz = double.Parse(spl[parsedHeader[PsmTsvHeader_Promex.PrecursorMz]]);
+            PrecursorMass = double.Parse(spl[parsedHeader[PsmTsvHeader_Promex.PrecursorMass]]);
+            BaseSeq = spl[parsedHeader[PsmTsvHeader_Promex.BaseSequence]];
+            Mod = spl[parsedHeader[PsmTsvHeader_Promex.PTMs]];
+            MatchedPeakNum = int.Parse(spl[parsedHeader[PsmTsvHeader_Promex.MatchedPeaks]]);
         }
 
         //TO DO: Bug may exist for the PrecursorMH, which is different from PrecursorMass.
