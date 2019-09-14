@@ -11,7 +11,7 @@ namespace MassSpectrometry
         public DeconvolutionParameter()
         {
             DeconvolutionMinAssumedChargeState = 2;
-            DeconvolutionMaxAssumedChargeState = 6;
+            DeconvolutionMaxAssumedChargeState = 60;
             DeconvolutionMassTolerance = 4;
             DeconvolutionIntensityRatio = 3;
 

@@ -208,17 +208,11 @@ namespace MetaDrawGUI
 
         public void PlotDeconModel()
         {
-            if (_thanos.msDataScan != null)
-            {             
-                Model = DeconViewModel.DrawDeconModel(_thanos.ControlParameter.modelStartNum);
-            }
 
-            else
-            {     
-                Model = DeconViewModel.DrawDeconModel(_thanos.ControlParameter.modelStartNum);
-            }
+             Model = DeconViewModel.DrawDeconModel(_thanos.ControlParameter.modelStartNum);
+             //Model = DeconViewModel.DrawDeconModelWidth();
         }
-        
+
         public void DeconQuant()
         {         
             var ms1ScanForDecon = new List<MsDataScan>();

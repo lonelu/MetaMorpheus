@@ -6,6 +6,7 @@ using OxyPlot.Annotations;
 using System.ComponentModel;
 using MassSpectrometry;
 using System.Collections.Generic;
+using System.IO;
 
 namespace ViewModels
 {
@@ -117,10 +118,8 @@ namespace ViewModels
                 Title = "Intensity(counts)",
                 Minimum = 0,
                 Maximum = 1.3,
-
             });
 
-            List<LineSeries> lsPeaks = new List<LineSeries>();
             for (int i = ind; i < ind+50; i++)
             {
                 for (int j = 0; j < IsoDecon.AllMasses[i].Length; j++)
@@ -133,6 +132,104 @@ namespace ViewModels
                     model.Series.Add(line);
                 }
             }
+            return model;
+        }
+
+        public static PlotModel DrawDeconModelWidth()
+        {
+            PlotModel model = new PlotModel { Title = "Decon Model", DefaultFontSize = 15 };
+            model.Axes.Add(new LinearAxis
+            {
+                Position = AxisPosition.Bottom,
+                Title = "mass",
+                Minimum = 0,
+                Maximum = IsoDecon.AllMasses.Last().Last(),
+            });
+            model.Axes.Add(new LinearAxis
+            {
+                Position = AxisPosition.Left,
+                Title = "range",
+                Minimum = 0,
+                Maximum = 10,
+
+            });
+
+            List<(double mass, double range)> mass_range = new List<(double mass, double range)>(); 
+
+            for (int i = 0; i < IsoDecon.AllMasses.Length; i++)
+            {
+                var x = IsoDecon.AllMasses[i].First();
+
+                //var y = IsoDecon.AllMasses[i].Max() - IsoDecon.AllMasses[i].Min();
+
+                //mass_range.Add((x, y));
+
+                List<double> massesInRange = new List<double>();
+
+                //double addupIntensity = 0;
+
+                for (int j = 0; j < IsoDecon.AllMasses[i].Length; j++)
+                {
+                    //addupIntensity += IsoDecon.AllIntensities[i][j];
+                    massesInRange.Add(IsoDecon.AllMasses[i][j]);
+
+                    if (IsoDecon.AllIntensities[i][j] / IsoDecon.AllIntensities[i][0] < 0.03)
+                    {
+                        break;
+                    }
+
+                    //if (addupIntensity >= 0.99)
+                    //{
+                    //    break;
+                    //}
+                }
+
+                var y = massesInRange.Max() - massesInRange.Min();
+
+                if (i == 0)
+                {
+                    mass_range.Add((x, y));
+                }
+
+                if (i > 0 && y > mass_range.Last().range + 0.1)
+                {
+                    mass_range.Add((x, y));
+                }
+
+            }
+
+
+            var writtenFile = Path.Combine(@"C:\Users\Moon\Desktop", "mass_range.tsv");
+            using (StreamWriter output = new StreamWriter(writtenFile))
+            {
+                output.WriteLine("mass\trange");
+                foreach (var s in mass_range)
+                {
+                    output.WriteLine(s.mass + "\t" + s.range);
+                }
+            }
+
+            int charge = 1;
+
+            while(charge <= 60)
+            {
+                var scatter = new ScatterSeries()
+                {
+                    Title = charge.ToString(),
+                    MarkerType = MarkerType.Circle,
+                    MarkerSize = 2,
+
+                };
+
+                foreach (var mr in mass_range)
+                {
+                    scatter.Points.Add(new ScatterPoint(mr.mass, mr.range/charge));
+                }
+
+                charge++;
+                model.Series.Add(scatter);
+            }
+
             return model;
         }
 
