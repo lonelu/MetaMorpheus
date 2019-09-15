@@ -39,7 +39,7 @@ namespace ViewModels
                 Minimum = 0,
                 Maximum = maxTime * 1.2,
                 AbsoluteMinimum = 0,
-                AbsoluteMaximum = 2000
+                AbsoluteMaximum = maxTime * 1.2
             });
 
             var x = scanInfos.GroupBy(p => p.types).OrderBy(p=>p.Key);

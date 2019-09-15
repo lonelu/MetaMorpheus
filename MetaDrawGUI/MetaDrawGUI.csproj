@@ -195,9 +195,6 @@
     <Compile Include="BoxCar\BoxcarRange.cs" />
     <Compile Include="BoxCar\SetOfScans.cs" />
     <Compile Include="BoxMerger.cs" />
-    <Compile Include="Deconvolution_old\ChargeDeconEnvelope.cs" />
-    <Compile Include="Deconvolution_old\ChargeDeconPerMS1Scan.cs" />
-    <Compile Include="Deconvolution_old\ChargeParsi.cs" />
     <Compile Include="ControlParameter.cs" />
     <Compile Include="DataGrids\AllScansForDataGrid.cs" />
     <Compile Include="DataGrids\ChargeEnvelopesForDataGrid.cs" />
