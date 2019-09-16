@@ -272,8 +272,8 @@ namespace MassSpectrometry
 
             //mz and range
             Dictionary<double, double> seenMz = new Dictionary<double, double>();
-
-            foreach (var peakIndex in mzSpectrumXY.ExtractIndicesByY())
+            int size = mzSpectrumXY.Size / 8;
+            foreach (var peakIndex in mzSpectrumXY.ExtractIndicesByY().Take(size))
             {
                 if (chargeEnvelops.Count() >= 8) //Set chargeEnvelops.Count() >= 5 is to increase the real-time deconvolution time
                 {
@@ -292,14 +292,15 @@ namespace MassSpectrometry
                     var chargeEnve = new ChargeEnvelop(peakIndex, mzSpectrumXY.XArray[peakIndex], mzSpectrumXY.YArray[peakIndex]);
                     foreach (var mzz in mz_zs)
                     {
-                        if (seenMz.Keys.Contains(mzz.Value.Mz))
+                        chargeEnve.distributions.Add((mzz.Key, mzz.Value, null));
+                        if (seenMz.ContainsKey(mzz.Value.Mz))
                         {
                             continue;
                         }
                         var x = mzz.Value.Mz * mzz.Key;
-                        var range = (5.581E-4 * x + 1.64 * Math.Log(x) - 2.608E-9 * Math.Pow(x, 2) - 6.58) / mzz.Key / 2;
+                        var range = (5.581E-4 * x + 1.64 * Math.Log(x) - 2.608E-9 * Math.Pow(x, 2) - 6.58)/mzz.Key/2;
                         seenMz.Add(mzz.Value.Mz, range);
-                        chargeEnve.distributions.Add((mzz.Key, mzz.Value, null));
+                        
                     }
                     chargeEnvelops.Add(chargeEnve);
                 }
@@ -308,11 +309,11 @@ namespace MassSpectrometry
             return chargeEnvelops;
         }
 
-        private static bool PeakSeenInRange(double theMz, Dictionary<double, double> seenMz)
+        private static bool PeakSeenInRange(double theMz, Dictionary<double, double> seenMzRange)
         {
-            foreach (var mz in seenMz)
+            foreach (var seen in seenMzRange)
             {
-                if (theMz >= mz.Key - mz.Value && theMz <= mz.Key + mz.Value)
+                if (theMz >= seen.Key - seen.Value && theMz <= seen.Key + seen.Value)
                 {
                     return true;
                 }

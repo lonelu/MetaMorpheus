@@ -1,5 +1,4 @@
-﻿using EngineLayer;
-using MassSpectrometry;
+﻿using MassSpectrometry;
 using OxyPlot;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -7,6 +6,9 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using ViewModels;
+using System.Threading;
+using System.Threading.Tasks;
+using System;
 
 namespace MetaDrawGUI
 {
@@ -73,7 +75,6 @@ namespace MetaDrawGUI
             }
         }
 
-        public List<ChargeDeconEnvelope> ScanChargeEnvelopes { get; set; } = new List<ChargeDeconEnvelope>();
         public List<IsoEnvelop> IsotopicEnvelopes { get; set; } = new List<IsoEnvelop>();
         public Dictionary<int, MzPeak> Mz_zs { get; set; } = new Dictionary<int, MzPeak>();
         public List<ChargeEnvelop> ChargeEnvelops { get; set; } = new List<ChargeEnvelop>();
@@ -231,42 +232,17 @@ namespace MetaDrawGUI
 
         public void DeconAllChargeParsi()
         {
-            var chargeDeconPerMS1Scans = _thanos.msDataFileDecon.ChargeDeconvolutionFile(_thanos.msDataScans, _thanos.CommonParameters, _thanos.DeconvolutionParameter);
-            List<ChargeParsi> chargeParsis = _thanos.msDataFileDecon.ChargeParsimony(chargeDeconPerMS1Scans, new SingleAbsoluteAroundZeroSearchMode(2.2), new SingleAbsoluteAroundZeroSearchMode(5));
 
-            var total = _thanos.msDataScans.Where(p => p.MsnOrder == 2).Count();
-            int ms2ScanBeAssigned = chargeParsis.Sum(p => p.MS2ScansCount);
-            int a0 = chargeParsis.Where(p => p.MS2ScansCount == 0).Count();
-            int a1 = chargeParsis.Where(p => p.MS2ScansCount == 1).Count();
-            int a2 = chargeParsis.Where(p => p.MS2ScansCount == 2).Count();
-            int a3 = chargeParsis.Where(p => p.MS2ScansCount == 3).Count();
-            int a4 = chargeParsis.Where(p => p.MS2ScansCount == 4).Count();
-            int a5 = chargeParsis.Where(p => p.MS2ScansCount == 5).Count();
-            int a6 = chargeParsis.Where(p => p.MS2ScansCount == 6).Count();
-            int a7 = chargeParsis.Where(p => p.MS2ScansCount == 7).Count();
-            int a8 = chargeParsis.Where(p => p.MS2ScansCount == 8).Count();
-            int a9 = chargeParsis.Where(p => p.MS2ScansCount == 9).Count();
-            int a10 = chargeParsis.Where(p => p.MS2ScansCount == 10).Count();
-            int a11 = chargeParsis.Where(p => p.MS2ScansCount == 11).Count();
-            int a12 = chargeParsis.Where(p => p.MS2ScansCount == 12).Count();
-            int a13 = chargeParsis.Where(p => p.MS2ScansCount == 13).Count();
-            int a14 = chargeParsis.Where(p => p.MS2ScansCount == 14).Count();
-            int a15 = chargeParsis.Where(p => p.MS2ScansCount == 15).Count();
-            int a16 = chargeParsis.Where(p => p.MS2ScansCount == 16).Count();
-            int a17 = chargeParsis.Where(p => p.MS2ScansCount == 17).Count();
-            int a18 = chargeParsis.Where(p => p.MS2ScansCount == 18).Count();
-            int a19 = chargeParsis.Where(p => p.MS2ScansCount == 19).Count();
-            int a20 = chargeParsis.Where(p => p.MS2ScansCount == 20).Count();
-            var test = chargeParsis.Where(p => p.ExsitedMS1Scans.Contains(2076)).ToList();
-            _thanos.msDataFileDecon.ChargeDeconWriteToTSV(chargeDeconPerMS1Scans, Path.GetDirectoryName(_thanos.MsDataFilePaths.First()), "ChargeDecon");
         }
 
         public void DeconWatch()
         {
             var MS1Scans = _thanos.msDataScans.Where(p => p.MsnOrder == 1).ToList();
-            List<WatchEvaluation> evalution = new List<WatchEvaluation>();
-            int i = 0;
-            while (i < MS1Scans.Count)
+
+            Tuple<int, double, int, long, int, long>[] evaluation = new Tuple<int, double, int, long, int, long>[MS1Scans.Count];
+            object locker = new object();
+
+            for (int i = 0; i < MS1Scans.Count; i++)
             {
                 var theScanNum = MS1Scans[i].OneBasedScanNumber;
                 var theRT = MS1Scans[i].RetentionTime;
@@ -279,23 +255,21 @@ namespace MetaDrawGUI
 
                 var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
-                //var chargeDecon = mzSpectrumBU.ChargeDeconvolution(isotopicEnvelopes);
+                var chargeDecon = ChargeDecon.QuickFindChargesForScan(mzSpectrumXY, _thanos.DeconvolutionParameter);
 
                 watch1.Stop();
 
-                var theEvaluation = new WatchEvaluation(theScanNum, theRT, watch.ElapsedMilliseconds, watch1.ElapsedMilliseconds);
-                evalution.Add(theEvaluation);
-                i++;
-
+                evaluation[i] = new Tuple<int, double, int, long, int, long>(theScanNum, theRT, isotopicEnvelopes.Count, watch.ElapsedMilliseconds, chargeDecon.Count, watch1.ElapsedMilliseconds);
             }
 
             var writtenFile = Path.Combine(Path.GetDirectoryName(_thanos.MsDataFilePaths.First()), "watches.mytsv");
             using (StreamWriter output = new StreamWriter(writtenFile))
             {
-                output.WriteLine("ScanNum\tRT\tIsotopicDecon\tIsoTopicDeconByParallel\tChargeDecon");
-                foreach (var theEvaluation in evalution)
+                output.WriteLine("ScanNum\tRT\tIsoCount\tIsotopicDeconTime\tChargeCount\tChargeDeconTime");
+                foreach (var theEvaluation in evaluation)
                 {
-                    output.WriteLine(theEvaluation.TheScanNumber.ToString() + "\t" + theEvaluation.TheRT + "\t" + theEvaluation.WatchIsoDecon.ToString() + "\t" + theEvaluation.WatchChaDecon.ToString());
+                    output.WriteLine(theEvaluation.Item1 + "\t" + theEvaluation.Item2 + "\t" + theEvaluation.Item3 + "\t" + theEvaluation.Item4
+                        + "\t" + theEvaluation.Item5 + "\t" + theEvaluation.Item6 );
                 }
             }
         }

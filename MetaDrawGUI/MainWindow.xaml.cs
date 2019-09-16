@@ -277,6 +277,17 @@ namespace MetaDrawGUI
                 return;
             }
 
+            foreach (var spectrafileGrid in spectraFilesObservableCollection)
+            {
+                var aSpectraFilePath = spectrafileGrid.FilePath;
+                if (aSpectraFilePath == null)
+                {
+                    continue;
+                }
+
+                thanos.MsDataFilePaths.Add(aSpectraFilePath);
+            }
+
             // load the spectra file
             (sender as Button).IsEnabled = false;
             btnAddFiles.IsEnabled = false;
@@ -297,6 +308,16 @@ namespace MetaDrawGUI
             {
                 MessageBox.Show("Please add a result file.");
                 return;
+            }
+
+            foreach (var aResultfileGrid in resultFilesObservableCollection)
+            {
+                var aResultfilePath = aResultfileGrid.FilePath;
+                if (aResultfilePath == null)
+                {
+                    continue;
+                }
+                thanos.ResultFilePaths.Add(aResultfilePath);
             }
 
             // load the spectra file
@@ -736,27 +757,6 @@ namespace MetaDrawGUI
                     break;
             }
 
-            foreach (var spectrafileGrid in spectraFilesObservableCollection)
-            {
-                var aSpectraFilePath = spectrafileGrid.FilePath;
-                if (aSpectraFilePath == null)
-                {
-                    continue;
-                }
-
-                thanos.MsDataFilePaths.Add(aSpectraFilePath);
-            }
-
-            foreach (var aResultfileGrid in resultFilesObservableCollection)
-            {
-                var aResultfilePath = aResultfileGrid.FilePath;
-                if (aResultfilePath == null)
-                {
-                    continue;
-                }
-                thanos.ResultFilePaths.Add(aResultfilePath);
-            }
-
             if (action != null)
             {
                 action();
@@ -782,6 +782,9 @@ namespace MetaDrawGUI
                     break;
                 case DeconvolutorSkill.DeconAllChargeParsi:
                     action = thanos.deconvolutor.DeconAllChargeParsi;
+                    break;
+                case DeconvolutorSkill.DeconWatch:
+                    action = thanos.deconvolutor.DeconWatch;
                     break;
                 case DeconvolutorSkill.DeconIsoByPeak:
                     action = thanos.deconvolutor.DeconIsoByPeak;
