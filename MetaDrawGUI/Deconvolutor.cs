@@ -17,7 +17,7 @@ namespace MetaDrawGUI
         DeconSeleScan = 0,
         PlotAvaragineModel = 1,
         DeconQuant = 2,
-        DeconAllChargeParsi = 3,
+        DeconTotalPartners = 3,
         DeconWatch = 4,
         DeconIsoByPeak = 5,
         DeconChargeByPeak = 6,
@@ -210,8 +210,9 @@ namespace MetaDrawGUI
         public void PlotDeconModel()
         {
 
-             Model = DeconViewModel.DrawDeconModel(_thanos.ControlParameter.modelStartNum);
-             //Model = DeconViewModel.DrawDeconModelWidth();
+             //Model = DeconViewModel.DrawDeconModel(_thanos.ControlParameter.modelStartNum);
+            //Model = DeconViewModel.DrawDeconModelWidth();
+            Model = DeconViewModel.DrawChargeDeconModel();
         }
 
         public void DeconQuant()
@@ -230,9 +231,36 @@ namespace MetaDrawGUI
             _thanos.msDataFileDecon.DeconQuantFile(ms1ScanForDecon, _thanos.MsDataFilePaths.First(), _thanos.CommonParameters, _thanos.DeconvolutionParameter);
         }
 
-        public void DeconAllChargeParsi()
+        public void DeconTotalPartners()
         {
+            var MS1Scans = _thanos.msDataScans.Where(p => p.MsnOrder == 1).ToList();
 
+            Tuple<int, double, int, int, double>[] isoInfo = new Tuple<int, double, int, int, double>[MS1Scans.Count];
+
+
+            //for (int i = 0; i < MS1Scans.Count; i++)
+            Parallel.For(0, MS1Scans.Count, i =>
+            {
+                var theScanNum = MS1Scans[i].OneBasedScanNumber;
+                var theRT = MS1Scans[i].RetentionTime;
+
+                MzSpectrumXY mzSpectrumXY = new MzSpectrumXY(MS1Scans[i].MassSpectrum.XArray, MS1Scans[i].MassSpectrum.YArray, true);
+                var isos = IsoDecon.MsDeconv_Deconvolute(mzSpectrumXY, MS1Scans[i].ScanWindowRange, _thanos.DeconvolutionParameter).OrderBy(p => p.MsDeconvScore).ToList();
+
+                isoInfo[i] = new Tuple<int, double, int, int, double>(theScanNum, theRT, isos.Count(), isos.Where(p => p.HasPartner).Count(), (double)isos.Where(p => p.HasPartner).Count() / (double)isos.Count());
+            }
+            );
+
+            var writtenFile = Path.Combine(Path.GetDirectoryName(_thanos.MsDataFilePaths.First()), "partner_count.mytsv");
+            using (StreamWriter output = new StreamWriter(writtenFile))
+            {
+                output.WriteLine("ScanNum\tRT\tIsoCount\tPartnerCount\tRatio");
+                foreach (var theEvaluation in isoInfo)
+                {
+                    output.WriteLine(theEvaluation.Item1 + "\t" + theEvaluation.Item2 + "\t" + theEvaluation.Item3 + "\t" + theEvaluation.Item4
+                        + "\t" + theEvaluation.Item5);
+                }
+            }
         }
 
         public void DeconWatch()
@@ -240,7 +268,6 @@ namespace MetaDrawGUI
             var MS1Scans = _thanos.msDataScans.Where(p => p.MsnOrder == 1).ToList();
 
             Tuple<int, double, int, long, int, long>[] evaluation = new Tuple<int, double, int, long, int, long>[MS1Scans.Count];
-            object locker = new object();
 
             for (int i = 0; i < MS1Scans.Count; i++)
             {
@@ -255,14 +282,14 @@ namespace MetaDrawGUI
 
                 var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
-                var chargeDecon = ChargeDecon.QuickFindChargesForScan(mzSpectrumXY, _thanos.DeconvolutionParameter);
+                var chargeDecon = ChargeDecon.QuickChargeDeconForScan(mzSpectrumXY, _thanos.DeconvolutionParameter);
 
                 watch1.Stop();
 
                 evaluation[i] = new Tuple<int, double, int, long, int, long>(theScanNum, theRT, isotopicEnvelopes.Count, watch.ElapsedMilliseconds, chargeDecon.Count, watch1.ElapsedMilliseconds);
             }
 
-            var writtenFile = Path.Combine(Path.GetDirectoryName(_thanos.MsDataFilePaths.First()), "watches.mytsv");
+            var writtenFile = Path.Combine(Path.GetDirectoryName(_thanos.MsDataFilePaths.First()), "watches_MetaDraw.mytsv");
             using (StreamWriter output = new StreamWriter(writtenFile))
             {
                 output.WriteLine("ScanNum\tRT\tIsoCount\tIsotopicDeconTime\tChargeCount\tChargeDeconTime");

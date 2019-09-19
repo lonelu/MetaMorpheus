@@ -53,7 +53,7 @@ namespace MetaDrawGUI
             return matchedIsos;
         }
 
-        private static List<int> GetAllMassInRange(double mass, double[] DeconvolutedMonoisotopicMasses, PpmTolerance tolerance)
+        private static List<int> GetAllMassInRange(double mass, double[] DeconvolutedMonoisotopicMasses, Tolerance tolerance)
         {
             List<int> indexes = new List<int>();
             if (DeconvolutedMonoisotopicMasses.Length == 0)

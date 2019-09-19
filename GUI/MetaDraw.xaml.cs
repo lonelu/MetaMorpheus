@@ -276,7 +276,6 @@ namespace MetaMorpheusGUI
                 DrawAnnotatedBaseSequence(psmToDraw);
             }
 
-            DrawGlycan(psmToDraw);
         }
 
         /// <summary>

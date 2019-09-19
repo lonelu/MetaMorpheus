@@ -435,13 +435,16 @@ namespace MetaDrawGUI
 
                 if (thanos.msDataScan.MsnOrder == 1)
                 {
-                    double max = thanos.deconvolutor.mzSpectrumXY.YArray.Max();
-                    int indexMax = thanos.deconvolutor.mzSpectrumXY.YArray.ToList().IndexOf(max);
+                    //double max = thanos.deconvolutor.mzSpectrumXY.YArray.Max();
+                    //int indexMax = thanos.deconvolutor.mzSpectrumXY.YArray.ToList().IndexOf(max);
 
-                    thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(thanos.deconvolutor.mzSpectrumXY, indexMax, thanos.DeconvolutionParameter);
+                    //thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(thanos.deconvolutor.mzSpectrumXY, indexMax, thanos.DeconvolutionParameter);
 
                     //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.FindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
-                    thanos.deconvolutor.ChargeEnvelops = ChargeDecon.QuickFindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
+                    //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.QuickFindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
+                    thanos.deconvolutor.ChargeEnvelops = ChargeDecon.QuickChargeDeconForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
+                    //var isoEnvelop = new List<IsoEnvelop>();
+                    //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.ChargeDeconIonForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter, out isoEnvelop);
 
                     int ind = 1;
                     foreach (var chargeEnvelop in thanos.deconvolutor.ChargeEnvelops)
@@ -454,7 +457,7 @@ namespace MetaDrawGUI
                                 monoMasses.Add(dist.isoEnvelop.MonoisotopicMass);
                             }
                         }
-                        thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, chargeEnvelop.FirstMz, chargeEnvelop.FirstIntensity, chargeEnvelop.MatchedIntensityRatio, chargeEnvelop.UnUsedMzsRatio, chargeEnvelop.IsoEnveNum, monoMasses));
+                        thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, chargeEnvelop.FirstMz, chargeEnvelop.FirstIntensity, chargeEnvelop.UnUsedMzsRatio, chargeEnvelop.IsoEnveNum, chargeEnvelop.ChargeDeconScore, monoMasses));
                         ind++;
                     }
                 }
@@ -505,7 +508,7 @@ namespace MetaDrawGUI
             int ind = 1;
             foreach (var mz_z in thanos.deconvolutor.Mz_zs)
             {
-                thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.Value.Mz, mz_z.Key, mz_z.Value.Intensity, 0, 0, null));
+                thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.Value.Mz, mz_z.Key, mz_z.Value.Intensity, 0, 0,null));
                 ind++;
             }
         }
@@ -780,8 +783,8 @@ namespace MetaDrawGUI
                 case DeconvolutorSkill.DeconQuant:
                     action = thanos.deconvolutor.DeconQuant;
                     break;
-                case DeconvolutorSkill.DeconAllChargeParsi:
-                    action = thanos.deconvolutor.DeconAllChargeParsi;
+                case DeconvolutorSkill.DeconTotalPartners:
+                    action = thanos.deconvolutor.DeconTotalPartners;
                     break;
                 case DeconvolutorSkill.DeconWatch:
                     action = thanos.deconvolutor.DeconWatch;

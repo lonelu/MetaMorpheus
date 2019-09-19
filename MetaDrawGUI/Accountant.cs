@@ -212,7 +212,7 @@ namespace MetaDrawGUI
 
         private void WriteExtractedNum(List<string> filePaths, List<List<ScanInfo>> scanInfoSet)
         {
-            var writtenFile = Path.Combine(Path.GetDirectoryName(filePaths.First()), "scan_count_" + Path.GetRandomFileName() + ".tsv");
+            var writtenFile = Path.Combine(Path.GetDirectoryName(filePaths.First()), Path.GetFileNameWithoutExtension(filePaths.First()) + "scan_count" +  ".tsv");
             using (StreamWriter output = new StreamWriter(writtenFile))
             {
                 output.WriteLine("File\tFullTotal\tMsxMs\tMsxMs2\tHcdTotal\tEtdTotal\tEThcDTotal");

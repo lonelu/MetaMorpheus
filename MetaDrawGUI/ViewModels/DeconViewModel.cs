@@ -135,6 +135,44 @@ namespace ViewModels
             return model;
         }
 
+        public static PlotModel DrawChargeDeconModel()
+        {
+            PlotModel model = new PlotModel { Title = "Charge Decon Model", DefaultFontSize = 15 };
+            model.Axes.Add(new LinearAxis
+            {
+                Position = AxisPosition.Bottom,
+                Title = "m/z",
+                Minimum = 0,
+                Maximum = 2000
+            });
+            model.Axes.Add(new LinearAxis
+            {
+                Position = AxisPosition.Left,
+                Title = "Intensity(counts)",
+                Minimum = 0,
+                Maximum = 1.2,
+            });
+
+            for (int i = 0; i < 10; i++)
+            {
+                double mass = 20000.0 + i * 100;
+                double intensity = 1.0 - (double)i/10.0;
+                var dict = ChargeDecon.GenerateMzs(mass).Where(p=>p.Value >= 400 && p.Value <= 2000);
+
+                foreach (var kv in dict)
+                {
+                    var line = new LineSeries();
+                    line.Color = OxyColors.Red;
+                    line.StrokeThickness = 1;
+                    line.Points.Add(new DataPoint(kv.Value, 0));
+                    line.Points.Add(new DataPoint(kv.Value, intensity));
+                    model.Series.Add(line);
+                }
+            }
+
+            return model;
+        }
+
         public static PlotModel DrawDeconModelWidth()
         {
             PlotModel model = new PlotModel { Title = "Decon Model", DefaultFontSize = 15 };
