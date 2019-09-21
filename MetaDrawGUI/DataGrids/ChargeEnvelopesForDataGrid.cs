@@ -35,7 +35,7 @@ namespace MetaDrawGUI
         {
             get
             {
-                return string.Join(",", _deconMasses.Take(3));
+                return string.Join(",", _deconMasses.Select(p=>p.ToString("0.000")));
             }
         }
 

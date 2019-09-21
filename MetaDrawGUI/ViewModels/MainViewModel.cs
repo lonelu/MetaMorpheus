@@ -55,13 +55,14 @@ namespace ViewModels
 
             string scanNum = MsScanForDraw.OneBasedScanNumber.ToString();
 
+            string scanInfo = MsScanForDraw.ScanFilter;
 
-            PlotModel model = new PlotModel { Title = "Spectrum anotation of Scan " + scanNum, DefaultFontSize = 15 };
+            PlotModel model = new PlotModel { Title = "Spectrum anotation of Scan " + scanNum, Subtitle = scanInfo, DefaultFontSize = 15, SubtitleFontSize = 12};
             model.Axes.Add(new LinearAxis {
                 Position = AxisPosition.Bottom,
                 Title = "m/z",
-                Minimum = 0,
-                Maximum = x.Max() * 1.02,
+                Minimum = x.First(),
+                Maximum = x.Last() * 1.02,
                 AbsoluteMinimum = 0,
                 AbsoluteMaximum = x.Max() * 1.02
             });
@@ -74,22 +75,17 @@ namespace ViewModels
                 AbsoluteMaximum = y.Max() * 1.2
             });
 
-            LineSeries[] s0 = new LineSeries[x.Length];
-            LineSeries[] s1 = new LineSeries[x.Length];
-            LineSeries[] s2 = new LineSeries[x.Length];
-
             //Draw the ms/ms scan peaks
             for (int i = 0; i < x.Length; i++)
             {
-                s0[i] = new LineSeries();
-                s0[i].Color = OxyColors.Black;
-                s0[i].StrokeThickness = 1;
-                s0[i].Points.Add(new DataPoint(x[i], 0));
-                s0[i].Points.Add(new DataPoint(x[i], y[i]));
-                model.Series.Add(s0[i]);
+                var line = new LineSeries();
+                line.Color = OxyColors.Black;
+                line.StrokeThickness = 1;
+                line.Points.Add(new DataPoint(x[i], 0));
+                line.Points.Add(new DataPoint(x[i], y[i]));
+                model.Series.Add(line);
             }
-            //model.Axes[0].AxisChanged += XAxisChanged;
-            // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
+   
             return model;
 
         }
