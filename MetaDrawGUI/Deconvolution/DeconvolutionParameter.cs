@@ -11,10 +11,11 @@ namespace MassSpectrometry
             DeconvolutionMassTolerance = 4;
             DeconvolutionIntensityRatio = 3;
 
+            ToGetPartner = false;
             PartnerMassDiff = 0.018;
             MaxmiumLabelNumber = 3;
             PartnerPairRatio = 1;
-            ParterMassTolerance = 20;
+            ParterMassTolerance = 10;
         }
 
         public double DeconvolutionIntensityRatio { get; set; }
@@ -22,7 +23,7 @@ namespace MassSpectrometry
         public int DeconvolutionMaxAssumedChargeState { get; set; }
         public double DeconvolutionMassTolerance { get; set; }
 
-
+        public bool ToGetPartner { get; set; }
         public double PartnerMassDiff { get; set; }
         public int MaxmiumLabelNumber { get; set; }
         public double PartnerPairRatio { get; set; }

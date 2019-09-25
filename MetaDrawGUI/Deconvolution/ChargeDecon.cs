@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using MzLibUtil;
+using Chemistry;
 
 
 namespace MassSpectrometry
@@ -47,28 +47,14 @@ namespace MassSpectrometry
             return chargeDiff.ToArray();
         }
 
+        //Dictinary<charge, mz>
         public static Dictionary<int, double> GenerateMzs(double monomass)
         {
             Dictionary<int, double> mz_z = new Dictionary<int, double>();
 
             for (int i = 2; i <= 60; i++)
             {
-                mz_z.Add(i, (monomass + i * 1.0072) / i);
-            }
-
-            return mz_z;
-        }
-
-        //Dictinary<charge, mz>
-        private static Dictionary<int, double> GenerateMzs(double mz, int charge)
-        {
-            Dictionary<int, double> mz_z = new Dictionary<int, double>();
-
-            var monomass = mz * charge - charge * 1.0072;
-
-            for (int i = 2; i <= 60; i++)
-            {
-                mz_z.Add(i, (monomass + i * 1.0072) / i);
+                mz_z.Add(i, monomass.ToMz(i));
 
             }
 
@@ -177,7 +163,7 @@ namespace MassSpectrometry
         {
             var mz = mzSpectrumXY.XArray[index];
 
-            var mz_z = GenerateMzs(mz, charge);
+            var mz_z = GenerateMzs(mz.ToMass(charge));
 
             Dictionary<int, MzPeak> the_matched_mz_z = new Dictionary<int, MzPeak>();
 
@@ -261,13 +247,18 @@ namespace MassSpectrometry
 
 
         //Find Charge for intensity ordered peak, try get isoEnvelop for each charge, filtered by seen peak in each Envelop 
-        public static List<ChargeEnvelop> FindChargesForScan(MzSpectrumXY mzSpectrumXY, DeconvolutionParameter deconvolutionParameter)
+        public static List<ChargeEnvelop> FindChargesForScan(MzSpectrumXY mzSpectrumXY, DeconvolutionParameter deconvolutionParameter, int limit = 0)
         {
             List<ChargeEnvelop> chargeEnvelops = new List<ChargeEnvelop>();
             HashSet<int> seenPeakIndex = new HashSet<int>();
 
             foreach (var peakIndex in mzSpectrumXY.ExtractIndicesByY())
             {
+                if (limit != 0 && chargeEnvelops.Count==limit)
+                {
+                    break;
+                }
+
                 if (seenPeakIndex.Contains(peakIndex))
                 {
                     continue;
@@ -356,7 +347,7 @@ namespace MassSpectrometry
         }
 
         //Find Charge for each peak, try get chargeEnvelop based on filters, then for each charge, try get isoEnvelop. 
-        public static List<ChargeEnvelop> QuickChargeDeconForScan(MzSpectrumXY mzSpectrumXY, DeconvolutionParameter deconvolutionParameter)
+        public static List<ChargeEnvelop> QuickChargeDeconForScan(MzSpectrumXY mzSpectrumXY, DeconvolutionParameter deconvolutionParameter, out List<IsoEnvelop> isoEnvelops)
         {
             List<ChargeEnvelop> chargeEnvelops = new List<ChargeEnvelop>();
 
@@ -403,7 +394,7 @@ namespace MassSpectrometry
                 filteredChargeEnvelops.Add(ce);
             }
 
-            //var isos = IsoDecon.MsDeconv_Deconvolute(mzSpectrumXY, mzSpectrumXY.Range, deconvolutionParameter).OrderByDescending(p => p.MsDeconvScore);
+            isoEnvelops = IsoDecon.MsDeconv_Deconvolute(mzSpectrumXY, mzSpectrumXY.Range, deconvolutionParameter).Where(p => p.Charge >=5 && p.MsDeconvScore >= 50 && p.MsDeconvSignificance > 0.2).OrderByDescending(p => p.MsDeconvScore).ToList();
 
             return filteredChargeEnvelops;
 

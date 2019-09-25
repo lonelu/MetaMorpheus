@@ -281,8 +281,8 @@ namespace MetaDrawGUI
                 watch.Stop();
 
                 var watch1 = System.Diagnostics.Stopwatch.StartNew();
-
-                var chargeDecon = ChargeDecon.QuickChargeDeconForScan(mzSpectrumXY, _thanos.DeconvolutionParameter);
+                
+                var chargeDecon = ChargeDecon.QuickChargeDeconForScan(mzSpectrumXY, _thanos.DeconvolutionParameter, out isotopicEnvelopes);
 
                 watch1.Stop();
 

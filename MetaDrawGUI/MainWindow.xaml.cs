@@ -420,7 +420,8 @@ namespace MetaDrawGUI
 
                     MzSpectrumXY mzSpectrumXY = new MzSpectrumXY(thanos.msDataScans[ind].MassSpectrum.XArray, thanos.msDataScans[ind].MassSpectrum.YArray, true);
 
-                    var chargeEnves = ChargeDecon.QuickChargeDeconForScan(mzSpectrumXY, thanos.DeconvolutionParameter);
+                    List<IsoEnvelop> isoEnvelops;
+                    var chargeEnves = ChargeDecon.QuickChargeDeconForScan(mzSpectrumXY, thanos.DeconvolutionParameter, out isoEnvelops);
 
                     foreach (var ce in chargeEnves)
                     {
@@ -527,7 +528,8 @@ namespace MetaDrawGUI
 
                     //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.FindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
                     //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.QuickFindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
-                    thanos.deconvolutor.ChargeEnvelops = ChargeDecon.QuickChargeDeconForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
+                    List<IsoEnvelop> isoEnvelops;
+                    thanos.deconvolutor.ChargeEnvelops = ChargeDecon.QuickChargeDeconForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter, out isoEnvelops);
                     //var isoEnvelop = new List<IsoEnvelop>();
                     //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.ChargeDeconIonForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter, out isoEnvelop);
 
