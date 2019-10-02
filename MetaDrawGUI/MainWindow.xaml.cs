@@ -888,6 +888,9 @@ namespace MetaDrawGUI
                 case DeconvolutorSkill.DeconCompareBoxVsNormalId:
                     action = thanos.deconvolutor.DeconCompareBoxVsNormalId;
                     break;
+                case DeconvolutorSkill.IdFragmentationOptimize:
+                    action = thanos.deconvolutor.IdFragmentationOptimize;
+                    break;
                 default:
                     break;
             }

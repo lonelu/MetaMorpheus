@@ -23,7 +23,8 @@ namespace MetaDrawGUI
         DeconChargeByPeak = 6,
         DeconDrawTwoScan = 7,
         DeconDrawIntensityDistribution = 8,
-        DeconCompareBoxVsNormalId = 9
+        DeconCompareBoxVsNormalId = 9,
+        IdFragmentationOptimize = 10
     }
 
     public class Deconvolutor: INotifyPropertyChanged
@@ -404,6 +405,28 @@ namespace MetaDrawGUI
             Model = ScanCompareViewModel.DrawBoxVsNormalId(diff_plot);
         }
 
+        public void IdFragmentationOptimize()
+        {
+            List<(SimplePsm, MsDataScan)> x = new List<(SimplePsm, MsDataScan)>();
+            foreach (var psm in _thanos.simplePsms)
+            {
+                var scan = _thanos.msDataScans.Where(p => p.OneBasedScanNumber == psm.ScanNum).First();
+                x.Add((psm, scan));
+            }
 
+            var writtenFile = Path.Combine(Path.GetDirectoryName(_thanos.ResultFilePaths.First()), "FragmentationOptimization.mytsv");
+            using (StreamWriter output = new StreamWriter(writtenFile))
+            {
+                output.WriteLine("ScanNum\tChargeState\tMonoMass\tMatchedPeakNum\tNterMatchedPeakNum\tCterMatchedPeakNum\tNterMatchedPeakRatio\tCterMatchedPeakRatio\tHcdEnergy\tScanFilter");
+                foreach (var c in x)
+                {
+                    output.WriteLine(c.Item1.ScanNum + "\t" + c.Item1.ChargeState + "\t" + c.Item1.PrecursorMass + "\t" + c.Item1.MatchedPeakNum
+                        + "\t" + c.Item1.NterMatchedPeakNum + "\t" + c.Item1.CTerMatchedPeakNum + "\t" + c.Item1.NTerMatchedPeakIntensityRatio + "\t" + c.Item1.CTerMatchedPeakIntensityRatio
+                        + "\t" + c.Item2.HcdEnergy  + "\t" + c.Item2.ScanFilter
+                        );
+                }
+            }
+
+        }
     }
 }
