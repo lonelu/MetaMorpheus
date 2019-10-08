@@ -48,14 +48,15 @@ namespace MassSpectrometry
         }
 
         //Dictinary<charge, mz>
-        public static Dictionary<int, double> GenerateMzs(double monomass)
+        public static Dictionary<int, double> GenerateMzs(double monomass, double low, double high)
         {
             Dictionary<int, double> mz_z = new Dictionary<int, double>();
 
-            for (int i = 2; i <= 60; i++)
+            int down = (int)(monomass/high) + 1;
+            int up = (int)(monomass/low);
+            for (int i = down; i <= up; i++)
             {
-                mz_z.Add(i, monomass.ToMz(i));
-
+                mz_z.Add(i, monomass.ToMz(i));              
             }
 
             return mz_z;
@@ -163,7 +164,7 @@ namespace MassSpectrometry
         {
             var mz = mzSpectrumXY.XArray[index];
 
-            var mz_z = GenerateMzs(mz.ToMass(charge));
+            var mz_z = GenerateMzs(mz.ToMass(charge), 400, 2000);
 
             Dictionary<int, MzPeak> the_matched_mz_z = new Dictionary<int, MzPeak>();
 
@@ -401,13 +402,22 @@ namespace MassSpectrometry
         }
 
         //IsoDecon first, then ChargeDecon based on IsoEnvelops' peaks. The out 'isoEnvelop' are those not related to chargeEnvelop
-        public static List<ChargeEnvelop> ChargeDeconIonForScan(MzSpectrumXY mzSpectrumXY, DeconvolutionParameter deconvolutionParameter, out List<IsoEnvelop> isoEnvelops)
+        public static List<ChargeEnvelop> ChargeDeconIsoForScan(MzSpectrumXY mzSpectrumXY, DeconvolutionParameter deconvolutionParameter, out List<IsoEnvelop> isoEnvelops)
         {
             List<ChargeEnvelop> chargeEnvelops = new List<ChargeEnvelop>();
 
             isoEnvelops = new List<IsoEnvelop>();
 
-            var isos = IsoDecon.MsDeconv_Deconvolute( mzSpectrumXY, mzSpectrumXY.Range, deconvolutionParameter).OrderByDescending(p=>p.MsDeconvScore);
+            var isos = IsoDecon.MsDeconv_Deconvolute(mzSpectrumXY, mzSpectrumXY.Range, deconvolutionParameter).Where(p => p.Charge >= 5 && p.MsDeconvScore >= 50 && p.MsDeconvSignificance > 0.2).OrderByDescending(p => p.MsDeconvScore);
+
+            //Dictionary<double, IsoEnvelop> mz2iso = new Dictionary<double, IsoEnvelop>();
+            //foreach (var s in isos)
+            //{
+            //    foreach (var mzPeak in s.ExperimentIsoEnvelop)
+            //    {
+            //        mz2iso.Add(mzPeak.Mz, s);
+            //    }
+            //}
 
             //Dictionary<double, double> seenMz = new Dictionary<double, double>();
             HashSet<double> seenMz = new HashSet<double>();
@@ -419,7 +429,7 @@ namespace MassSpectrometry
                 //    continue;
                 //}
 
-                if (iso.Charge < 5 || seenMz.Overlaps(iso.ExperimentIsoEnvelop.Select(p=>p.Mz)))
+                if (iso.Charge < 5 || seenMz.Overlaps(iso.ExperimentIsoEnvelop.Select(p => p.Mz)))
                 {
                     continue;
                 }
@@ -433,7 +443,10 @@ namespace MassSpectrometry
                     var chargeEnve = new ChargeEnvelop(ind, mzSpectrumXY.XArray[ind], mzSpectrumXY.YArray[ind]);
                     foreach (var mzz in mzs)
                     {
-                        chargeEnve.distributions.Add((mzz.Key, mzz.Value, null));
+                        //var s = mz2iso.ContainsKey(mzz.Value.Mz)? mz2iso[mzz.Value.Mz] : null;
+                        var s = isos.Where(p => p.Charge == mzz.Key).Where(p => p.ExperimentIsoEnvelop.Select(q => q.Mz).Contains(mzz.Value.Mz)).FirstOrDefault();
+
+                        chargeEnve.distributions.Add((mzz.Key, mzz.Value, s));
 
                         //if (seenMz.ContainsKey(mzz.Value.Mz))
                         //{
@@ -455,7 +468,6 @@ namespace MassSpectrometry
 
             return chargeEnvelops;
         }
-
 
     }
 }

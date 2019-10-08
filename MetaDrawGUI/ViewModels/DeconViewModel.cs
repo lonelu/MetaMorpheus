@@ -157,7 +157,7 @@ namespace ViewModels
             {
                 double mass = 20000.0 + i * 100;
                 double intensity = 1.0 - (double)i/10.0;
-                var dict = ChargeDecon.GenerateMzs(mass).Where(p=>p.Value >= 400 && p.Value <= 2000);
+                var dict = ChargeDecon.GenerateMzs(mass, 400, 2000);
 
                 foreach (var kv in dict)
                 {

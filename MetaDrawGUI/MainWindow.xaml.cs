@@ -524,14 +524,12 @@ namespace MetaDrawGUI
                     //double max = thanos.deconvolutor.mzSpectrumXY.YArray.Max();
                     //int indexMax = thanos.deconvolutor.mzSpectrumXY.YArray.ToList().IndexOf(max);
 
-                    //thanos.deconvolutor.Mz_zs = ChargeDecon.FindChargesForPeak(thanos.deconvolutor.mzSpectrumXY, indexMax, thanos.DeconvolutionParameter);
 
                     //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.FindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
                     //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.QuickFindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
                     List<IsoEnvelop> isoEnvelops;
-                    thanos.deconvolutor.ChargeEnvelops = ChargeDecon.QuickChargeDeconForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter, out isoEnvelops);
-                    //var isoEnvelop = new List<IsoEnvelop>();
-                    //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.ChargeDeconIonForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter, out isoEnvelop);
+                    //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.QuickChargeDeconForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter, out isoEnvelops);
+                    thanos.deconvolutor.ChargeEnvelops = ChargeDecon.ChargeDeconIsoForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter, out isoEnvelops);
 
                     int ind = 1;
                     foreach (var chargeEnvelop in thanos.deconvolutor.ChargeEnvelops)
