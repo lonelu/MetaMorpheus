@@ -14,6 +14,7 @@ using System.Globalization;
 using System.ComponentModel;
 using TaskLayer;
 using System.Threading.Tasks;
+using Chemistry;
 
 namespace MetaDrawGUI
 {
@@ -534,7 +535,7 @@ namespace MetaDrawGUI
                     int ind = 1;
                     foreach (var chargeEnvelop in thanos.deconvolutor.ChargeEnvelops)
                     {
-                        thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, chargeEnvelop.FirstMz, chargeEnvelop.FirstIntensity, chargeEnvelop.UnUsedMzsRatio, chargeEnvelop.IsoEnveNum, chargeEnvelop.ChargeDeconScore, chargeEnvelop.mzs_box));
+                        thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, chargeEnvelop.MonoMass, chargeEnvelop.UnUsedMzsRatio, chargeEnvelop.IsoEnveNum, chargeEnvelop.ChargeDeconScore, chargeEnvelop.mzs_box));
                         ind++;
                     }
                 }
@@ -585,7 +586,7 @@ namespace MetaDrawGUI
             int ind = 1;
             foreach (var mz_z in thanos.deconvolutor.Mz_zs)
             {
-                thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.Value.Mz, mz_z.Key, mz_z.Value.Intensity, 0, 0,null));
+                thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.mz.ToMass(mz_z.charge), mz_z.intensity, 0, 0,null));
                 ind++;
             }
         }

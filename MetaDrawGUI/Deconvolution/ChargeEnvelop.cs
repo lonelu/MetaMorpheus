@@ -8,20 +8,14 @@ namespace MassSpectrometry
 {
     public class ChargeEnvelop
     {
-        public ChargeEnvelop(int firstIndex, double firstMz, double firstIntensity)
+        public ChargeEnvelop(double monoMass)
         {
-            FirstIndex = firstIndex;
-            FirstMz = firstMz;
-            FirstIntensity = firstIntensity;
+            MonoMass = MonoMass;
         }
 
-        public List<(int charge, MzPeak peak, IsoEnvelop isoEnvelop)> distributions { get; set; } = new List<(int charge, MzPeak peak, IsoEnvelop isoEnvelop)>();
+        public List<(int charge, double mz, double intensity, IsoEnvelop isoEnvelop)> distributions { get; set; } = new List<(int charge, double mz, double intensity, IsoEnvelop isoEnvelop)>();
 
-        public int FirstIndex { get; set; }
-
-        public double FirstMz { get; set; }
-
-        public double FirstIntensity { get; set; }
+        public double MonoMass { get; }
 
         public List<MzPeak> AllMzPeak
         {
@@ -36,12 +30,14 @@ namespace MassSpectrometry
                     }
                     else
                     {
-                        mzs.Add(d.peak);
+                        mzs.Add(new MzPeak(d.mz, d.intensity));
                     }
                 }
                 return mzs;
             }
         }
+
+        public List<int> TheoPeakIndex { get; set; }
 
         public double ChargeDeconScore
         {
@@ -66,7 +62,7 @@ namespace MassSpectrometry
         {
             get
             {
-                return distributions.Select(p => p.peak.Mz).ToList();
+                return distributions.Select(p => p.mz).ToList();
             }
         }
 
@@ -84,7 +80,7 @@ namespace MassSpectrometry
         {
             get
             {
-                return distributions.OrderByDescending(p => p.peak.Intensity).Take(Count_box).OrderBy(p => p.peak.Intensity).Select(p => p.peak.Mz).ToList();
+                return distributions.OrderByDescending(p => p.intensity).Take(Count_box).OrderBy(p => p.intensity).Select(p => p.mz).ToList();
             }
         }
     }

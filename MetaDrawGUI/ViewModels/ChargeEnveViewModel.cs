@@ -26,8 +26,8 @@ namespace ViewModels
 
         public static PlotModel DrawCharEnvelopModel(MsDataScan MsScanForDraw, ChargeEnvelop chargeDeconEnvelope)
         {
-            var x = chargeDeconEnvelope.distributions.Select(p=>p.peak.Mz).ToArray();
-            var y = chargeDeconEnvelope.distributions.Select(p=>p.peak.Intensity).ToArray();
+            var x = chargeDeconEnvelope.distributions.Select(p=>p.mz).ToArray();
+            var y = chargeDeconEnvelope.distributions.Select(p=>p.intensity).ToArray();
             //var scale = y.Sum() / chargeDeconEnvelope.IntensityModel.Sum();
             //var intensityModel = chargeDeconEnvelope.IntensityModel.Select(p=>p*scale).ToArray();
             var charges = chargeDeconEnvelope.distributions.Select(p=>p.charge);
@@ -118,8 +118,8 @@ namespace ViewModels
                     var mzzLine = new LineSeries();
                     mzzLine.Color = OxyColors.Red;
                     mzzLine.StrokeThickness = 3;
-                    mzzLine.Points.Add(new DataPoint(distri.peak.Mz, 0));
-                    mzzLine.Points.Add(new DataPoint(distri.peak.Mz, distri.peak.Intensity));
+                    mzzLine.Points.Add(new DataPoint(distri.mz, 0));
+                    mzzLine.Points.Add(new DataPoint(distri.mz, distri.intensity));
                     model.Series.Add(mzzLine);
 
                     var peakAnno = new TextAnnotation();
@@ -128,7 +128,7 @@ namespace ViewModels
                     peakAnno.FontSize = 12;
                     peakAnno.TextColor = OxyColors.Red;
                     peakAnno.StrokeThickness = 0;
-                    peakAnno.TextPosition = new DataPoint(distri.peak.Mz, distri.peak.Intensity);
+                    peakAnno.TextPosition = new DataPoint(distri.mz, distri.intensity);
                     peakAnno.Text = distri.charge.ToString() + "+";
                     model.Annotations.Add(peakAnno);
                 
@@ -138,7 +138,7 @@ namespace ViewModels
             return model;
         }
 
-        public static PlotModel UpdataModelForChargeEnve(PlotModel model, Dictionary<int, MzPeak> mz_zs)
+        public static PlotModel UpdataModelForChargeEnve(PlotModel model, List<(int charge, double mz, double intensity, int index)> mz_zs)
         {
             Random rand = new Random();
             int colorId = rand.Next(0, 14);
@@ -149,8 +149,8 @@ namespace ViewModels
                 
                 mzzLine.Color = GlycoViewModel.oxyColors[colorId];
                 mzzLine.StrokeThickness = 2;
-                mzzLine.Points.Add(new DataPoint(mzz.Value.Mz, 0));
-                mzzLine.Points.Add(new DataPoint(mzz.Value.Mz, mzz.Value.Intensity));
+                mzzLine.Points.Add(new DataPoint(mzz.mz, 0));
+                mzzLine.Points.Add(new DataPoint(mzz.mz, mzz.intensity));
                 model.Series.Add(mzzLine);
 
                 var peakAnno = new TextAnnotation();
@@ -159,8 +159,8 @@ namespace ViewModels
                 peakAnno.FontSize = 12;
                 peakAnno.TextColor = OxyColors.Red;
                 peakAnno.StrokeThickness = 0;
-                peakAnno.TextPosition = new DataPoint(mzz.Value.Mz, mzz.Value.Intensity);
-                peakAnno.Text = mzz.Key.ToString() + "+";
+                peakAnno.TextPosition = new DataPoint(mzz.mz, mzz.intensity);
+                peakAnno.Text = mzz.charge.ToString() + "+";
                 model.Annotations.Add(peakAnno);
             }
 

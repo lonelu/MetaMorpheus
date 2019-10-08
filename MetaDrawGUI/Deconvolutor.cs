@@ -9,6 +9,7 @@ using ViewModels;
 using System.Threading;
 using System.Threading.Tasks;
 using System;
+using Chemistry;
 
 namespace MetaDrawGUI
 {
@@ -77,7 +78,7 @@ namespace MetaDrawGUI
         }
 
         public List<IsoEnvelop> IsotopicEnvelopes { get; set; } = new List<IsoEnvelop>();
-        public Dictionary<int, MzPeak> Mz_zs { get; set; } = new Dictionary<int, MzPeak>();
+        public List<(int charge, double mz, double intensity, int index)> Mz_zs { get; set; } = new List<(int charge, double mz, double intensity, int index)>();
         public List<ChargeEnvelop> ChargeEnvelops { get; set; } = new List<ChargeEnvelop>();
 
         //View model
@@ -176,7 +177,7 @@ namespace MetaDrawGUI
             int ind = 1;
             foreach (var mz_z in _thanos.deconvolutor.Mz_zs)
             {
-                _thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.Value.Mz, mz_z.Key, mz_z.Value.Intensity, 0, 0, null));
+                _thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.mz.ToMass(mz_z.charge), 0, 0, 0, null));
                 ind++;
             }
             chargeEnvelopesCollection = chargeEnvelopesObservableCollection;
@@ -315,7 +316,7 @@ namespace MetaDrawGUI
             int ind = 1;
             foreach (var mz_z in theMz_zs)
             {
-                _thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.Value.Mz, mz_z.Key, mz_z.Value.Intensity, 0, 0, null));
+                _thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.mz.ToMass(mz_z.charge), 0, 0, 0, null));
                 ind++;
             }
             chargeEnvelopesCollection = chargeEnvelopesObservableCollection;

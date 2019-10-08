@@ -8,11 +8,9 @@ namespace MetaDrawGUI
     {
         private new List<double> _deconMasses;
 
-        public ChargeEnvelopesForDataGrid(int ind, double deconMz, double intensity, double mzRatio, int isoEnveNum, double score, List<double> deconMasses)
+        public ChargeEnvelopesForDataGrid(int ind, double monoMass, double mzRatio, int isoEnveNum, double score, List<double> deconMasses)
         {
             Ind = ind;
-            DeconMz = deconMz;
-            Intensity = intensity;
             MzRatio = mzRatio;
             IsoEnveNum = isoEnveNum;
             Score = score;
@@ -21,9 +19,8 @@ namespace MetaDrawGUI
 
         public int Ind { get; set; }
 
-        public double DeconMz { get; set; }
+        public double MonoMass { get; set; }
 
-        public double Intensity { get; set; }
 
         public double MzRatio { get; set; }
 
