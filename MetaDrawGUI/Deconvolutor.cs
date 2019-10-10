@@ -164,7 +164,7 @@ namespace MetaDrawGUI
             int i = 1;
             foreach (var item in IsotopicEnvelopes)
             {
-                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.HasPartner, item.ExperimentIsoEnvelop.First().Mz, item.Charge, item.MonoisotopicMass, item.TotalIntensity, item.MsDeconvScore, item.MsDeconvSignificance));
+                envolopObservableCollection.Add(new EnvolopForDataGrid(i, item.HasPartner, item.ExperimentIsoEnvelop.First().Mz, item.Charge, item.MonoisotopicMass, item.TotalIntensity, item.IntensityRatio, item.MsDeconvScore, item.MsDeconvSignificance));
                 i++;
             }
 
@@ -177,7 +177,7 @@ namespace MetaDrawGUI
             int ind = 1;
             foreach (var mz_z in _thanos.deconvolutor.Mz_zs)
             {
-                _thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.mz.ToMass(mz_z.charge), 0, 0, 0, null));
+                _thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.mz.ToMass(mz_z.charge), 0, 0, 0, 0, null));
                 ind++;
             }
             chargeEnvelopesCollection = chargeEnvelopesObservableCollection;
@@ -316,7 +316,7 @@ namespace MetaDrawGUI
             int ind = 1;
             foreach (var mz_z in theMz_zs)
             {
-                _thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.mz.ToMass(mz_z.charge), 0, 0, 0, null));
+                _thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.mz.ToMass(mz_z.charge), 0, 0, 0, 0, null));
                 ind++;
             }
             chargeEnvelopesCollection = chargeEnvelopesObservableCollection;

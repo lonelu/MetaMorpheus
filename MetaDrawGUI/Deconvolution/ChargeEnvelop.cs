@@ -55,6 +55,8 @@ namespace MassSpectrometry
             }
         }
 
+        public double IntensityRatio { get; set; }
+
         public double ChargeDeconScore
         {
             get

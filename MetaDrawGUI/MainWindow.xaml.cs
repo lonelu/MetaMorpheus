@@ -516,7 +516,7 @@ namespace MetaDrawGUI
                 {
                     thanos.deconvolutor.IsotopicEnvelopes[i - 1].ScanNum = thanos.msDataScan.OneBasedScanNumber;
                     thanos.deconvolutor.IsotopicEnvelopes[i - 1].RT = thanos.msDataScan.RetentionTime;
-                    thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.HasPartner, item.ExperimentIsoEnvelop.First().Mz, item.Charge, item.MonoisotopicMass, item.TotalIntensity, item.MsDeconvScore, item.MsDeconvSignificance));
+                    thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.HasPartner, item.ExperimentIsoEnvelop.First().Mz, item.Charge, item.MonoisotopicMass, item.TotalIntensity, item.IntensityRatio, item.MsDeconvScore, item.MsDeconvSignificance));
                     i++;
                 }
 
@@ -535,7 +535,7 @@ namespace MetaDrawGUI
                     int ind = 1;
                     foreach (var chargeEnvelop in thanos.deconvolutor.ChargeEnvelops)
                     {
-                        thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, chargeEnvelop.MonoMass, chargeEnvelop.UnUsedMzsRatio, chargeEnvelop.IsoEnveNum, chargeEnvelop.ChargeDeconScore, chargeEnvelop.mzs_box));
+                        thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, chargeEnvelop.MonoMass, chargeEnvelop.UnUsedMzsRatio, chargeEnvelop.IsoEnveNum, chargeEnvelop.ChargeDeconScore, chargeEnvelop.IntensityRatio, chargeEnvelop.mzs_box));
                         ind++;
                     }
                 }
@@ -566,7 +566,7 @@ namespace MetaDrawGUI
             int i = 1;
             foreach (var item in thanos.deconvolutor.IsotopicEnvelopes)
             {
-                thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.HasPartner, item.ExperimentIsoEnvelop.First().Mz, item.Charge, item.MonoisotopicMass, item.TotalIntensity, item.MsDeconvScore, item.MsDeconvSignificance));
+                thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.HasPartner, item.ExperimentIsoEnvelop.First().Mz, item.Charge, item.MonoisotopicMass, item.TotalIntensity, item.IntensityRatio, item.MsDeconvScore, item.MsDeconvSignificance));
                 i++;
             }
 
@@ -586,7 +586,7 @@ namespace MetaDrawGUI
             int ind = 1;
             foreach (var mz_z in thanos.deconvolutor.Mz_zs)
             {
-                thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.mz.ToMass(mz_z.charge), mz_z.intensity, 0, 0,null));
+                thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, mz_z.mz.ToMass(mz_z.charge), mz_z.intensity, 0, 0, 0,null));
                 ind++;
             }
         }

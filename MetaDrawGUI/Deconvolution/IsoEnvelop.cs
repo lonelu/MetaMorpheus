@@ -33,6 +33,8 @@ namespace MassSpectrometry
             }
         }
 
+        public double IntensityRatio { get; set; }
+
         public int Charge { get; set; }
 
         public double MsDeconvScore { get; set; }
