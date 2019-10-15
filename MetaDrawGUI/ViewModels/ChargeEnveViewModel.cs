@@ -76,7 +76,7 @@ namespace ViewModels
             return model;
         }
 
-        public static PlotModel DrawCharEnvelopMatch(MsDataScan msDataScan, ChargeEnvelop chargeEnvelop)
+        public static PlotModel DrawCharEnvelopMatch(MsDataScan msDataScan, ChargeEnvelop chargeEnvelop, Tuple<double, double, double>[] blockes = null)
         {
             // x is m/z, y is intensity
             var spectrumMzs = msDataScan.MassSpectrum.XArray;
@@ -132,6 +132,20 @@ namespace ViewModels
                     peakAnno.Text = distri.charge.ToString() + "+";
                     model.Annotations.Add(peakAnno);
                 
+            }
+
+            if (blockes != null)
+            {
+                foreach (var b in blockes)
+                {
+                    var line = new LineSeries();
+                    line.Color = OxyColors.Blue;
+                    line.StrokeThickness = 3;
+                    line.MarkerType = MarkerType.Circle;
+                    line.Points.Add(new DataPoint(b.Item1 + 2.5, spectrumIntensities.Max() * 0.05));
+                    line.Points.Add(new DataPoint(b.Item2 - 2.5, spectrumIntensities.Max() * 0.05));
+                    model.Series.Add(line);
+                }
             }
 
             // Axes are created automatically if they are not defined      

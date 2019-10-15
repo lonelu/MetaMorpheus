@@ -532,6 +532,7 @@ namespace MetaDrawGUI
                     //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.QuickChargeDeconForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter, out isoEnvelops);
                     thanos.deconvolutor.ChargeEnvelops = ChargeDecon.ChargeDeconIsoForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter, out isoEnvelops);
 
+
                     int ind = 1;
                     foreach (var chargeEnvelop in thanos.deconvolutor.ChargeEnvelops)
                     {
@@ -640,9 +641,11 @@ namespace MetaDrawGUI
                 return;
             }
 
+            var blockes = ChargeDecon.GenerateBoxes(thanos.deconvolutor.IsotopicEnvelopes);
+
             var ce = thanos.deconvolutor.ChargeEnvelops.ElementAt(sele.Ind - 1);
             
-            thanos.deconvolutor.Model = ChargeEnveViewModel.DrawCharEnvelopMatch(thanos.msDataScan, ce);
+            thanos.deconvolutor.Model = ChargeEnveViewModel.DrawCharEnvelopMatch(thanos.msDataScan, ce, blockes);
 
             thanos.deconvolutor.DeconModel = ChargeEnveViewModel.DrawCharEnvelopModel(thanos.msDataScan, ce);
         }

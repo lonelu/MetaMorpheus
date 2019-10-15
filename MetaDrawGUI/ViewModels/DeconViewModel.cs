@@ -286,7 +286,13 @@ namespace ViewModels
 
             var y = MsScanForDraw.MassSpectrum.YArray.OrderByDescending(p=>p).ToArray();
 
-            PlotModel model = new PlotModel { Title = "Intensity Distribution of Scan ", DefaultFontSize = 15 };
+            double total = MsScanForDraw.MassSpectrum.YArray.Sum();
+
+            double thred = total / MsScanForDraw.MassSpectrum.YArray.Length;
+
+            string subTitle = "Total Intensity:" + total.ToString("0.00") + " Thred: " + thred.ToString("0.00000") + " count: " + y.Count(p => p >= thred).ToString();
+
+            PlotModel model = new PlotModel { Title = "Intensity Distribution of Scan ", Subtitle = subTitle, DefaultFontSize = 15 };
 
             model.Axes.Add(new LinearAxis
             {
@@ -297,15 +303,28 @@ namespace ViewModels
                 AbsoluteMinimum = -5,
                 AbsoluteMaximum = y.Length + 10,
             });
+            //model.Axes.Add(new LinearAxis
+            //{
+            //    Position = AxisPosition.Left,
+            //    Title = "Intensity(counts)",
+            //    Minimum = 0,
+            //    Maximum = y.Max() * 1.2,
+            //    AbsoluteMinimum = 0,
+            //    AbsoluteMaximum = y.Max() * 1.3
+            //});
+
+            
+
             model.Axes.Add(new LinearAxis
             {
                 Position = AxisPosition.Left,
                 Title = "Intensity(counts)",
                 Minimum = 0,
-                Maximum = y.Max() * 1.2,
+                Maximum =  y.Max(),
                 AbsoluteMinimum = 0,
-                AbsoluteMaximum = y.Max() * 1.3
+                AbsoluteMaximum = y.Max() * 1.2
             });
+            
 
             for (int i = 0; i < y.Length; i++)
             {
@@ -315,7 +334,15 @@ namespace ViewModels
                 line.Points.Add(new DataPoint(i, 0));
                 line.Points.Add(new DataPoint(i, y[i]));
                 model.Series.Add(line);
+              
             }
+
+            var vline = new LineSeries();
+            vline.Color = OxyColors.Red;
+            vline.StrokeThickness = 2;
+            vline.Points.Add(new DataPoint(0, thred));
+            vline.Points.Add(new DataPoint(y.Length, thred));
+            model.Series.Add(vline);
 
             return model;
         }
