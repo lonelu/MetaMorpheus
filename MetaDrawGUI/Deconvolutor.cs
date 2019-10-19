@@ -25,7 +25,8 @@ namespace MetaDrawGUI
         DeconDrawTwoScan = 7,
         DeconDrawIntensityDistribution = 8,
         DeconCompareBoxVsNormalId = 9,
-        IdFragmentationOptimize = 10
+        IdFragmentationOptimize = 10,
+        IdProteoformOverlap = 11
     }
 
     public class Deconvolutor: INotifyPropertyChanged
@@ -428,6 +429,34 @@ namespace MetaDrawGUI
                 }
             }
 
+        }
+
+        public void NumberOfProteoformOverlap()
+        {
+            List<Dictionary<string, string>> allUniquePsms = new List<Dictionary<string, string>>();
+
+            var test = _thanos.simplePsms.GroupBy(p => p.FileName);
+            foreach (var item in test)
+            {
+                Dictionary<string, string> vs = new Dictionary<string, string>();
+                foreach (var s in item)
+                {
+                    if (!vs.ContainsKey(s.FullSeq))
+                    {
+                        vs.Add(s.FullSeq, s.FileName);
+                    }
+                }
+                allUniquePsms.Add(vs);
+            }
+
+            var A_B = allUniquePsms[0].Keys.Intersect(allUniquePsms[1].Keys).Count();
+            var AB = allUniquePsms[0].Keys.Union(allUniquePsms[1].Keys).Count();
+            var A_C = allUniquePsms[0].Keys.Intersect(allUniquePsms[2].Keys).Count();
+            var AC = allUniquePsms[0].Keys.Union(allUniquePsms[2].Keys).Count();
+            var B_C = allUniquePsms[1].Keys.Intersect(allUniquePsms[2].Keys).Count();
+            var BC = allUniquePsms[1].Keys.Union(allUniquePsms[2].Keys).Count();
+            var A_B_C = allUniquePsms[0].Keys.Intersect(allUniquePsms[1].Keys).Intersect(allUniquePsms[2].Keys).Count();
+            var ABC = allUniquePsms[0].Keys.Union(allUniquePsms[1].Keys).Union(allUniquePsms[2].Keys).Count();
         }
     }
 }

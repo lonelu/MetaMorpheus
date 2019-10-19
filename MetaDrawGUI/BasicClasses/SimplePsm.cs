@@ -207,13 +207,14 @@ namespace MetaDrawGUI
         private void generateSimplePsm_pTop(string line, char[] split, Dictionary<string, int> parsedHeader)
         {
             var spl = line.Split(split);
+            FileName = spl[parsedHeader[PsmTsvHeader_pTop.FileName]].Split('.').First();
             ScanNum = int.Parse(spl[parsedHeader[PsmTsvHeader_pTop.ScanNum]]);
             ChargeState = int.Parse(spl[parsedHeader[PsmTsvHeader_pTop.ChargeState]]);
             PrecursorMz = double.Parse(spl[parsedHeader[PsmTsvHeader_pTop.PrecursorMz]]);
             PrecursorMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pTop.PrecursorMass]]);
             BaseSeq = spl[parsedHeader[PsmTsvHeader_pTop.BaseSequence]];
             Mod = spl[parsedHeader[PsmTsvHeader_pTop.PTMs]];
-
+            FullSeq = BaseSeq + "_" + Mod;
             MatchedPeakNum = int.Parse(spl[parsedHeader[PsmTsvHeader_pTop.MatchedPeaks]]);
             NterMatchedPeakNum = int.Parse(spl[parsedHeader[PsmTsvHeader_pTop.NtermMatchedIons]]);
             CTerMatchedPeakNum  = int.Parse(spl[parsedHeader[PsmTsvHeader_pTop.CtermMatchedIons]]);

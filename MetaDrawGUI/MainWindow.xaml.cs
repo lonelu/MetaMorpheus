@@ -364,6 +364,7 @@ namespace MetaDrawGUI
 
         private void BtnLoadTopResults_Click(object sender, RoutedEventArgs e)
         {
+            thanos.simplePsms.Clear();
             foreach (var collection in resultFilesObservableCollection)
             {
                 resultsFilePath = collection.FilePath;
@@ -892,6 +893,9 @@ namespace MetaDrawGUI
                     break;
                 case DeconvolutorSkill.IdFragmentationOptimize:
                     action = thanos.deconvolutor.IdFragmentationOptimize;
+                    break;
+                case DeconvolutorSkill.IdProteoformOverlap:
+                    action = thanos.deconvolutor.NumberOfProteoformOverlap;
                     break;
                 default:
                     break;

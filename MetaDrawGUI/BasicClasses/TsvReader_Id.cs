@@ -185,6 +185,8 @@ namespace MetaDrawGUI
         {
             var parsedHeader = new Dictionary<string, int>();
             var spl = header.Split(Split);
+
+            parsedHeader.Add(PsmTsvHeader_pTop.FileName, Array.IndexOf(spl, PsmTsvHeader_pTop.FileName));
             parsedHeader.Add(PsmTsvHeader_pTop.ScanNum, Array.IndexOf(spl, PsmTsvHeader_pTop.ScanNum));
             parsedHeader.Add(PsmTsvHeader_pTop.ChargeState, Array.IndexOf(spl, PsmTsvHeader_pTop.ChargeState));
             parsedHeader.Add(PsmTsvHeader_pTop.PrecursorMz, Array.IndexOf(spl, PsmTsvHeader_pTop.PrecursorMz));
@@ -266,6 +268,7 @@ namespace MetaDrawGUI
 
     public static class PsmTsvHeader_pTop
     {
+        public const string FileName = "Title";
         public const string ScanNum = "Scan";
         public const string ChargeState = "Charge State";
         public const string PrecursorMz = "Precursor MZ";
