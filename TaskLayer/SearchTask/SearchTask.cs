@@ -309,6 +309,9 @@ namespace TaskLayer
                     ReportProgress(new ProgressEventArgs(100, "Done with search!", thisId));
                 }
 
+
+                DoBiomarkerAnalysis(fileSpecificPsms, arrayOfMs2ScansSortedByMass, combinedParams);
+
                 lock (psmLock)
                 {
                     allPsms.AddRange(fileSpecificPsms);
@@ -426,6 +429,76 @@ namespace TaskLayer
             }
 
             return massDiffAcceptor;
+        }
+
+        public static void DoBiomarkerAnalysis(PeptideSpectralMatch[] psms, Ms2ScanWithSpecificMass[] ms2scans, CommonParameters commonParams)
+        {
+            if (!ProteaseDictionary.Dictionary.ContainsKey("Truncation"))
+            {
+                ProteaseDictionary.Dictionary.Add("Truncation", new Protease("Truncation", CleavageSpecificity.None, "", "", new List<DigestionMotif>()));
+            }
+
+            DigestionParams d = new DigestionParams("Truncation");
+            double lowestAminoAcidMass = Proteomics.AminoAcidPolymer.Residue.ResidueMonoisotopicMass['G'];
+            var massDiffAcceptor = GetMassDiffAcceptor(commonParams.PrecursorMassTolerance, MassDiffAcceptorType.PlusOrMinusThreeMM, null);
+            //MassDiffAcceptor massDiffAcceptor = new DotMassDiffAcceptor("",
+            //    new List<double> {
+            //        -1 * Chemistry.Constants.C13MinusC12,
+            //        0,
+            //        1 * Chemistry.Constants.C13MinusC12
+            //    },
+            //commonParams.PrecursorMassTolerance);
+
+            foreach (var psm in psms.Where(p => p.FullSequence != null && p.PeptideMonisotopicMass.HasValue))
+            {
+                var scan = ms2scans[psm.ScanIndex];
+                var pep = psm.BestMatchingPeptides.First().Peptide;
+
+                // mass difference must be negative and must be loss of at least one amino acid (G is smallest amino acid)
+                if (psm.ScanPrecursorMass - psm.PeptideMonisotopicMass.Value > (-lowestAminoAcidMass + 3))
+                {
+                    continue;
+                }
+
+                // check for c-terminal truncation
+                for (int r = pep.OneBasedStartResidueInProtein; r < pep.OneBasedEndResidueInProtein; r++)
+                {
+                    var mods = pep.AllModsOneIsNterminus.Where(p => p.Key <= r + 1).ToDictionary(p => p.Key, p => p.Value);
+                    //var mods = new Dictionary<int, Modification>();
+                    PeptideWithSetModifications truncatedCTerm = new PeptideWithSetModifications(pep.Protein, d, pep.OneBasedStartResidueInProtein, r,
+                            pep.CleavageSpecificityForFdrCategory, "Truncated", pep.MissedCleavages, mods, pep.NumFixedMods);
+
+                    int notch = massDiffAcceptor.Accepts(truncatedCTerm.MonoisotopicMass, psm.ScanPrecursorMass);
+                    if (notch >= 0)
+                    {
+                        var peptideTheorProducts = truncatedCTerm.Fragment(commonParams.DissociationType, FragmentationTerminus.Both).ToList();
+                        List<MatchedFragmentIon> matchedIons = MetaMorpheusEngine.MatchFragmentIons(scan, peptideTheorProducts, commonParams);
+                        double thisScore = MetaMorpheusEngine.CalculatePeptideScore(scan.TheScan, matchedIons);
+                        bool meetsScoreCutoff = thisScore >= commonParams.ScoreCutoff;
+                        psm.AddOrReplace(truncatedCTerm, thisScore, 0, commonParams.ReportAllAmbiguity, matchedIons, 0);
+                        psm.ResolveAllAmbiguities();
+                    }
+                }
+
+                // check for n-terminal truncation
+                for (int r = pep.OneBasedEndResidueInProtein; r > pep.OneBasedStartResidueInProtein; r--)
+                {
+                    var mods = pep.AllModsOneIsNterminus.Where(p => p.Key >= r + 1).ToDictionary(p => p.Key - r + 1, p => p.Value);
+                    PeptideWithSetModifications truncatedNTerm = new PeptideWithSetModifications(pep.Protein, d, r, pep.OneBasedEndResidueInProtein,
+                            pep.CleavageSpecificityForFdrCategory, "Truncated", pep.MissedCleavages, mods, pep.NumFixedMods);
+
+                    int notch = massDiffAcceptor.Accepts(truncatedNTerm.MonoisotopicMass, psm.ScanPrecursorMass);
+                    if (notch >= 0)
+                    {
+                        var peptideTheorProducts = truncatedNTerm.Fragment(commonParams.DissociationType, FragmentationTerminus.Both).ToList();
+                        List<MatchedFragmentIon> matchedIons = MetaMorpheusEngine.MatchFragmentIons(scan, peptideTheorProducts, commonParams);
+                        double thisScore = MetaMorpheusEngine.CalculatePeptideScore(scan.TheScan, matchedIons);
+                        bool meetsScoreCutoff = thisScore >= commonParams.ScoreCutoff && thisScore >= psm.Score;
+                        psm.AddOrReplace(truncatedNTerm, thisScore, 0, commonParams.ReportAllAmbiguity, matchedIons, 0);
+                        psm.ResolveAllAmbiguities();
+                    }
+                }
+            }
         }
     }
 }
