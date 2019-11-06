@@ -161,6 +161,7 @@
                                             <TextBox x:Name="txtIntensityRatioLimit" Width="50" />
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                            <CheckBox x:Name="CbIsLookPartner" Content="Is Look partner"/>
                                             <Label Content="Partner Mass Diff"/>
                                             <TextBox x:Name="TxtPartnerMassDiff" Width="50" />
                                         </StackPanel>
