@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Proteomics.Fragmentation;
+using Chemistry;
 
 namespace MassSpectrometry
 {
@@ -24,6 +25,14 @@ namespace MassSpectrometry
         public List<int> TheoPeakIndex { get; set; }
 
         public double MonoisotopicMass { get; set; }
+
+        public double Mz
+        {
+            get
+            {
+                return MonoisotopicMass.ToMz(Charge);
+            }
+        }
 
         public double TotalIntensity
         {
