@@ -34,6 +34,14 @@ namespace MassSpectrometry
             }
         }
 
+        public MzPeak[] ExistedExperimentPeak
+        {
+            get
+            {
+                return ExperimentIsoEnvelop.Where(p => p.Intensity > 0).ToArray();
+            }
+        }
+
         public double TotalIntensity
         {
             get

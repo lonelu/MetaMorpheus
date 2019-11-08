@@ -350,10 +350,10 @@ namespace MassSpectrometry
                 //    continue;
                 //}
 
-                if (mzSpectrumXY.YArray[candidateForMostIntensePeak] <= intensityThread)
-                {
-                    continue;
-                }
+                //if (mzSpectrumXY.YArray[candidateForMostIntensePeak] <= intensityThread)
+                //{
+                //    continue;
+                //}
 
                 double noiseLevel = CalNoiseLevel();
 
@@ -376,22 +376,22 @@ namespace MassSpectrometry
 
             List<IsoEnvelop> isoEnvelops = new List<IsoEnvelop>();
 
-
+            //TO DO: consider peak overlap
             foreach (var ok in isolatedMassesAndCharges.OrderByDescending(b => b.MsDeconvScore))
             {
                 //if (seen.Overlaps(ok.ExperimentIsoEnvelop.Select(b => b.Mz)))
                 //{
                 //    continue;
                 //}
-                int overlap = 0;
-                foreach (var ah in ok.ExperimentIsoEnvelop.Select(b => b.Mz))
+                int noOverlap = 0;
+                foreach (var ah in ok.ExistedExperimentPeak.Select(b => b.Mz))
                 {
-                    if (seen.Contains(ah))
+                    if (!seen.Contains(ah))
                     {
-                        overlap++;
+                        noOverlap++;
                     }
                 }
-                if (overlap >= 2)
+                if (noOverlap < 2)
                 {
                     continue;
                 }
