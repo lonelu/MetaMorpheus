@@ -53,7 +53,6 @@ namespace EngineLayer
         public List<MatchedFragmentIon> VariantCrossingIons { get; }
 
         //For crosslink
-
         public string CrossType { get; }
         public string LinkResidues { get; }
         public int? ProteinLinkSite { get; }
@@ -71,6 +70,12 @@ namespace EngineLayer
         public string ParentIons { get; }
         public double? RetentionTime { get; }
 
+        //For Glyco
+        public string GlycanIDs { get; set; }
+        public string GlycanStructure { get; set; }
+        public double? GlycanMass { get; set; }
+        public string GlycanComposition { get; set; }
+
         public PsmFromTsv(string line, char[] split, Dictionary<string, int> parsedHeader)
         {
             var spl = line.Split(split);
@@ -82,7 +87,7 @@ namespace EngineLayer
             PrecursorCharge = (int)double.Parse(spl[parsedHeader[PsmTsvHeader.PrecursorCharge]].Trim(), CultureInfo.InvariantCulture);
             PrecursorMz = double.Parse(spl[parsedHeader[PsmTsvHeader.PrecursorMz]].Trim(), CultureInfo.InvariantCulture);
             PrecursorMass = double.Parse(spl[parsedHeader[PsmTsvHeader.PrecursorMass]].Trim(), CultureInfo.InvariantCulture);
-            BaseSeq = spl[parsedHeader[PsmTsvHeader.BaseSequence]].Trim();
+            BaseSeq = RemoveParentheses(spl[parsedHeader[PsmTsvHeader.BaseSequence]].Trim());
             FullSequence = spl[parsedHeader[PsmTsvHeader.FullSequence]];
             PeptideMonoMass = spl[parsedHeader[PsmTsvHeader.PeptideMonoMass]].Trim();
             Score = double.Parse(spl[parsedHeader[PsmTsvHeader.Score]].Trim(), CultureInfo.InvariantCulture);
@@ -145,6 +150,40 @@ namespace EngineLayer
             {
                 BetaPeptideChildScanMatchedIons.Remove(Ms2ScanNumber);
             }
+
+            //For Glyco
+            GlycanIDs = (parsedHeader[PsmTsvHeader_Glyco.GlycanIDs] < 0) ? null : spl[parsedHeader[PsmTsvHeader_Glyco.GlycanIDs]];
+            GlycanStructure = (parsedHeader[PsmTsvHeader_Glyco.GlycanStructure] < 0) ? null : spl[parsedHeader[PsmTsvHeader_Glyco.GlycanStructure]];
+            GlycanMass = (parsedHeader[PsmTsvHeader_Glyco.GlycanMass] < 0) ? null : (double?)double.Parse(spl[parsedHeader[PsmTsvHeader_Glyco.GlycanMass]]);
+            GlycanComposition = (parsedHeader[PsmTsvHeader_Glyco.GlycanComposition] < 0) ? null : spl[parsedHeader[PsmTsvHeader_Glyco.GlycanComposition]];
+        }
+
+        //Used to remove Silac labels for proper annotation
+        public static string RemoveParentheses(string baseSequence)
+        {
+            if (baseSequence.Contains("("))
+            {
+                string updatedBaseSequence = "";
+                bool withinParentheses = false;
+                foreach (char c in baseSequence)
+                {
+                    if (c == ')') //leaving the parentheses
+                    {
+                        withinParentheses = false;
+                    }
+                    else if (c == '(') //entering the parentheses
+                    {
+                        withinParentheses = true;
+                    }
+                    else if (!withinParentheses) //if outside the parentheses, preserve this amino acid
+                    {
+                        updatedBaseSequence += c;
+                    }
+                    //else do nothing
+                }
+                return updatedBaseSequence;
+            }
+            return baseSequence;
         }
 
         private static List<MatchedFragmentIon> ReadFragmentIonsFromString(string matchedMzString, string peptideBaseSequence)

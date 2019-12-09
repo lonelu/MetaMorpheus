@@ -67,19 +67,21 @@ namespace EngineLayer.GlycoSearch
             return totalNum;
         }
 
+        #region N-Glyco related functions
+
         public static Dictionary<int, double> ScanGetTrimannosylCore(List<MatchedFragmentIon> matchedFragmentIons, Glycan glycan)
         {
             Dictionary<int, double> cores = new Dictionary<int, double>();
 
-            foreach (var fragment in matchedFragmentIons.Where(p=>p.NeutralTheoreticalProduct.ProductType == ProductType.M))
+            foreach (var fragment in matchedFragmentIons.Where(p => p.NeutralTheoreticalProduct.ProductType == ProductType.M))
             {
-                if (Glycan.TrimannosylCores.ContainsKey((int)((double)glycan.Mass/1E5 - fragment.NeutralTheoreticalProduct.NeutralLoss)))
+                if (Glycan.TrimannosylCores.ContainsKey((int)((double)glycan.Mass / 1E5 - fragment.NeutralTheoreticalProduct.NeutralLoss)))
                 {
-                    var pair = Glycan.TrimannosylCores.Where(p=>p.Key == (int)((double)glycan.Mass/1E5 - fragment.NeutralTheoreticalProduct.NeutralLoss)).FirstOrDefault();
+                    var pair = Glycan.TrimannosylCores.Where(p => p.Key == (int)((double)glycan.Mass / 1E5 - fragment.NeutralTheoreticalProduct.NeutralLoss)).FirstOrDefault();
                     if (!cores.ContainsKey(pair.Key))
                     {
                         cores.Add(pair.Key, pair.Value);
-                    }            
+                    }
                 }
 
             }
@@ -121,19 +123,6 @@ namespace EngineLayer.GlycoSearch
             foreach (var ion in glycan.Ions)
             {
                 Product product = new Product(ProductType.M, new NeutralTerminusFragment(FragmentationTerminus.Both, possiblePeptideMass + (double)glycan.Mass/1E5, 0, 0), (double)ion.LossIonMass/1E5);
-                YIons.Add(product);
-            }
-            return YIons;
-        }
-
-        public static List<Product> GetGlycanYIons(PeptideWithSetModifications peptide, GlycanBox glycanBox)
-        {
-            double possiblePeptideMass = peptide.MonoisotopicMass;
-            List<Product> YIons = new List<Product>();
-            YIons.Add(new Product(ProductType.M, new NeutralTerminusFragment(FragmentationTerminus.Both, possiblePeptideMass + (double)glycanBox.Mass / 1E5, 0, 0), (double)glycanBox.Mass / 1E5));
-            foreach (var ion in glycanBox.CommonGlycanIons)
-            {
-                Product product = new Product(ProductType.M, new NeutralTerminusFragment(FragmentationTerminus.Both, possiblePeptideMass + (double)glycanBox.Mass / 1E5, 0, 0), (double)ion.LossIonMass / 1E5);
                 YIons.Add(product);
             }
             return YIons;
@@ -198,7 +187,7 @@ namespace EngineLayer.GlycoSearch
 
         public static PeptideWithSetModifications GenerateGlycopeptide(int position, PeptideWithSetModifications peptide, Glycan glycan)
         {
-            Modification modification = GlycanToModification(glycan);
+            Modification modification = Glycan.NGlycanToModification(glycan);
 
 
             Dictionary<int, Modification> testMods = new Dictionary<int, Modification> { { position, modification } };
@@ -218,81 +207,115 @@ namespace EngineLayer.GlycoSearch
 
         }
 
-        public static Modification GlycanToModification(Glycan glycan)
-        {          
-            Dictionary<DissociationType, List<double>> neutralLosses = new Dictionary<DissociationType, List<double>>();
-            List<double> lossMasses = glycan.Ions.Where(p=>p.IonMass < 57000000).Select(p => (double)p.LossIonMass/1E5).OrderBy(p => p).ToList(); //570 is a cutoff for glycan ion size 2N1H, which will generate fragment ions. 
-            neutralLosses.Add(DissociationType.HCD, lossMasses);
-            neutralLosses.Add(DissociationType.CID, lossMasses);
-            neutralLosses.Add(DissociationType.EThcD, lossMasses);
+        #endregion
 
-            Dictionary<DissociationType, List<double>> diagnosticIons = new Dictionary<DissociationType, List<double>>();
-            diagnosticIons.Add(DissociationType.HCD, glycan.GetDiagnosticIons().Select(p=>(double)p/1E5).ToList());
-            diagnosticIons.Add(DissociationType.CID, glycan.GetDiagnosticIons().Select(p => (double)p / 1E5).ToList());
-            diagnosticIons.Add(DissociationType.EThcD, glycan.GetDiagnosticIons().Select(p => (double)p / 1E5).ToList());
-            //string[] motifs = new string[] { "Nxt", "Nxs" };
-            ModificationMotif.TryGetMotif("N", out ModificationMotif finalMotif); //TO DO: only one motif can be write here.
-            var id = Glycan.GetKindString(glycan.Struc);
-            Modification modification = new Modification(
-                _originalId: id,
-                _modificationType: "N-Glycosylation",
-                _monoisotopicMass: (double)glycan.Mass/1E5,
-                _locationRestriction: "Anywhere.",
-                _target: finalMotif,
-                _neutralLosses: neutralLosses, 
-                _diagnosticIons : diagnosticIons
-            );
-            return modification;
-        }
+        #region O-Glyco related functions
 
-        //<modSites, >
-        public static IEnumerable<Tuple<int[] , Tuple<int[], List<Product>>>> OGlyGetTheoreticalFragments(DissociationType dissociationType, 
-            List<int> possibleModPositions, PeptideWithSetModifications peptide, GlycanBox glycanBox)
+        //TO THINK: filter reasonable fragments here. The final solution is to change mzLib.Proteomics.PeptideWithSetModifications.Fragment
+        public static List<Product> OGlyGetTheoreticalFragments(DissociationType dissociationType, PeptideWithSetModifications peptide, PeptideWithSetModifications modPeptide)
         {
-            Modification[] modifications = new Modification[glycanBox.glycans.Count];
 
-            for (int i = 0; i < glycanBox.glycans.Count; i++)
-            {
-                modifications[i] = GlycanToModification(glycanBox.glycans[i]);
+            List<Product> theoreticalProducts = new List<Product>();
+
+            if (dissociationType == DissociationType.HCD || dissociationType == DissociationType.CID)
+            {   
+                var diag = modPeptide.Fragment(dissociationType, FragmentationTerminus.Both).Where(p=>p.ProductType != ProductType.b && p.ProductType != ProductType.y);
+                theoreticalProducts = peptide.Fragment(dissociationType, FragmentationTerminus.Both).Concat(diag).ToList();
             }
-
-            foreach (var modcombine in Glycan.GetPermutations(Enumerable.Range(0, glycanBox.glycans.Count), glycanBox.glycans.Count))
+            else if(dissociationType == DissociationType.ETD)
             {
-                foreach (var combine in Glycan.GetKCombs(possibleModPositions, glycanBox.glycans.Count))
+                theoreticalProducts = modPeptide.Fragment(dissociationType, FragmentationTerminus.Both).ToList();
+            }
+            else if(dissociationType == DissociationType.EThcD)
+            {
+                var diag = modPeptide.Fragment(DissociationType.HCD, FragmentationTerminus.Both).Where(p => p.ProductType != ProductType.b && p.ProductType != ProductType.y);
+                theoreticalProducts = peptide.Fragment(DissociationType.HCD, FragmentationTerminus.Both).Concat(diag).ToList();
+                HashSet<double> masses = new HashSet<double>();
+
+                foreach (var fragment in theoreticalProducts)
                 {
-                    Dictionary<int, Modification> testMods = new Dictionary<int, Modification>();
-
-                    for (int i = 0; i < glycanBox.glycans.Count; i++)
-                    {
-                        testMods.Add(combine.ElementAt(i), modifications[modcombine.ElementAt(i)]);
-                    }
-
-                    foreach (var mod in peptide.AllModsOneIsNterminus)
-                    {
-                        testMods.Add(mod.Key, mod.Value);
-                    }
-
-                    var testPeptide = new PeptideWithSetModifications(peptide.Protein, peptide.DigestionParams, peptide.OneBasedStartResidueInProtein,
-                    peptide.OneBasedEndResidueInProtein, peptide.CleavageSpecificityForFdrCategory, peptide.PeptideDescription, peptide.MissedCleavages, testMods, peptide.NumFixedMods);
-
-                    List<Product> theoreticalProducts = testPeptide.Fragment(dissociationType, FragmentationTerminus.Both).ToList();
-
-                    yield return new Tuple<int[], Tuple<int[], List<Product>>>(combine.ToArray(), new Tuple<int[], List<Product>>(modcombine.ToArray(), theoreticalProducts));
+                    masses.Add(fragment.NeutralMass);
                 }
+
+                foreach (var fragment in modPeptide.Fragment(DissociationType.ETD, FragmentationTerminus.Both))
+                {
+                    if (!masses.Contains(fragment.NeutralMass))
+                    {
+                        theoreticalProducts.Add(fragment);
+                        masses.Add(fragment.NeutralMass);
+                    }
+                }
+
             }
-
-
-        }
-
-        public static List<Product> OGlyGetTheoreticalFragmentsUnlocalize(DissociationType dissociationType,
-            List<int> possibleModPositions, PeptideWithSetModifications peptide, GlycanBox glycanBox)
-        {
-
-            List<Product> theoreticalProducts = peptide.Fragment(dissociationType, FragmentationTerminus.Both).ToList();
-            theoreticalProducts.AddRange(GetGlycanYIons(peptide, glycanBox));
 
             return theoreticalProducts;
         }
 
+        public static PeptideWithSetModifications OGlyGetTheoreticalPeptide(int[] theModPositions, PeptideWithSetModifications peptide, GlycanBox glycanBox)
+        {
+            Modification[] modifications = new Modification[glycanBox.NumberOfGlycans];
+            for (int i = 0; i < glycanBox.NumberOfGlycans; i++)
+            {
+                modifications[i] = GlycanBox.GlobalOGlycanModifications[glycanBox.GlycanIds.ElementAt(i)];
+            }
+
+            Dictionary<int, Modification> testMods = new Dictionary<int, Modification>();
+            foreach (var mod in peptide.AllModsOneIsNterminus)
+            {
+                testMods.Add(mod.Key, mod.Value);
+            }
+
+            for (int i = 0; i < theModPositions.Count(); i++)
+            {
+                testMods.Add(theModPositions.ElementAt(i), modifications[i]);
+            }
+
+            var testPeptide = new PeptideWithSetModifications(peptide.Protein, peptide.DigestionParams, peptide.OneBasedStartResidueInProtein,
+                peptide.OneBasedEndResidueInProtein, peptide.CleavageSpecificityForFdrCategory, peptide.PeptideDescription, peptide.MissedCleavages, testMods, peptide.NumFixedMods);
+
+            return testPeptide;
+        }
+
+        public static List<int[]> GetPermutations(List<int> allModPos, int[] glycanBoxId)
+        {
+            var length = glycanBoxId.Length;
+            var indexes = Enumerable.Range(0, length).ToArray();
+            int[] orderGlycan = new int[length];
+
+            List<int[]> permutateModPositions = new List<int[]>();
+
+
+
+            var combinations = Glycan.GetKCombs(allModPos, length);
+        
+            foreach (var com in combinations)
+            {
+                var permutation = Glycan.GetPermutations(com, length);
+
+                HashSet<string> keys = new HashSet<string>();
+
+                foreach (var per in permutation)
+                {
+                    Array.Sort(indexes);
+
+                    var orderedPer = per.ToArray();
+                    Array.Sort(orderedPer, indexes);
+                                                         
+                    for (int i = 0; i < length; i++)
+                    {
+                        orderGlycan[i] = glycanBoxId[indexes[i]];
+                    }
+                    var key = string.Join(",", orderGlycan.Select(p => p.ToString()));
+                    if (!keys.Contains(key))
+                    {
+                        keys.Add(key);
+                        permutateModPositions.Add(per.ToArray());
+                    }
+                }
+            }
+
+            return permutateModPositions;
+        }
+        #endregion
     }
 }

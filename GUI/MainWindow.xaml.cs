@@ -97,17 +97,6 @@ namespace MetaMorpheusGUI
                 GuiWarnHandler(null, new StringEventArgs("Could not get newest version from web: " + e.Message, null));
             }
 
-            // check for ManagedThermoHelperLayer.dll and display a warning if it's not found
-            // this is one hacky way of checking if the user has C++ redistributable installed
-            string assumedManagedThermoHelperLayerDllPath = Path.Combine(Environment.CurrentDirectory, "ManagedThermoHelperLayer.dll");
-            if (!File.Exists(assumedManagedThermoHelperLayerDllPath))
-            {
-                GuiWarnHandler(null, new StringEventArgs("Warning! Cannot find Microsoft Visual C++ Redistributable; a crash may result from searching. " +
-                    "\nPlease go to: \nhttps://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads " +
-                    "\nto download and install vc_redist.x64.exe and vc_redist.x86.exe." +
-                    "\nIf you have just installed the C++ redistributable, please uninstall and reinstall MetaMorpheus.", null));
-            }
-
             Application.Current.MainWindow.Closing += new CancelEventHandler(MainWindow_Closing);
         }
 
@@ -609,6 +598,11 @@ namespace MetaMorpheusGUI
                                     var ye4 = Toml.ReadFile<XLSearchTask>(draggedFilePath, MetaMorpheusTask.tomlConfig);
                                     AddTaskToCollection(ye4);
                                     break;
+
+                                case "GlycoSearch":
+                                    var ye5 = Toml.ReadFile<GlycoSearchTask>(draggedFilePath, MetaMorpheusTask.tomlConfig);
+                                    AddTaskToCollection(ye5);
+                                    break;
                             }
                         }
                         catch (Exception e)
@@ -880,6 +874,16 @@ namespace MetaMorpheusGUI
             }
         }
 
+        private void BtnAddGlycoSearch_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new GlycoSearchTaskWindow();
+            if (dialog.ShowDialog() == true)
+            {
+                AddTaskToCollection(dialog.TheTask);
+                UpdateTaskGuiStuff();
+            }
+        }
+
         // deletes the selected task
         private void DeleteSelectedTask(object sender, RoutedEventArgs e)
         {
@@ -1070,6 +1074,7 @@ namespace MetaMorpheusGUI
                 addGPTMDTaskButton.IsEnabled = false;
                 addSearchTaskButton.IsEnabled = false;
                 btnAddCrosslinkSearch.IsEnabled = false;
+                btnAddGlycoSearch.IsEnabled = false;
 
                 AddXML.IsEnabled = false;
                 ClearXML.IsEnabled = false;
@@ -1137,6 +1142,7 @@ namespace MetaMorpheusGUI
             addGPTMDTaskButton.IsEnabled = true;
             addSearchTaskButton.IsEnabled = true;
             btnAddCrosslinkSearch.IsEnabled = true;
+            btnAddGlycoSearch.IsEnabled = true;
             ResetTasksButton.IsEnabled = false;
             OutputFolderTextBox.IsEnabled = true;
 
@@ -1194,6 +1200,13 @@ namespace MetaMorpheusGUI
                         var XLSearchdialog = new XLSearchTaskWindow(preRunTask.metaMorpheusTask as XLSearchTask);
                         XLSearchdialog.ShowDialog();
                         preRunTask.DisplayName = "Task" + (StaticTasksObservableCollection.IndexOf(preRunTask) + 1) + "-" + XLSearchdialog.TheTask.CommonParameters.TaskDescriptor;
+                        tasksTreeView.Items.Refresh();
+                        return;
+
+                    case MyTask.GlycoSearch:
+                        var GlycoSearchdialog = new GlycoSearchTaskWindow(preRunTask.metaMorpheusTask as GlycoSearchTask);
+                        GlycoSearchdialog.ShowDialog();
+                        preRunTask.DisplayName = "Task" + (StaticTasksObservableCollection.IndexOf(preRunTask) + 1) + "-" + GlycoSearchdialog.TheTask.CommonParameters.TaskDescriptor;
                         tasksTreeView.Items.Refresh();
                         return;
                 }

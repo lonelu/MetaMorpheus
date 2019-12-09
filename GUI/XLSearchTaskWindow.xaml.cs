@@ -117,20 +117,12 @@ namespace MetaMorpheusGUI
         private void UpdateFieldsFromTask(XLSearchTask task)
         {
             //Crosslink search para
-            RbSearchCrosslink.IsChecked = task.XlSearchParameters.OpenSearchType == OpenSearchType.Crosslink;
-            RbSearchNGlyco.IsChecked = task.XlSearchParameters.OpenSearchType == OpenSearchType.NGlyco;
-            RbSearchOGlyco.IsChecked = task.XlSearchParameters.OpenSearchType == OpenSearchType.OGlyco;
-            
-            CkbFilterScanOxiniumIon.IsChecked = task.XlSearchParameters.FilterScanOxiniumIons;
-            CkbAnalyzeOxiniumIon.IsChecked = task.XlSearchParameters.AnalyzeOxiniumIons;
-
-            CkbSearchGlycan182.IsChecked = task.XlSearchParameters.SearchGlycan182;
-
-            cbCrosslinkers.SelectedItem = task.XlSearchParameters.Crosslinker;
-
+            //RbSearchCrosslink.IsChecked = !task.XlSearchParameters.SearchGlyco;
+            //RbSearchGlyco.IsChecked = task.XlSearchParameters.SearchGlyco;
             cbCrosslinkers.SelectedItem = task.XlSearchParameters.Crosslinker;
             ckbXLTopNum.IsChecked = task.XlSearchParameters.RestrictToTopNHits;
             txtXLTopNum.Text = task.XlSearchParameters.CrosslinkSearchTopNum.ToString(CultureInfo.InvariantCulture);
+            ckbCrosslinkAtCleavageSite.IsChecked = task.XlSearchParameters.CrosslinkAtCleavageSite;
             ckbQuenchH2O.IsChecked = task.XlSearchParameters.XlQuench_H2O;
             ckbQuenchNH2.IsChecked = task.XlSearchParameters.XlQuench_NH2;
             ckbQuenchTris.IsChecked = task.XlSearchParameters.XlQuench_Tris;
@@ -139,11 +131,6 @@ namespace MetaMorpheusGUI
             XLPrecusorMsTlTextBox.Text = task.CommonParameters.PrecursorMassTolerance.Value.ToString(CultureInfo.InvariantCulture);
             trimMs1.IsChecked = task.CommonParameters.TrimMs1Peaks;
             trimMsMs.IsChecked = task.CommonParameters.TrimMsMsPeaks;
-
-            massDiffAcceptExact.IsChecked = task.XlSearchParameters.MassDiffAcceptorType == MassDiffAcceptorType.Exact;
-            massDiffAccept1mm.IsChecked = task.XlSearchParameters.MassDiffAcceptorType == MassDiffAcceptorType.OneMM;
-            massDiffAccept2mm.IsChecked = task.XlSearchParameters.MassDiffAcceptorType == MassDiffAcceptorType.TwoMM;
-            massDiffAccept3mm.IsChecked = task.XlSearchParameters.MassDiffAcceptorType == MassDiffAcceptorType.ThreeMM;
 
             TopNPeaksTextBox.Text = task.CommonParameters.NumberOfPeaksToKeepPerWindow == int.MaxValue || !task.CommonParameters.NumberOfPeaksToKeepPerWindow.HasValue ? "" : task.CommonParameters.NumberOfPeaksToKeepPerWindow.Value.ToString(CultureInfo.InvariantCulture);
             MinRatioTextBox.Text = task.CommonParameters.MinimumAllowedIntensityRatioToBasePeak == double.MaxValue || !task.CommonParameters.MinimumAllowedIntensityRatioToBasePeak.HasValue ? "" : task.CommonParameters.MinimumAllowedIntensityRatioToBasePeak.Value.ToString(CultureInfo.InvariantCulture);
@@ -163,7 +150,6 @@ namespace MetaMorpheusGUI
             MaxPeptideLengthTextBox.Text = task.CommonParameters.DigestionParams.MaxPeptideLength == int.MaxValue ? "" : task.CommonParameters.DigestionParams.MaxPeptideLength.ToString(CultureInfo.InvariantCulture);
             proteaseComboBox.SelectedItem = task.CommonParameters.DigestionParams.Protease;
             maxModificationIsoformsTextBox.Text = task.CommonParameters.DigestionParams.MaxModificationIsoforms.ToString(CultureInfo.InvariantCulture);
-            MaxModNumTextBox.Text = task.CommonParameters.DigestionParams.MaxModsForPeptide.ToString(CultureInfo.InvariantCulture);
             initiatorMethionineBehaviorComboBox.SelectedIndex = (int)task.CommonParameters.DigestionParams.InitiatorMethionineBehavior;
             productMassToleranceTextBox.Text = task.CommonParameters.ProductMassTolerance.Value.ToString(CultureInfo.InvariantCulture);
             productMassToleranceComboBox.SelectedIndex = task.CommonParameters.ProductMassTolerance is AbsoluteTolerance ? 0 : 1;
@@ -256,45 +242,15 @@ namespace MetaMorpheusGUI
                 childDissociationType = GlobalVariables.AllSupportedDissociationTypes[ChildScanDissociationTypeComboBox.SelectedItem.ToString()];
             }
             CustomFragmentationWindow.Close();
-            if (RbSearchCrosslink.IsChecked.Value)
-            {
-                TheTask.XlSearchParameters.OpenSearchType = OpenSearchType.Crosslink;
-            }
-            if (RbSearchNGlyco.IsChecked.Value)
-            {
-                TheTask.XlSearchParameters.OpenSearchType = OpenSearchType.NGlyco;
-            }
-            if (RbSearchOGlyco.IsChecked.Value)
-            {
-                TheTask.XlSearchParameters.OpenSearchType = OpenSearchType.OGlyco;
-            }
 
-            TheTask.XlSearchParameters.FilterScanOxiniumIons = CkbFilterScanOxiniumIon.IsChecked.Value;
-            TheTask.XlSearchParameters.AnalyzeOxiniumIons = CkbAnalyzeOxiniumIon.IsChecked.Value;           
-            
-            TheTask.XlSearchParameters.SearchGlycan182 = CkbSearchGlycan182.IsChecked.Value;
-
+            //TheTask.XlSearchParameters.SearchGlyco = RbSearchGlyco.IsChecked.Value;
+            //TheTask.XlSearchParameters.SearchGlycoWithBgYgIndex = CkbSearchGlycoWithBgYgIndex.IsChecked.Value;
             TheTask.XlSearchParameters.RestrictToTopNHits = ckbXLTopNum.IsChecked.Value;
             TheTask.XlSearchParameters.CrosslinkSearchTopNum = int.Parse(txtXLTopNum.Text, CultureInfo.InvariantCulture);
-
-            if (massDiffAcceptExact.IsChecked.HasValue && massDiffAcceptExact.IsChecked.Value)
-            {
-                TheTask.XlSearchParameters.MassDiffAcceptorType = MassDiffAcceptorType.Exact;
-            }
-            if (massDiffAccept1mm.IsChecked.HasValue && massDiffAccept1mm.IsChecked.Value)
-            {
-                TheTask.XlSearchParameters.MassDiffAcceptorType = MassDiffAcceptorType.OneMM;
-            }
-            if (massDiffAccept2mm.IsChecked.HasValue && massDiffAccept2mm.IsChecked.Value)
-            {
-                TheTask.XlSearchParameters.MassDiffAcceptorType = MassDiffAcceptorType.TwoMM;
-            }
-            if (massDiffAccept3mm.IsChecked.HasValue && massDiffAccept3mm.IsChecked.Value)
-            {
-                TheTask.XlSearchParameters.MassDiffAcceptorType = MassDiffAcceptorType.ThreeMM;
-            }
-
+            TheTask.XlSearchParameters.CrosslinkAtCleavageSite = ckbCrosslinkAtCleavageSite.IsChecked.Value;
             TheTask.XlSearchParameters.Crosslinker = (Crosslinker)cbCrosslinkers.SelectedItem;
+
+
             TheTask.XlSearchParameters.XlQuench_H2O = ckbQuenchH2O.IsChecked.Value;
             TheTask.XlSearchParameters.XlQuench_NH2 = ckbQuenchNH2.IsChecked.Value;
             TheTask.XlSearchParameters.XlQuench_Tris = ckbQuenchTris.IsChecked.Value;
@@ -308,7 +264,6 @@ namespace MetaMorpheusGUI
             int MaxPeptideLength = string.IsNullOrEmpty(MaxPeptideLengthTextBox.Text) ? int.MaxValue : (int.Parse(MaxPeptideLengthTextBox.Text, NumberStyles.Any, CultureInfo.InvariantCulture));
             int MaxModificationIsoforms = (int.Parse(maxModificationIsoformsTextBox.Text, CultureInfo.InvariantCulture));
             InitiatorMethionineBehavior InitiatorMethionineBehavior = ((InitiatorMethionineBehavior)initiatorMethionineBehaviorComboBox.SelectedIndex);
-            int maxModsForPeptideValue = (int.Parse(MaxModNumTextBox.Text, CultureInfo.InvariantCulture));
             DigestionParams digestionParamsToSave = new DigestionParams(
                 protease: protease.Name,
                 maxMissedCleavages: MaxMissedCleavages,
@@ -453,7 +408,49 @@ namespace MetaMorpheusGUI
 
         private void OnClosing(object sender, CancelEventArgs e)
         {
+            SearchModifications.Timer.Tick -= new EventHandler(TextChangeTimerHandler);
+            // remove event handler from timer
+            // keeping it will trigger an exception because the closed window stops existing
+
             CustomFragmentationWindow.Close();
+        }
+        
+        private void NonSpecificUpdate(object sender, SelectionChangedEventArgs e)
+        {
+            const int maxLength = 25;
+            if (((Protease)proteaseComboBox.SelectedItem).Name.Contains("non-specific"))
+            {
+                MaxPeptideLengthTextBox.Text = maxLength.ToString();
+            }
+        }
+
+        private void NonSpecificUpdate(object sender, TextChangedEventArgs e)
+        {
+            if (((Protease)proteaseComboBox.SelectedItem).Name.Contains("non-specific"))
+            {
+                try
+                {
+                    TextBox textBox = (TextBox)sender;
+                    if (textBox.Name.Equals("MaxPeptideLengthTextBox")) //if maxPeptideLength was modified
+                    {
+                        if (!missedCleavagesTextBox.Text.Equals((Convert.ToInt32(MaxPeptideLengthTextBox.Text) - 1).ToString())) //prevents infinite loops
+                        {
+                            missedCleavagesTextBox.Text = (Convert.ToInt32(MaxPeptideLengthTextBox.Text) - 1).ToString();
+                        }
+                    }
+                    else //if missedCleavagesTextBox was modified
+                    {
+                        if (!MaxPeptideLengthTextBox.Text.Equals((Convert.ToInt32(missedCleavagesTextBox.Text) + 1).ToString())) //prevents infinite loops
+                        {
+                            MaxPeptideLengthTextBox.Text = (Convert.ToInt32(missedCleavagesTextBox.Text) + 1).ToString();
+                        }
+                    }
+                }
+                catch
+                {
+                    //if not an entry, don't update the other box.
+                }
+            }
         }
     }
 }

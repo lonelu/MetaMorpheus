@@ -16,17 +16,20 @@ namespace TaskLayer
 {
     public class GlycoSearchTask : MetaMorpheusTask
     {
-        public GlycoSearchTask() : base(MyTask.XLSearch)
+        public GlycoSearchTask() : base(MyTask.GlycoSearch)
         {
             //Default parameter setting which is different from SearchTask, can be overwriten
             var digestPara = new DigestionParams(
-                minPeptideLength: 5
+                minPeptideLength: 5,
+                maxPeptideLength: 40
+
             );
             CommonParameters = new CommonParameters(
                 precursorMassTolerance: new PpmTolerance(10),
                 scoreCutoff: 3,
                 trimMsMsPeaks: false,
-                digestionParams: digestPara
+                digestionParams: digestPara            
+                
             );
 
             _glycoSearchParameters = new GlycoSearchParameters();
@@ -37,7 +40,7 @@ namespace TaskLayer
         protected override MyTaskResults RunSpecific(string OutputFolder, List<DbForTask> dbFilenameList, List<string> currentRawFileList, string taskId, FileSpecificParameters[] fileSettingsList)
         {
             MyTaskResults = new MyTaskResults(this);
-            List<List<GlycoSpectralMatch>> ListOfCsmsPerMS2Scan = new List<List<GlycoSpectralMatch>>();
+            List<List<GlycoSpectralMatch>> ListOfGsmsPerMS2Scan = new List<List<GlycoSpectralMatch>>();
 
             LoadModifications(taskId, out var variableModifications, out var fixedModifications, out var localizeableModificationTypes);
 
@@ -99,7 +102,7 @@ namespace TaskLayer
                     Status("Getting fragment dictionary...", new List<string> { taskId });
 
                     //Only reverse Decoy for crosslink search has been tested and are set as fixed parameter.
-                    var indexEngine = new IndexingEngine(proteinListSubset, variableModifications, fixedModifications, null, currentPartition, UsefulProteomicsDatabases.DecoyType.Reverse, combinedParams, 30000.0, false, dbFilenameList.Select(p => new FileInfo(p.FilePath)).ToList(), new List<string> { taskId });
+                    var indexEngine = new IndexingEngine(proteinListSubset, variableModifications, fixedModifications, null, null, null, currentPartition, UsefulProteomicsDatabases.DecoyType.Reverse, combinedParams, 30000.0, false, dbFilenameList.Select(p => new FileInfo(p.FilePath)).ToList(), new List<string> { taskId });
                     List<int>[] fragmentIndex = null;
                     List<int>[] precursorIndex = null;
                     GenerateIndexes(indexEngine, dbFilenameList, ref peptideIndex, ref fragmentIndex, ref precursorIndex, proteinList, taskId);
@@ -111,19 +114,19 @@ namespace TaskLayer
                     {
                         //Becuase two different type of dissociation methods are used, the parameters are changed with different dissociation type.
                         var secondCombinedParams = CommonParameters.CloneWithNewDissociationType(combinedParams.ChildScanDissociationType);
-                        var secondIndexEngine = new IndexingEngine(proteinListSubset, variableModifications, fixedModifications, null, currentPartition, UsefulProteomicsDatabases.DecoyType.Reverse, secondCombinedParams, 30000.0, false, dbFilenameList.Select(p => new FileInfo(p.FilePath)).ToList(), new List<string> { taskId });
+                        var secondIndexEngine = new IndexingEngine(proteinListSubset, variableModifications, fixedModifications, null, null, null, currentPartition, UsefulProteomicsDatabases.DecoyType.Reverse, secondCombinedParams, 30000.0, false, dbFilenameList.Select(p => new FileInfo(p.FilePath)).ToList(), new List<string> { taskId });
                         GenerateSecondIndexes(indexEngine, secondIndexEngine, dbFilenameList, ref secondFragmentIndex, proteinList, taskId);
                     }
 
                     Status("Searching files...", taskId);
                     new GlycoSearchEngine(newCsmsPerMS2ScanPerFile, arrayOfMs2ScansSortedByMass, peptideIndex, fragmentIndex, secondFragmentIndex, currentPartition, combinedParams, 
-                        _glycoSearchParameters.OpenSearchType, _glycoSearchParameters.RestrictToTopNHits, _glycoSearchParameters.CrosslinkSearchTopNum, _glycoSearchParameters.SearchGlycan182, thisId).Run();
+                        _glycoSearchParameters.IsOGlycoSearch, _glycoSearchParameters.RestrictToTopNHits, _glycoSearchParameters.GlycoSearchTopNum, _glycoSearchParameters.SearchGlycan182, _glycoSearchParameters.MaximumOGlycanAllowed, thisId).Run();
 
                     ReportProgress(new ProgressEventArgs(100, "Done with search " + (currentPartition + 1) + "/" + CommonParameters.TotalPartitions + "!", thisId));
                     if (GlobalVariables.StopLoops) { break; }
                 }
 
-                ListOfCsmsPerMS2Scan.AddRange(newCsmsPerMS2ScanPerFile.Where(p => p != null).ToList());
+                ListOfGsmsPerMS2Scan.AddRange(newCsmsPerMS2ScanPerFile.Where(p => p != null).ToList());
 
                 completedFiles++;
                 ReportProgress(new ProgressEventArgs(completedFiles / currentRawFileList.Count, "Searching...", new List<string> { taskId, "Individual Spectra Files" }));
@@ -131,15 +134,15 @@ namespace TaskLayer
 
             ReportProgress(new ProgressEventArgs(100, "Done with all searches!", new List<string> { taskId, "Individual Spectra Files" }));
 
-            List<List<GlycoSpectralMatch>> ListOfCsmsPerMS2ScanParsimony = new List<List<GlycoSpectralMatch>>();
+            //List<List<GlycoSpectralMatch>> ListOfGsmsPerMS2ScanParsimony = new List<List<GlycoSpectralMatch>>();
 
             //For every Ms2Scans, each have a list of candidates psms. The allPsms from CrosslinkSearchEngine is the list (all ms2scans) of list (each ms2scan) of psm (all candidate psm). 
             //The allPsmsList is same as allPsms after ResolveAmbiguities. 
-            foreach (var csmsPerScan in ListOfCsmsPerMS2Scan)
+            foreach (var gsmsPerScan in ListOfGsmsPerMS2Scan)
             {
-                foreach (var csm in csmsPerScan)
+                foreach (var gsm in gsmsPerScan)
                 {
-                    csm.ResolveAllAmbiguities();
+                    gsm.ResolveAllAmbiguities();
                 }
             }
 
@@ -147,26 +150,16 @@ namespace TaskLayer
 
             //For each ms2scan, try to find the best candidate psm from the psms list. Add it into filteredAllPsms
             //This function is for current usage, this can be replaced with PEP value. 
-            foreach (var csmsPerScan in ListOfCsmsPerMS2ScanParsimony)
+            foreach (var gsmsPerScan in ListOfGsmsPerMS2Scan)
             {
-                GlycoSpectralMatch crosslinkSpectralMatch = csmsPerScan[0];
+                GlycoSpectralMatch glycoSpectralMatch = gsmsPerScan[0];
 
-                for (int i = 1; i < csmsPerScan.Count - 1; i++)
-                {
-                    //The purpose of this is to re-select dead-end peptide wrongly identified as crosslinked peptide.
-                    if (csmsPerScan[i].Score > csmsPerScan[0].Score && csmsPerScan[i].BaseSequence.Contains(csmsPerScan[0].BaseSequence))
-                    {
-                        crosslinkSpectralMatch = csmsPerScan[i];
-                    }
-                }
-
-                filteredAllPsms.Add(crosslinkSpectralMatch);
-
+                filteredAllPsms.Add(glycoSpectralMatch);
             }
 
             PostGlycoSearchAnalysisTask postGlycoSearchAnalysisTask = new PostGlycoSearchAnalysisTask();
 
-            return postGlycoSearchAnalysisTask.Run(OutputFolder, dbFilenameList, currentRawFileList, taskId, fileSettingsList, filteredAllPsms.OrderByDescending(p => p.XLTotalScore).ToList(), CommonParameters, _glycoSearchParameters, proteinList, variableModifications, fixedModifications, localizeableModificationTypes, MyTaskResults);
+            return postGlycoSearchAnalysisTask.Run(OutputFolder, dbFilenameList, currentRawFileList, taskId, fileSettingsList, filteredAllPsms.OrderByDescending(p => p.TotalScore).ToList(), CommonParameters, _glycoSearchParameters, proteinList, variableModifications, fixedModifications, localizeableModificationTypes, MyTaskResults);
 
         }
 
