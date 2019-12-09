@@ -112,7 +112,7 @@ namespace MetaDrawGUI
             
             if (glycan !=null)
             {
-                Modification modification = GlycoPeptides.GlycanToModification(glycan);
+                Modification modification = Glycan.NGlycanToModification(glycan);
 
 
                 Dictionary<int, Modification> testMods = GetMods_pGlyco(Mod, AllPossibleMods_pGlyco);

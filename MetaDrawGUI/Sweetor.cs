@@ -89,6 +89,22 @@ namespace MetaDrawGUI
 
         public List<Glycan> NGlycans { get; set; }
 
+        public GlycanBox[] OGlycanGroup { get; set; }
+
+        //Write O-Glycan Group info.
+        public void WriteOGlycanGroupResult(string filepath)
+        {
+            var writtenFile = Path.Combine(Path.GetDirectoryName(filepath), "OGlycanGroup.tsv");
+            using (StreamWriter output = new StreamWriter(writtenFile))
+            {
+                output.WriteLine("TotalMass\tGlycanNumber\tCompostion\tIds");
+                foreach (var c in OGlycanGroup)
+                {
+                    var ids = "[" +  string.Join(",", c.GlycanIds.Select(q => q.ToString())) + "]";
+                    output.WriteLine((double)c.Mass/100000.0 + "\t" + c.NumberOfGlycans + "\t" + c.Structure + "\t" + ids);
+                }
+            }
+        }
 
         //Write pGlyco result into out format.
         public void WritePGlycoResult(List<string> ResultFilePaths, List<SimplePsm> simplePsms)

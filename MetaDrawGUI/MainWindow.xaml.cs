@@ -757,6 +757,11 @@ namespace MetaDrawGUI
             {
                 thanos.sweetor.glycanDatabaseCollection.Add(new GlycanDatabaseForDataGrid(glycan.GlyId, Glycan.GetKindString(glycan.Kind), glycan.Struc));
             }
+
+            //GlycanBox.GlobalOGlycans = Glycan.LoadGlycan(GlobalVariables.OGlycanLocation).ToArray();
+            //GlycanBox.GlobalOGlycanModifications = GlycanBox.BuildGlobalOGlycanModifications(GlycanBox.GlobalOGlycans);
+            //thanos.sweetor.OGlycanGroup = GlycanBox.BuildOGlycanBoxes(4).OrderBy(p => p.Mass).ToArray();
+            //thanos.sweetor.WriteOGlycanGroupResult("C:\\Users\\Moon\\Desktop\\");
         }
 
         private void BtnSearchGlycan_Click(object sender, RoutedEventArgs e)
