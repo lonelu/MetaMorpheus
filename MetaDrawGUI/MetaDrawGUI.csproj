@@ -175,9 +175,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Accountant.cs" />
+    <Compile Include="CrosslinkWPF.xaml.cs">
+      <DependentUpon>CrosslinkWPF.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Spectra\Accountant.cs" />
     <Compile Include="Accumulator.cs" />
     <Compile Include="BasicClasses\ChromatographicPeak.cs" />
+    <Compile Include="Crosslink\CrosslinkHandler.cs" />
+    <Compile Include="Crosslink\SyntheticLibrary.cs" />
     <Compile Include="Deconvolution\ChargeEnvelop.cs" />
     <Compile Include="Deconvolution\DeconvolutionParameter.cs" />
     <Compile Include="BasicClasses\GlycanStructureAnnotation.cs" />
@@ -194,7 +199,7 @@
     <Compile Include="BoxCar\BoxCarFunctions.cs" />
     <Compile Include="BoxCar\BoxcarRange.cs" />
     <Compile Include="BoxCar\SetOfScans.cs" />
-    <Compile Include="BoxMerger.cs" />
+    <Compile Include="BoxCar\BoxMerger.cs" />
     <Compile Include="ControlParameter.cs" />
     <Compile Include="DataGrids\AllScansForDataGrid.cs" />
     <Compile Include="DataGrids\ChargeEnvelopesForDataGrid.cs" />
@@ -206,7 +211,7 @@
     <Compile Include="DataGrids\SpectrumForDataGrid.cs" />
     <Compile Include="Deconvolution\ChargeDecon.cs" />
     <Compile Include="Deconvolution\IsoEnvelop.cs" />
-    <Compile Include="Deconvolutor.cs" />
+    <Compile Include="Deconvolution\Deconvolutor.cs" />
     <Compile Include="Deconvolution_old\MsDataFileDecon.cs" />
     <Compile Include="MsFeature.cs" />
     <Compile Include="Deconvolution_old\MzSpectrumBU.cs" />
@@ -218,7 +223,7 @@
     <Compile Include="Regression\Solver.cs" />
     <Compile Include="Regression\SolverOptions.cs" />
     <Compile Include="Skill.cs" />
-    <Compile Include="Sweetor.cs" />
+    <Compile Include="Glyco\Sweetor.cs" />
     <Compile Include="Thanos.cs" />
     <Compile Include="ViewModels\ChargeEnveViewModel.cs" />
     <Compile Include="ViewModels\GlycoViewModel.cs" />
@@ -228,6 +233,10 @@
     <Compile Include="ViewModels\PsmAnnotationViewModel.cs" />
     <Compile Include="ViewModels\ScanCompareViewModel.cs" />
     <Compile Include="ViewModels\ScanInfoViewModel.cs" />
+    <Page Include="CrosslinkWPF.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

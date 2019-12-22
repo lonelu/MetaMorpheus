@@ -315,6 +315,14 @@ namespace MetaDrawGUI
                 return;
             }
 
+            // load the spectra file
+            (sender as Button).IsEnabled = false;
+            btnAddResultFiles.IsEnabled = false;
+            btnClearResultFiles.IsEnabled = false;
+
+            // load the PSMs
+            List<string> warnings;
+
             foreach (var aResultfileGrid in resultFilesObservableCollection)
             {
                 var aResultfilePath = aResultfileGrid.FilePath;
@@ -323,19 +331,13 @@ namespace MetaDrawGUI
                     continue;
                 }
                 thanos.ResultFilePaths.Add(aResultfilePath);
-            }
 
-            // load the spectra file
-            (sender as Button).IsEnabled = false;
-            btnAddResultFiles.IsEnabled = false;
-            btnClearResultFiles.IsEnabled = false;
-
-            // load the PSMs
-            List<string> warnings;
-            thanos.psms = PsmTsvReader.ReadTsv(resultsFilePath, out warnings);
-            foreach (var psm in thanos.psms)
-            {
-                spectrumNumsObservableCollection.Add(new SpectrumForDataGrid(psm.Ms2ScanNumber, psm.PrecursorScanNum, psm.PrecursorMz, psm.OrganismName));
+                var psms = PsmTsvReader.ReadTsv(resultsFilePath, out warnings);
+                foreach (var psm in psms)
+                {
+                    spectrumNumsObservableCollection.Add(new SpectrumForDataGrid(psm.Ms2ScanNumber, psm.PrecursorScanNum, psm.PrecursorMz, psm.OrganismName));
+                }
+                thanos.psms.AddRange(psms);
             }
         }
 
