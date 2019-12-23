@@ -24,6 +24,7 @@ using Proteomics;
 using Proteomics.Fragmentation;
 using Proteomics.ProteolyticDigestion;
 using Proteomics.Fragmentation;
+using MetaDrawGUI.Crosslink;
 
 namespace MetaDrawGUI
 {
@@ -37,6 +38,8 @@ namespace MetaDrawGUI
         public Sweetor sweetor = new Sweetor();
 
         public Deconvolutor deconvolutor = new Deconvolutor();
+
+        public CrosslinkHandler crosslinkHandler = new CrosslinkHandler();
 
         public MsDataFileDecon msDataFileDecon = new MsDataFileDecon(); //For charge decovolution
 

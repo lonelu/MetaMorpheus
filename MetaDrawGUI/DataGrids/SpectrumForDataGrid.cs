@@ -1,7 +1,7 @@
 ﻿
 namespace MetaDrawGUI
 {
-    class SpectrumForDataGrid
+    public class SpectrumForDataGrid
     {
         public SpectrumForDataGrid(int scanNum, int precursorScanNum, double precursorMz,string organism)
         {
