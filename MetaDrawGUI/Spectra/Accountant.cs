@@ -56,7 +56,7 @@ namespace MetaDrawGUI
 
                 var scans = msDataFile.GetAllScansList();
 
-                var scanInfos = ExtractTime(scans);
+                var scanInfos = ExtractTime(scans, timeRange);
 
                 scanInfoSet.Add(scanInfos);
                 filePaths.Add(filePath);
@@ -70,15 +70,15 @@ namespace MetaDrawGUI
             WriteExtractedNum(filePaths, scanInfoSet);
         }
 
-        private List<ScanInfo> ExtractTime(List<MsDataScan> scans)
+        private List<ScanInfo> ExtractTime(List<MsDataScan> allScans, Tuple<double, double> timeRange)
         {
+            var scans = allScans.Where(p => p.RetentionTime >= timeRange.Item1 && p.RetentionTime <= timeRange.Item2).ToList();
+
             List<ScanInfo> scanInfos = new List<ScanInfo>();
 
-            for (int i = 1; i < scans.Count - 1; i++)
+            for (int i = 0; i < scans.Count; i++)
             {
                 string scanType = "";
-                string previousScanType = "";
-                string nextScanType = "";
 
                 if (scans[i].ScanFilter.Contains("Full ms "))
                 {
@@ -112,88 +112,22 @@ namespace MetaDrawGUI
                         }
                     }
 
-                }
+                }                     
 
-
-                if (scans[i - 1].ScanFilter.Contains("Full ms "))
-                {
-                    previousScanType = "Full";
-                }
-                else if (scans[i-1].ScanFilter.Contains("msx ms "))
-                {
-                    previousScanType = "Msx";
-
-                }
-                else
-                {
-                    if (scans[i-1].ScanFilter.Contains("Full msx ms2 "))
-                    {
-                        previousScanType = "MsxMs2";
-                    }
-                    else
-                    {
-                        if (scans[i - 1].ScanFilter.Contains("hcd") && !scans[i - 1].ScanFilter.Contains("etd"))
-                        {
-                            previousScanType = "hcd";
-
-                        }
-                        else if (!scans[i - 1].ScanFilter.Contains("hcd") && scans[i - 1].ScanFilter.Contains("etd"))
-                        {
-                            previousScanType = "etd";
-                        }
-                        else if (scans[i - 1].ScanFilter.Contains("hcd") && scans[i - 1].ScanFilter.Contains("etd"))
-                        {
-                            previousScanType = "ethcd";
-                        }
-                    }
-                }
-
-
-
-
-                if (scans[i + 1].ScanFilter.Contains("Full ms "))
-                {
-                    nextScanType = "Full";
-                }
-                else if (scans[i + 1].ScanFilter.Contains("msx ms "))
-                {
-                    nextScanType = "Msx";
-
-                }
-                else
-                {
-                    if (scans[i + 1].ScanFilter.Contains("Full msx ms2 "))
-                    {
-                        nextScanType = "MsxMs2";
-                    }
-                    else
-                    {
-                        if (scans[i + 1].ScanFilter.Contains("hcd") && !scans[i + 1].ScanFilter.Contains("etd"))
-                        {
-                            nextScanType = "hcd";
-
-                        }
-                        else if (!scans[i + 1].ScanFilter.Contains("hcd") && scans[i + 1].ScanFilter.Contains("etd"))
-                        {
-                            nextScanType = "etd";
-                        }
-                        else if (scans[i + 1].ScanFilter.Contains("hcd") && scans[i + 1].ScanFilter.Contains("etd"))
-                        {
-                            nextScanType = "ethcd";
-                        }
-                    }
-                }
-
-
-
-                double previousTime = (scans[i].RetentionTime - scans[i - 1].RetentionTime) * 60000;
-
-                double nextTime = (scans[i + 1].RetentionTime - scans[i].RetentionTime) * 60000;
-
-                ScanInfo scanInfo = new ScanInfo(scans[i].RetentionTime, scans[i].InjectionTime.Value, previousTime, nextTime, scanType, previousScanType, nextScanType);
+                ScanInfo scanInfo = new ScanInfo(scans[i].OneBasedScanNumber, scans[i].RetentionTime, scans[i].InjectionTime.Value, scanType);
 
                 scanInfos.Add(scanInfo);
             }
+
+            for (int i = 1; i < scans.Count-1; i++)
+            {
+                scanInfos[i].PreviousScan = scanInfos[i - 1];
+                scanInfos[i].NextScan = scanInfos[i + 1];
+
+
+
+            }
+
             return scanInfos;
         }
 
@@ -202,10 +136,10 @@ namespace MetaDrawGUI
             var writtenFile = Path.Combine(Path.GetDirectoryName(FilePath), name + ".tsv");
             using (StreamWriter output = new StreamWriter(writtenFile))
             {
-                output.WriteLine("RetentionTime\tInjectTime\tPreviousTime\tNextTime\tScanType\tPreviousScanType\tNextScanType");
+                output.WriteLine("ScanNumber\tRetentionTime\tInjectTime\tPreviousTime\tScanType");
                 foreach(var s in ScanInfos)
                 {
-                    output.WriteLine(s.RententionTime + "\t" + s.InjectTime + "\t" + s.PreviousTime + "\t" + s.NextTime + "\t" + s.ScanType + "\t" + s.PreviousScanType + "\t" + s.NextScanType);
+                    output.WriteLine(s.OneBaseScanNumber + "\t" + s.RententionTime + "\t" + s.InjectTime + "\t" + s.PreviousTime + "\t"  + s.ScanType);
                 }
             }
         }
@@ -312,31 +246,55 @@ namespace MetaDrawGUI
 
     public class ScanInfo
     {
-        public ScanInfo(double rt, double it, double pt, double nt, string scan, string pscan, string nscan)
+        public ScanInfo(int scanNumber, double rt, double it, string scan)
         {
+            OneBaseScanNumber = scanNumber;
             RententionTime = rt;
             InjectTime = it;
-            PreviousTime = pt;
-            NextTime = nt;
-
             ScanType = scan;
-            PreviousScanType = pscan;
-            NextScanType = nscan;
+
         }
 
+        public int OneBaseScanNumber { get; set; }
         public double RententionTime { get; set; }
         public double InjectTime { get; set; }
-        public double PreviousTime { get; set; }
-        public double NextTime { get; set; }
         public string ScanType { get; set; }
-        public string PreviousScanType { get; set; }
-        public string NextScanType { get; set; }
+        public ScanInfo PreviousScan { get; set; }
+        public ScanInfo NextScan { get; set; }
+
+        public double PreviousTime
+        {
+            get
+            {
+                if (PreviousScan!= null)
+                {
+                    return RententionTime - PreviousScan.RententionTime;
+                }
+                return 0;
+            }
+        }
 
         public string types
         {
             get
             {
-                return PreviousScanType + "_" + ScanType;
+                var ptype = "";
+                var pptype = "";
+                if (PreviousScan!= null)
+                {
+                    ptype = PreviousScan.ScanType  + "_";
+                    if (PreviousScan.PreviousScan!=null)
+                    {
+                        pptype = PreviousScan.PreviousScan.ScanType + "_";
+                    }
+                }
+                var ntype = "";
+                if (NextScan!= null)
+                {
+                    ntype = "_" + NextScan.ScanType;
+                }
+
+                return  pptype + ptype + "_" + ScanType + ntype;
             }
         }
 
