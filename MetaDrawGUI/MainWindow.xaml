@@ -100,7 +100,7 @@
             <TabItem x:Name="TabGlycopeptides" Width="150" Height="30" Header="Glycopeptides">
                 <uc:GlycoWPF/>
             </TabItem>
-            <TabItem Header="Crosslink Validation">
+            <TabItem x:Name="TabCrosslink" Header="Crosslink Validation">
                 <uc:CrosslinkWPF/>
             </TabItem>
         </TabControl>

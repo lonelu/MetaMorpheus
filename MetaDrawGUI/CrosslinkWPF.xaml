@@ -1,6 +1,7 @@
 ﻿<UserControl x:Class="MetaDrawGUI.CrosslinkWPF"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:oxy ="http://oxyplot.org/wpf"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:MetaDrawGUI"
@@ -13,7 +14,9 @@
             <ColumnDefinition Width="1*"/>
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="0">
-            
+            <GroupBox Header="PSM Annotation" Name="psmAnnotation">
+                <oxy:PlotView x:Name="plotCrosslinkView" Model="{Binding CrosslinkModel}" FontSize="16" FontStretch="Expanded"/>
+            </GroupBox>
         </Grid>
         <GridSplitter Grid.Column="1" 
                           HorizontalAlignment="Center"
@@ -38,7 +41,7 @@
             <GroupBox Header="Invalid CSMs" Name="gbInvalidCrosslink" Grid.Row="2">
                 <DataGrid x:Name="dataGridIncorrectCsms" VerticalAlignment="Stretch" ItemsSource="{Binding IncorrectCsmsCollection}" 
                                   IsReadOnly="True" ScrollViewer.CanContentScroll="True" Grid.Row="0" Margin="0,0,0,0"
-                                  />
+                                  SelectedCellsChanged ="DataGridIncorrectCsms_SelectedCellsChanged"/>
             </GroupBox>
         </Grid>
     </Grid>

@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using EngineLayer;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
+using OxyPlot;
+using ViewModels;
 
 namespace MetaDrawGUI.Crosslink
 {
@@ -34,6 +36,21 @@ namespace MetaDrawGUI.Crosslink
             {
                 IncorrectCsmsObservableCollection = value;
                 NotifyPropertyChanged("IncorrectCsmsCollection");
+            }
+        }
+
+        private PsmAnnotationViewModel crosslinkModel = new PsmAnnotationViewModel();
+
+        public PlotModel CrosslinkModel
+        {
+            get
+            {
+                return crosslinkModel.privateModel;
+            }
+            set
+            {
+                crosslinkModel.privateModel = value;
+                NotifyPropertyChanged("CrosslinkModel");
             }
         }
 

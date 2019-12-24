@@ -13,6 +13,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using MetaDrawGUI.Crosslink;
+using ViewModels;
+using System.ComponentModel;
 
 namespace MetaDrawGUI
 {
@@ -28,6 +30,8 @@ namespace MetaDrawGUI
             InitializeComponent();
 
             dataGridIncorrectCsms.DataContext = MainWindow.thanos.crosslinkHandler;
+
+            plotCrosslinkView.DataContext = MainWindow.thanos.crosslinkHandler;
         }
 
         private void BtnValidate_Click(object sender, RoutedEventArgs e)
@@ -56,6 +60,19 @@ namespace MetaDrawGUI
                 }
             }
             e.Handled = !result;
+        }
+
+        private void DataGridIncorrectCsms_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+        {
+            if (dataGridIncorrectCsms.SelectedItem == null)
+            {
+                return;
+            }
+
+            var sele = (SpectrumForDataGrid)dataGridIncorrectCsms.SelectedItem;
+            MainWindow.thanos.msDataScan = MainWindow.thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
+            var selePsm = MainWindow.thanos.psms.Where(p => p.Ms2ScanNumber == sele.ScanNum).First();
+            MainWindow.thanos.crosslinkHandler.CrosslinkModel = PsmAnnotationViewModel.DrawScanMatch(MainWindow.thanos.msDataScan, selePsm.MatchedIons, selePsm.BetaPeptideMatchedIons);
         }
     }
 }
