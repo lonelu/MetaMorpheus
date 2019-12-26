@@ -15,6 +15,8 @@ using System.Windows.Shapes;
 using MetaDrawGUI.Crosslink;
 using ViewModels;
 using System.ComponentModel;
+using EngineLayer;
+using EngineLayer.CrosslinkSearch;
 
 namespace MetaDrawGUI
 {
@@ -74,7 +76,12 @@ namespace MetaDrawGUI
             if (MainWindow.thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).Count() > 0)
             {
                 MainWindow.thanos.msDataScan = MainWindow.thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
-                var selePsm = MainWindow.thanos.psms.Where(p => p.Ms2ScanNumber == sele.ScanNum).First();
+                var selePsm = MainWindow.thanos.simplePsms.Where(p => p.Ms2ScanNumber == sele.ScanNum).First();
+                if (selePsm.MatchedIons ==null)
+                {
+               //     var fragmentsForEachAlphaLocalizedPossibility = CrosslinkedPeptide.XlGetTheoreticalFragments(MassSpectrometry.DissociationType.HCD,
+               //Crosslinker., possibleAlphaXlSites, selePsm.BetaPeptideWithMod.MonoisotopicMass, selePsm.PeptideWithMod).ToList();
+                }
                 MainWindow.thanos.crosslinkHandler.CrosslinkModel = PsmAnnotationViewModel.DrawScanMatch(MainWindow.thanos.msDataScan, selePsm.MatchedIons, selePsm.BetaPeptideMatchedIons);
             }
         }

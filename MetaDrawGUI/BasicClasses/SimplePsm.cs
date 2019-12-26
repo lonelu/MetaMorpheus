@@ -84,12 +84,14 @@ namespace MetaDrawGUI
         public string ProteinAccess { get; set; }
         public string ProteinStartEnd { get; set; }
         public List<MatchedFragmentIon> MatchedIons { get; set; }
+        public PeptideWithSetModifications PeptideWithMod { get; set; }
 
         //Crosslink
         public string BetaPeptideBaseSequence { get; set; }
         public string BetaPeptideFullSequence { get; set; }
         public string BetaProteinAccess { get; set; }
         public List<MatchedFragmentIon> BetaPeptideMatchedIons { get; set; }
+        public PeptideWithSetModifications BetaPeptideWithMod { get; set; }
 
         //Glycopeptide
         public string iD { get; set; }
@@ -100,7 +102,6 @@ namespace MetaDrawGUI
         public int glycanAGNumber { get; set; }
         public string glycanString { get; set; }
         public Glycan glycan { get; set; }
-        public PeptideWithSetModifications glycoPwsm { get; set; }
 
         //pTOP
         public int MatchedPeakNum { get; set; }
@@ -109,6 +110,23 @@ namespace MetaDrawGUI
         public double NTerMatchedPeakIntensityRatio { get; set; }
         public double CTerMatchedPeakIntensityRatio { get; set; }
 
+        private static Dictionary<string, Modification> AllPossibleMods_pFind = GetAllPossibleMods_pFind();
+
+        private static Dictionary<string, Modification> GetAllPossibleMods_pFind()
+        {
+            Dictionary<string, Modification> allPossibleMods = new Dictionary<string, Modification>();
+
+            var m1 = GlobalVariables.AllModsKnown.Where(p => p.IdWithMotif == "Carbamidomethyl on C").FirstOrDefault();
+            allPossibleMods.Add("Carbamidomethyl[C]", m1);
+
+            var m2 = GlobalVariables.AllModsKnown.Where(p => p.IdWithMotif == "Oxidation on M").FirstOrDefault();
+            allPossibleMods.Add("Oxidation[M]", m2);
+
+            var m3 = GlobalVariables.AllModsKnown.Where(p => p.IdWithMotif == "Acetylation" && p.ModificationType == "N-terminal.").FirstOrDefault();
+            allPossibleMods.Add("Acetyl[ProteinN-term]", m3);
+
+            return allPossibleMods;
+        }
         private static string GetFullSeq(string BaseSeq, Dictionary<int, Modification> modDict)
         {
             string fullSeq = "";
@@ -124,24 +142,6 @@ namespace MetaDrawGUI
         }
 
         #region pGlyco
-
-        private static Dictionary<string, Modification> AllPossibleMods_pGlyco = GetAllPossibleMods_pGlyco();
-
-        private static Dictionary<string, Modification> GetAllPossibleMods_pGlyco()
-        {
-            Dictionary<string, Modification> allPossibleMods = new Dictionary<string, Modification>();
-
-            var m1 = GlobalVariables.AllModsKnown.Where(p => p.IdWithMotif == "Carbamidomethyl on C").FirstOrDefault();
-            allPossibleMods.Add("Carbamidomethyl[C]", m1);
-
-            var m2 = GlobalVariables.AllModsKnown.Where(p => p.IdWithMotif == "Oxidation on M").FirstOrDefault();
-            allPossibleMods.Add("Oxidation[M]", m2);
-
-            var m3 = GlobalVariables.AllModsKnown.Where(p => p.IdWithMotif == "Acetylation" && p.ModificationType == "N-terminal.").FirstOrDefault();
-            allPossibleMods.Add("Acetyl[ProteinN-term]", m3);
-
-            return allPossibleMods;
-        }
 
         //TO DO: Bug may exist for the PrecursorMH, which is different from PrecursorMass.
         public static List<MatchedFragmentIon> GetMatchedIons(PeptideWithSetModifications glycoPwsm, double precursorMH, int chargeState, CommonParameters commonParameters, MsDataScan msDataScan)
@@ -229,7 +229,7 @@ namespace MetaDrawGUI
                 Modification modification = Glycan.NGlycanToModification(glycan);
 
 
-                Dictionary<int, Modification> testMods = GetMods_pGlyco(Mod, AllPossibleMods_pGlyco);
+                Dictionary<int, Modification> testMods = GetMods_pGlyco(Mod, AllPossibleMods_pFind);
                 testMods.Add(pBaseSeq.IndexOf('J') + 1, modification);
                 FullSeq = GetFullSeq(BaseSeq, testMods);
 
@@ -242,7 +242,7 @@ namespace MetaDrawGUI
                     }
                     // no error thrown if multiple mods with this ID are present - just pick one
                 }
-                glycoPwsm = new PeptideWithSetModifications(FullSeq, AllModsKnownDictionary);
+                PeptideWithMod = new PeptideWithSetModifications(FullSeq, AllModsKnownDictionary);
             }
 
             QValue = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.QValue]]);
@@ -362,7 +362,7 @@ namespace MetaDrawGUI
                 }
                 // no error thrown if multiple mods with this ID are present - just pick one
             }
-            glycoPwsm = new PeptideWithSetModifications(FullSeq, AllModsKnownDictionary);
+            PeptideWithMod = new PeptideWithSetModifications(FullSeq, AllModsKnownDictionary);
 
             QValue = double.Parse(spl[parsedHeader[PsmTsvHeader_GlycReSoft.q_value]]);
             DecoyContamTarget = "T";
@@ -456,24 +456,25 @@ namespace MetaDrawGUI
             Mod = spl[parsedHeader[PsmTsvHeader_pLink.PTMs]].Trim();
             string fullSeq;
             string betaFullSeq;
-            GetMods_pLink(Mod, BaseSeq, BetaPeptideBaseSequence, AllPossibleMods_pGlyco, out fullSeq, out betaFullSeq);
+            GetMods_pLink(Mod, BaseSeq, BetaPeptideBaseSequence, AllPossibleMods_pFind, out fullSeq, out betaFullSeq);
             FullSeq = fullSeq;
             BetaPeptideFullSequence = betaFullSeq;
-
-            //var AllModsKnownDictionary = new Dictionary<string, Modification>();
-            //foreach (Modification mod in testMods.Values)
-            //{
-            //    if (!AllModsKnownDictionary.ContainsKey(mod.IdWithMotif))
-            //    {
-            //        AllModsKnownDictionary.Add(mod.IdWithMotif, mod);
-            //    }
-            //    // no error thrown if multiple mods with this ID are present - just pick one
-            //}
-            //glycoPwsm = new PeptideWithSetModifications(FullSeq, AllModsKnownDictionary);
 
             ProteinAccess = spl[parsedHeader[PsmTsvHeader_pLink.ProteinAccession]].Split('-')[0].Split('|')[1];
             BetaProteinAccess = spl[parsedHeader[PsmTsvHeader_pLink.ProteinAccession]].Split('-')[1].Split('|')[1];
             DecoyContamTarget = "T";
+
+            var AllModsKnownDictionary = new Dictionary<string, Modification>();
+            foreach (Modification mod in AllPossibleMods_pFind.Values)
+            {
+                if (!AllModsKnownDictionary.ContainsKey(mod.IdWithMotif))
+                {
+                    AllModsKnownDictionary.Add(mod.IdWithMotif, mod);
+                }
+                // no error thrown if multiple mods with this ID are present - just pick one
+            }
+            PeptideWithMod = new PeptideWithSetModifications(FullSeq, AllModsKnownDictionary);
+            BetaPeptideWithMod = new PeptideWithSetModifications(BetaPeptideFullSequence, AllModsKnownDictionary);
         }
 
         private static void GetMods_pLink(string mod, string baseSeq, string betaSeq, Dictionary<string, Modification> AllPossibleMods, out string fullSeq, out string betaFullSeq)
@@ -573,7 +574,7 @@ namespace MetaDrawGUI
             sb.Append(ProteinName + '\t');
             sb.Append(ProteinStartEnd + '\t');
             sb.Append(BaseSeq + '\t');
-            sb.Append(glycoPwsm.FullSequence + '\t');
+            sb.Append(PeptideWithMod.FullSequence + '\t');
             sb.Append(MonoisotopicMass.ToString() + '\t');
             sb.Append(DecoyContamTarget == "T" ? "Y" : "N" + '\t');
             sb.Append(QValue.ToString() + '\t');
