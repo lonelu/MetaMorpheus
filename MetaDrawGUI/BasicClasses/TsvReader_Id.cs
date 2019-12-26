@@ -77,6 +77,10 @@ namespace MetaDrawGUI
                         tsvType = TsvType.pLink;
                         Split = new char[] { ',' };
                     }
+                    else if (line.StartsWith("PSMId"))
+                    {
+                        tsvType = TsvType.Kojak;
+                    }
 
                     switch (tsvType)
                     {
@@ -98,6 +102,9 @@ namespace MetaDrawGUI
                         case TsvType.pLink:
                             parsedHeader = ParseHeader_pLink(line, Split);
                             break;
+                        case TsvType.Kojak:
+                            parsedHeader = ParseHeader_Kojak(line, Split);
+                            break;
                         default:
                             break;
                     }
@@ -113,7 +120,12 @@ namespace MetaDrawGUI
 
                 try
                 {
-                    simplePsms.Add(new SimplePsm(line, Split, parsedHeader, tsvType));
+                    var psm = new SimplePsm(line, Split, parsedHeader, tsvType);
+                    if (tsvType == TsvType.Kojak)
+                    {
+                        psm.FileName = Path.GetFileNameWithoutExtension(filepath);
+                    }
+                    simplePsms.Add(psm);
                 }
                 catch (Exception e)
                 {
@@ -268,6 +280,19 @@ namespace MetaDrawGUI
 
             return parsedHeader;
         }
+
+        private static Dictionary<string, int> ParseHeader_Kojak(string header, char[] Split)
+        {
+            var parsedHeader = new Dictionary<string, int>();
+            var spl = header.Split(Split);
+            parsedHeader.Add(PsmTsvHeader_Kojak.PSMId, Array.IndexOf(spl, PsmTsvHeader_Kojak.PSMId));
+            parsedHeader.Add(PsmTsvHeader_Kojak.BaseSequence, Array.IndexOf(spl, PsmTsvHeader_Kojak.BaseSequence));
+            parsedHeader.Add(PsmTsvHeader_Kojak.ProteinAccession, Array.IndexOf(spl, PsmTsvHeader_Kojak.ProteinAccession));
+            parsedHeader.Add(PsmTsvHeader_Kojak.Score, Array.IndexOf(spl, PsmTsvHeader_Kojak.Score));
+            parsedHeader.Add(PsmTsvHeader_Kojak.Qvalue, Array.IndexOf(spl, PsmTsvHeader_Kojak.Qvalue));
+            parsedHeader.Add(PsmTsvHeader_Kojak.PEP, Array.IndexOf(spl, PsmTsvHeader_Kojak.PEP));
+            return parsedHeader;
+        }
     }
 
     public static class PsmTsvHeader_pGlyco
@@ -357,5 +382,15 @@ namespace MetaDrawGUI
 
         public const string ProteinAccession = "Proteins";
         public const string Score = "Score";
+    }
+
+    public static class PsmTsvHeader_Kojak
+    {
+        public const string PSMId = "PSMId";
+        public const string BaseSequence = "peptide";
+        public const string ProteinAccession = "proteinIds";
+        public const string Qvalue = "q-value";
+        public const string Score = "score";
+        public const string PEP = "posterior_error_prob";
     }
 }

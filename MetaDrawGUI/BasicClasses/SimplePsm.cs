@@ -59,6 +59,9 @@ namespace MetaDrawGUI
                 case TsvType.pLink:
                     generateSimplePsm_pLink(line, split, parsedHeader);
                     break;
+                case TsvType.Kojak:
+                    generateSimplePsm_Kojak(line, split, parsedHeader);
+                    break;
                 default:
                     break;
             }
@@ -446,11 +449,9 @@ namespace MetaDrawGUI
             ChargeState = int.Parse(spl[parsedHeader[PsmTsvHeader_pLink.ChargeState]].Trim());
             MonoisotopicMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pLink.PeptideMass]]);
 
-            var pBaseSeq = spl[parsedHeader[PsmTsvHeader_pLink.BaseSequence]].Trim();
-            BaseSeq = pBaseSeq.Split('-')[0];
-            BaseSeq = BaseSeq.Substring(0, BaseSeq.IndexOf('('));
-            BetaPeptideBaseSequence = pBaseSeq.Split('-')[1];
-            BetaPeptideBaseSequence = BetaPeptideBaseSequence.Substring(0, BetaPeptideBaseSequence.IndexOf('('));
+            var pBaseSeq = spl[parsedHeader[PsmTsvHeader_pLink.BaseSequence]].Trim().Split('-','(',')');
+            BaseSeq = pBaseSeq[0];
+            BetaPeptideBaseSequence = pBaseSeq[1];
 
             Mod = spl[parsedHeader[PsmTsvHeader_pLink.PTMs]].Trim();
             string fullSeq;
@@ -487,8 +488,7 @@ namespace MetaDrawGUI
             {
                 if (m != "null" && m != "")
                 {
-                    int _less = m.IndexOf('(');
-                    var mo = m.Substring(0, _less);
+                    var mo = m.Split('(', ')')[0];
                     var ind = int.Parse(m.Split('(', ')')[1]);
                     if ( ind <= baseSeq.Length)
                     {
@@ -507,9 +507,32 @@ namespace MetaDrawGUI
             betaFullSeq = GetFullSeq(betaSeq, betaMods);
 
         }
-        
+
         #endregion
 
+        #region Kojak
+
+        private void generateSimplePsm_Kojak(string line, char[] split, Dictionary<string, int> parsedHeader)
+        {
+            var spl = line.Split(split);
+
+            var psmId = spl[parsedHeader[PsmTsvHeader_Kojak.PSMId]];
+            Ms2ScanNumber = int.Parse(psmId.Split('-')[1]);
+            RT = double.Parse(psmId.Split('-')[2]);
+            
+            var allSeq = spl[parsedHeader[PsmTsvHeader_Kojak.BaseSequence]].Trim().Split('-','.','(',')');
+            BaseSeq = allSeq[2];
+            BetaPeptideBaseSequence = allSeq[6];
+
+            ProteinAccess = spl[parsedHeader[PsmTsvHeader_Kojak.ProteinAccession]].Split('|')[1];
+            BetaProteinAccess = spl[parsedHeader[PsmTsvHeader_Kojak.ProteinAccession] + 1].Split('|')[1];
+
+            QValue = double.Parse(spl[parsedHeader[PsmTsvHeader_Kojak.Qvalue]]);
+
+            DecoyContamTarget = "T";
+        }
+
+        #endregion
 
         public static string GetTabSepHeaderGlyco()
         {
@@ -552,7 +575,7 @@ namespace MetaDrawGUI
             sb.Append(BaseSeq + '\t');
             sb.Append(glycoPwsm.FullSequence + '\t');
             sb.Append(MonoisotopicMass.ToString() + '\t');
-            sb.Append(DecoyContamTarget == "T" ? "Y":"N" + '\t');
+            sb.Append(DecoyContamTarget == "T" ? "Y" : "N" + '\t');
             sb.Append(QValue.ToString() + '\t');
             sb.Append(glycan.Struc + '\t');
             sb.Append(glycan.Mass.ToString() + '\t');
