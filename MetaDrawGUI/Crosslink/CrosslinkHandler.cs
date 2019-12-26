@@ -54,9 +54,9 @@ namespace MetaDrawGUI.Crosslink
             }
         }
 
-        public static List<PsmFromTsv> validateIncorrectCrosslinks(PsmFromTsv[] psms_filtered, double fdr)
+        public static List<SimplePsm> validateIncorrectCrosslinks(SimplePsm[] psms_filtered, double fdr)
         {
-            List<PsmFromTsv> incorrectCsms = new List<PsmFromTsv>();
+            List<SimplePsm> incorrectCsms = new List<SimplePsm>();
             for (int i = 0; i < psms_filtered.Length; i++)
             {
                 
@@ -72,10 +72,10 @@ namespace MetaDrawGUI.Crosslink
             return incorrectCsms;
         }
 
-        public static List<PsmFromTsv> Csms2Crosslinks(PsmFromTsv[] psms)
+        public static List<SimplePsm> Csms2Crosslinks(SimplePsm[] psms)
         {
             HashSet<string> seen = new HashSet<string>();
-            List<PsmFromTsv> crosslinks = new List<PsmFromTsv>();
+            List<SimplePsm> crosslinks = new List<SimplePsm>();
 
             foreach (var csm in psms)
             {
@@ -92,7 +92,7 @@ namespace MetaDrawGUI.Crosslink
             return crosslinks;
         }
 
-        public static string Out(List<PsmFromTsv> psms, double fdr)
+        public static string Out(List<SimplePsm> psms, double fdr)
         {
             string output = "";
 
@@ -115,15 +115,15 @@ namespace MetaDrawGUI.Crosslink
             return output;
         }
 
-        public static string OutSplit(List<PsmFromTsv> psms, double fdr)
+        public static string OutSplit(List<SimplePsm> psms, double fdr)
         {
             string output = "";
-            var groups = psms.GroupBy(p => p.Filename).ToList();
+            var groups = psms.GroupBy(p => p.FileName).ToList();
 
             int index = 1;
             foreach (var g in groups)
             {
-                var psms_filtered = g.Where(p =>p.DecoyContamTarget =="T" && p.QValue <= fdr).ToArray();
+                var psms_filtered = g.Where(p =>p.DecoyContamTarget == "T" && p.QValue <= fdr).ToArray();
                 var total = psms_filtered.Length;
                 var incorrect = validateIncorrectCrosslinks(psms_filtered, fdr).Count();
 

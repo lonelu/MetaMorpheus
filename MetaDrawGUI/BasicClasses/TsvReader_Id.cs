@@ -10,11 +10,14 @@ namespace MetaDrawGUI
 {
     public enum TsvType
     {
+        MetaMorpheus,
         pGlyco,
         GlycReSoft,
         Byonic,
         pTOP,
-        Promex
+        Promex,
+        pLink,
+        Kojak
     }
 
     public class TsvReader_Id
@@ -36,7 +39,7 @@ namespace MetaDrawGUI
             int lineCount = 0;
             string line;
             Dictionary<string, int> parsedHeader = null;
-            TsvType tsvType = TsvType.pGlyco;
+            TsvType tsvType = TsvType.MetaMorpheus;
             char[] Split = new char[] { '\t' };
 
             while (reader.Peek() > 0)
@@ -45,7 +48,12 @@ namespace MetaDrawGUI
                 line = reader.ReadLine();             
 
                 if (lineCount == 1)
-                {                     
+                {
+                    if (line.StartsWith("GlySpec"))
+                    {
+                        tsvType = TsvType.pGlyco;
+                        Split = new char[] { ',' };
+                    }
                     if (line.StartsWith("glycopeptide"))
                     {
                         tsvType = TsvType.GlycReSoft;
@@ -63,6 +71,11 @@ namespace MetaDrawGUI
                     else if (line.StartsWith("Scan"))
                     {
                         tsvType = TsvType.Promex;
+                    }
+                    else if (line.StartsWith("Order"))
+                    {
+                        tsvType = TsvType.pLink;
+                        Split = new char[] { ',' };
                     }
 
                     switch (tsvType)
@@ -82,11 +95,20 @@ namespace MetaDrawGUI
                         case TsvType.Promex:
                             parsedHeader = ParseHeader_Promex(line, Split);
                             break;
+                        case TsvType.pLink:
+                            parsedHeader = ParseHeader_pLink(line, Split);
+                            break;
                         default:
                             break;
                     }
                     
                     continue;
+                }
+
+                if (tsvType == TsvType.MetaMorpheus)
+                {
+                    lineCount--;
+                    break;
                 }
 
                 try
@@ -99,6 +121,20 @@ namespace MetaDrawGUI
                 }
             }
             reader.Close();
+
+            if (tsvType == TsvType.MetaMorpheus)
+            {
+                List<string> warnings;
+                var psms = PsmTsvReader.ReadTsv(filepath, out warnings);
+
+                foreach (var p in psms)
+                {
+                    lineCount++;
+                    simplePsms.Add(new SimplePsm(p));
+                }
+            }
+
+
             if ((lineCount - 1) != simplePsms.Count)
             {
                 throw new MetaMorpheusException("Warning: " + ((lineCount - 1) - simplePsms.Count) + " PSMs were not read.");
@@ -216,6 +252,22 @@ namespace MetaDrawGUI
 
             return parsedHeader;
         }
+
+        private static Dictionary<string, int> ParseHeader_pLink(string header, char[] Split)
+        {
+            var parsedHeader = new Dictionary<string, int>();
+            var spl = header.Split(Split);
+            parsedHeader.Add(PsmTsvHeader_pLink.FileName, Array.IndexOf(spl, PsmTsvHeader_pLink.FileName));
+            parsedHeader.Add(PsmTsvHeader_pLink.ChargeState, Array.IndexOf(spl, PsmTsvHeader_pLink.ChargeState));
+            parsedHeader.Add(PsmTsvHeader_pLink.PrecursorMass, Array.IndexOf(spl, PsmTsvHeader_pLink.PrecursorMass));
+            parsedHeader.Add(PsmTsvHeader_pLink.PeptideMass, Array.IndexOf(spl, PsmTsvHeader_pLink.PeptideMass));
+            parsedHeader.Add(PsmTsvHeader_pLink.BaseSequence, Array.IndexOf(spl, PsmTsvHeader_pLink.BaseSequence));
+            parsedHeader.Add(PsmTsvHeader_pLink.PTMs, Array.IndexOf(spl, PsmTsvHeader_pLink.PTMs));
+            parsedHeader.Add(PsmTsvHeader_pLink.ProteinAccession, Array.IndexOf(spl, PsmTsvHeader_pLink.ProteinAccession));
+            parsedHeader.Add(PsmTsvHeader_pLink.Score, Array.IndexOf(spl, PsmTsvHeader_pLink.Score));
+
+            return parsedHeader;
+        }
     }
 
     public static class PsmTsvHeader_pGlyco
@@ -292,5 +344,18 @@ namespace MetaDrawGUI
         public const string BaseSequence = "Sequence";
         public const string PTMs = "Modifications";
         public const string MatchedPeaks = "#MatchedFragments";
+    }
+
+    public static class PsmTsvHeader_pLink
+    {
+        public const string FileName = "Title";
+        public const string ChargeState = "Charge";
+        public const string PrecursorMass = "Precursor_Mass";
+        public const string PeptideMass = "Peptide_Mass";
+        public const string BaseSequence = "Peptide";
+        public const string PTMs = "Modifications";
+
+        public const string ProteinAccession = "Proteins";
+        public const string Score = "Score";
     }
 }

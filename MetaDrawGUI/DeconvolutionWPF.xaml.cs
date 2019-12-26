@@ -136,7 +136,7 @@ namespace MetaDrawGUI
 
             foreach (var psm in MainWindow.thanos.simplePsms)
             {
-                MainWindow.spectrumNumsObservableCollection.Add(new SpectrumForDataGrid(psm.ScanNum, 0, psm.PrecursorMz, ""));
+                MainWindow.spectrumNumsObservableCollection.Add(new SpectrumForDataGrid(psm.Ms2ScanNumber, 0, psm.PrecursorMz, ""));
             }
         }
 

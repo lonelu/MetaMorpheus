@@ -178,22 +178,22 @@ namespace MetaDrawGUI
             // we need to get the filename before parsing out the extension because if we assume that everything after the dot
             // is the extension and there are dots in the file path (i.e. in a folder name), this will mess up
             var filename = Path.GetFileName(draggedFilePath);
-            var theExtension = filename.Substring(filename.IndexOf(".")).ToLowerInvariant();
+            var theExtension = filename.Split('.').Last().ToLowerInvariant();
 
             switch (theExtension)
             {
-                case ".raw":
-                case ".mzml":
+                case "raw":
+                case "mzml":
                     RawDataForDataGrid zz = new RawDataForDataGrid(draggedFilePath);
                     if (!SpectraFileExists(spectraFilesObservableCollection, zz)) { spectraFilesObservableCollection.Add(zz); }
                     break;
-                case ".pep.XML":
-                case ".pep.xml":
+                case "pep.XML":
+                case "pep.xml":
                     break;
-                case ".psmtsv":
-                case ".tsv":
-                case ".txt":
-                case ".csv":
+                case "psmtsv":
+                case "tsv":
+                case "txt":
+                case "csv":
                     RawDataForDataGrid resultFileDataGrid = new RawDataForDataGrid(draggedFilePath);
                     if (!SpectraFileExists(resultFilesObservableCollection, resultFileDataGrid)) { resultFilesObservableCollection.Add(resultFileDataGrid); }
                     break;
@@ -279,12 +279,12 @@ namespace MetaDrawGUI
                 }
                 thanos.ResultFilePaths.Add(aResultfilePath);
 
-                var psms = PsmTsvReader.ReadTsv(resultsFilePath, out warnings);
+                var psms = TsvReader_Id.ReadTsv(resultsFilePath);
                 foreach (var psm in psms)
                 {
-                    spectrumNumsObservableCollection.Add(new SpectrumForDataGrid(psm.Ms2ScanNumber, psm.PrecursorScanNum, psm.PrecursorMz, psm.OrganismName));
+                    spectrumNumsObservableCollection.Add(new SpectrumForDataGrid(psm.Ms2ScanNumber, 0, psm.PrecursorMass, ""));
                 }
-                thanos.psms.AddRange(psms);
+                thanos.simplePsms.AddRange(psms);
             }
         }
 
@@ -376,7 +376,7 @@ namespace MetaDrawGUI
 
             var sele = (SpectrumForDataGrid)dataGridPsms.SelectedItem;
 
-            if (TabCrosslink.IsSelected)
+            if (TabCrosslink.IsSelected && thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).Count() > 0)
             {
                 thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
                 var selePsm = thanos.psms.Where(p => p.Ms2ScanNumber == sele.ScanNum).First();
@@ -466,7 +466,6 @@ namespace MetaDrawGUI
                 action();
             }
         }
-
 
     }
 }

@@ -370,8 +370,8 @@ namespace MetaDrawGUI
                 var diff = 0;
                 var same = 0;
 
-                var matched_d = _thanos.simplePsms.Where(p => p.ScanNum == i+1).ToList();
-                var matched_n = _thanos.simplePsms.Where(p => p.ScanNum == i+2).ToList();
+                var matched_d = _thanos.simplePsms.Where(p => p.Ms2ScanNumber == i+1).ToList();
+                var matched_n = _thanos.simplePsms.Where(p => p.Ms2ScanNumber == i+2).ToList();
 
                 if (matched_d.Count > 0 && matched_n.Count >0)
                 {
@@ -412,7 +412,7 @@ namespace MetaDrawGUI
             List<(SimplePsm, MsDataScan)> x = new List<(SimplePsm, MsDataScan)>();
             foreach (var psm in _thanos.simplePsms)
             {
-                var scan = _thanos.msDataScans.Where(p => p.OneBasedScanNumber == psm.ScanNum).First();
+                var scan = _thanos.msDataScans.Where(p => p.OneBasedScanNumber == psm.Ms2ScanNumber).First();
                 x.Add((psm, scan));
             }
 
@@ -422,7 +422,7 @@ namespace MetaDrawGUI
                 output.WriteLine("ScanNum\tChargeState\tMonoMass\tMatchedPeakNum\tNterMatchedPeakNum\tCterMatchedPeakNum\tNterMatchedPeakRatio\tCterMatchedPeakRatio\tHcdEnergy\tScanFilter");
                 foreach (var c in x)
                 {
-                    output.WriteLine(c.Item1.ScanNum + "\t" + c.Item1.ChargeState + "\t" + c.Item1.PrecursorMass + "\t" + c.Item1.MatchedPeakNum
+                    output.WriteLine(c.Item1.Ms2ScanNumber + "\t" + c.Item1.ChargeState + "\t" + c.Item1.PrecursorMass + "\t" + c.Item1.MatchedPeakNum
                         + "\t" + c.Item1.NterMatchedPeakNum + "\t" + c.Item1.CTerMatchedPeakNum + "\t" + c.Item1.NTerMatchedPeakIntensityRatio + "\t" + c.Item1.CTerMatchedPeakIntensityRatio
                         + "\t" + c.Item2.HcdEnergy  + "\t" + c.Item2.ScanFilter
                         );

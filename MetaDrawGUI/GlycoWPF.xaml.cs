@@ -102,7 +102,7 @@ namespace MetaDrawGUI
 
             foreach (var psm in MainWindow.thanos.simplePsms)
             {
-                MainWindow.thanos.sweetor.GlycoStrucureCollection.Add(new GlycoStructureForDataGrid(psm.ScanNum));
+                MainWindow.thanos.sweetor.GlycoStrucureCollection.Add(new GlycoStructureForDataGrid(psm.Ms2ScanNumber));
             }
         }
 
@@ -134,7 +134,7 @@ namespace MetaDrawGUI
 
             var sele = (GlycoStructureForDataGrid)dataGridGlyco.SelectedItem;
             MainWindow.thanos.msDataScan = MainWindow.thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
-            var selePsm = MainWindow.thanos.simplePsms.Where(p => p.ScanNum == sele.ScanNum).First();
+            var selePsm = MainWindow.thanos.simplePsms.Where(p => p.Ms2ScanNumber == sele.ScanNum).First();
             selePsm.MatchedIons = SimplePsm.GetMatchedIons(selePsm.glycoPwsm, selePsm.PrecursorMass, selePsm.ChargeState, MainWindow.thanos.CommonParameters, MainWindow.thanos.msDataScan);
             MainWindow.thanos.PsmAnnoModel = PsmAnnotationViewModel.DrawScanMatch(MainWindow.thanos.msDataScan, selePsm.MatchedIons);
 

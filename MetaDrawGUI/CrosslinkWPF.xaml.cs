@@ -36,16 +36,16 @@ namespace MetaDrawGUI
 
         private void BtnValidate_Click(object sender, RoutedEventArgs e)
         {
-            var incorrectCsms = CrosslinkHandler.validateIncorrectCrosslinks(MainWindow.thanos.psms.ToArray(), Convert.ToDouble(TbCrosslinkFdrCutOff.Text));
+            var incorrectCsms = CrosslinkHandler.validateIncorrectCrosslinks(MainWindow.thanos.simplePsms.ToArray(), Convert.ToDouble(TbCrosslinkFdrCutOff.Text));
             foreach (var ic in incorrectCsms)
             {
-                MainWindow.thanos.crosslinkHandler.IncorrectCsmsCollection.Add(new SpectrumForDataGrid(ic.Ms2ScanNumber, ic.PrecursorScanNum, ic.PrecursorMz, ic.OrganismName));
+                MainWindow.thanos.crosslinkHandler.IncorrectCsmsCollection.Add(new SpectrumForDataGrid(ic.Ms2ScanNumber, 0, ic.PrecursorMass, ""));
             }
 
-            TbkCrosslinkValidateResult.Text = CrosslinkHandler.Out(MainWindow.thanos.psms, Convert.ToDouble(TbCrosslinkFdrCutOff.Text));
-            if (MainWindow.thanos.psms.GroupBy(p=>p.Filename).Count() > 1)
+            TbkCrosslinkValidateResult.Text = CrosslinkHandler.Out(MainWindow.thanos.simplePsms, Convert.ToDouble(TbCrosslinkFdrCutOff.Text));
+            if (MainWindow.thanos.simplePsms.GroupBy(p=>p.FileName).Count() > 1)
             {
-                TbkCrosslinkValidateResult.Text += CrosslinkHandler.OutSplit(MainWindow.thanos.psms, Convert.ToDouble(TbCrosslinkFdrCutOff.Text));
+                TbkCrosslinkValidateResult.Text += CrosslinkHandler.OutSplit(MainWindow.thanos.simplePsms, Convert.ToDouble(TbCrosslinkFdrCutOff.Text));
             }           
         }
 
@@ -70,9 +70,13 @@ namespace MetaDrawGUI
             }
 
             var sele = (SpectrumForDataGrid)dataGridIncorrectCsms.SelectedItem;
-            MainWindow.thanos.msDataScan = MainWindow.thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
-            var selePsm = MainWindow.thanos.psms.Where(p => p.Ms2ScanNumber == sele.ScanNum).First();
-            MainWindow.thanos.crosslinkHandler.CrosslinkModel = PsmAnnotationViewModel.DrawScanMatch(MainWindow.thanos.msDataScan, selePsm.MatchedIons, selePsm.BetaPeptideMatchedIons);
+
+            if (MainWindow.thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).Count() > 0)
+            {
+                MainWindow.thanos.msDataScan = MainWindow.thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
+                var selePsm = MainWindow.thanos.psms.Where(p => p.Ms2ScanNumber == sele.ScanNum).First();
+                MainWindow.thanos.crosslinkHandler.CrosslinkModel = PsmAnnotationViewModel.DrawScanMatch(MainWindow.thanos.msDataScan, selePsm.MatchedIons, selePsm.BetaPeptideMatchedIons);
+            }
         }
     }
 }
