@@ -91,7 +91,7 @@
                           Background="Silver"
                           Width="5"/>
         <TabControl x:Name="MyTab" Grid.Column="2">
-            <TabItem x:Name="TabDecon" Width="150" Height="30" Header="Deconvolution">
+            <!--<TabItem x:Name="TabDecon" Width="150" Height="30" Header="Deconvolution">
                 <uc:DeconvolutionWPF/>
             </TabItem>
             <TabItem x:Name="TabScanInfo" Width="150" Height="30" Header="Scan Info">
@@ -99,7 +99,7 @@
             </TabItem>
             <TabItem x:Name="TabGlycopeptides" Width="150" Height="30" Header="Glycopeptides">
                 <uc:GlycoWPF/>
-            </TabItem>
+            </TabItem>-->
             <TabItem x:Name="TabCrosslink" Header="Crosslink Validation">
                 <uc:CrosslinkWPF/>
             </TabItem>

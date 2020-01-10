@@ -122,7 +122,7 @@ namespace MetaDrawGUI
             var m2 = GlobalVariables.AllModsKnown.Where(p => p.IdWithMotif == "Oxidation on M").FirstOrDefault();
             allPossibleMods.Add("Oxidation[M]", m2);
 
-            var m3 = GlobalVariables.AllModsKnown.Where(p => p.IdWithMotif == "Acetylation" && p.ModificationType == "N-terminal.").FirstOrDefault();
+            var m3 = GlobalVariables.AllModsKnown.Where(p => p.IdWithMotif == "Acetylation on X" && p.LocationRestriction.Contains( "N-ter")).FirstOrDefault();
             allPossibleMods.Add("Acetyl[ProteinN-term]", m3);
 
             return allPossibleMods;
@@ -451,7 +451,7 @@ namespace MetaDrawGUI
 
             var pBaseSeq = spl[parsedHeader[PsmTsvHeader_pLink.BaseSequence]].Trim().Split('-','(',')');
             BaseSeq = pBaseSeq[0];
-            BetaPeptideBaseSequence = pBaseSeq[1];
+            BetaPeptideBaseSequence = pBaseSeq[3];
 
             Mod = spl[parsedHeader[PsmTsvHeader_pLink.PTMs]].Trim();
             string fullSeq;
