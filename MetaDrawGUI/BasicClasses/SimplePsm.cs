@@ -27,6 +27,8 @@ namespace MetaDrawGUI
             MatchedIons = psmFromTsv.MatchedIons;
             DecoyContamTarget = psmFromTsv.DecoyContamTarget;
             QValue = psmFromTsv.QValue;
+            PEP = psmFromTsv.PEP;
+            PEP_QValue = psmFromTsv.PEP_QValue;
 
             if (psmFromTsv.BetaPeptideBaseSequence!=null && psmFromTsv.BetaPeptideBaseSequence != "")
             {
@@ -79,6 +81,8 @@ namespace MetaDrawGUI
         public string FullSeq { get; set; }
         public string Mod { get; set; }
         public double QValue { get; set; }
+        public double PEP { get; set; }
+        public double PEP_QValue { get; set; }
         public string DecoyContamTarget { get; set; }
         public string ProteinName { get; set; }       
         public string ProteinAccess { get; set; }

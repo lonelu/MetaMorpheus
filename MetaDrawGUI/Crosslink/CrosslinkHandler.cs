@@ -112,6 +112,24 @@ namespace MetaDrawGUI.Crosslink
             output += "    Incorrect Crosslinks: " + incorrect_corsslink.ToString() + "\r";
             output += "    Valid Crosslinks Fdr: " + ((double)incorrect_corsslink / total_crosslink).ToString("0.0000") + "\r";
 
+            output += "\r";
+
+            var pep_psms_filtered = psms.Where(p => p.DecoyContamTarget == "T" && p.PEP_QValue <= fdr).ToArray();
+            var pep_total = pep_psms_filtered.Length;
+            var pep_incorrect = validateIncorrectCrosslinks(pep_psms_filtered, fdr).Count();
+
+            output += "    PEP_Total Csms: " + pep_total.ToString() + "\r";
+            output += "    PEP_Incorrect Csms: " + pep_incorrect.ToString() + "\r";
+            output += "    PEP_Valid Fdr: " + ((double)pep_incorrect / pep_total).ToString("0.0000") + "\r";
+
+            var pep_crosslinks = Csms2Crosslinks(pep_psms_filtered);
+            var pep_total_crosslink = pep_crosslinks.Count();
+            var pep_incorrect_corsslink = validateIncorrectCrosslinks(pep_crosslinks.ToArray(), fdr).Count;
+
+            output += "    PEP_Total Crosslinks: " + pep_total_crosslink.ToString() + "\r";
+            output += "    PEP_Incorrect Crosslinks: " + incorrect_corsslink.ToString() + "\r";
+            output += "    PEP_Valid Crosslinks Fdr: " + ((double)pep_incorrect_corsslink / pep_total_crosslink).ToString("0.0000") + "\r";
+
             return output;
         }
 
