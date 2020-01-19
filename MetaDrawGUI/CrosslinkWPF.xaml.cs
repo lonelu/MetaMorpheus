@@ -44,11 +44,7 @@ namespace MetaDrawGUI
                 MainWindow.thanos.crosslinkHandler.IncorrectCsmsCollection.Add(new SpectrumForDataGrid(ic.Ms2ScanNumber, 0, ic.PrecursorMass, ""));
             }
 
-            TbkCrosslinkValidateResult.Text = CrosslinkHandler.Out(MainWindow.thanos.simplePsms, Convert.ToDouble(TbCrosslinkFdrCutOff.Text));
-            if (MainWindow.thanos.simplePsms.GroupBy(p=>p.FileName).Count() > 1)
-            {
-                TbkCrosslinkValidateResult.Text += CrosslinkHandler.OutSplit(MainWindow.thanos.simplePsms, Convert.ToDouble(TbCrosslinkFdrCutOff.Text));
-            }           
+            TbkCrosslinkValidateResult.Text = CrosslinkHandler.ValidateOutput(MainWindow.thanos.simplePsms, Convert.ToDouble(TbCrosslinkFdrCutOff.Text));
         }
 
         private void CheckIfNumber(object sender, TextCompositionEventArgs e)

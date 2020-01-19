@@ -35,7 +35,12 @@
                 <TextBox x:Name="TbCrosslinkFdrCutOff" PreviewTextInput="CheckIfNumber" Text="0.01"/>
                 <Button x:Name="BtnValidate" Content="Validate" Click="BtnValidate_Click"/>
                 <Label Content="Result:"/>
-                <TextBlock x:Name="TbkCrosslinkValidateResult"/>
+                <Grid>
+                    <ScrollViewer Height="400" VerticalScrollBarVisibility="Auto">
+                        <TextBlock x:Name="TbkCrosslinkValidateResult" Width="Auto" TextWrapping="Wrap" />
+                    </ScrollViewer>
+                </Grid>
+                
             </StackPanel>
             <GridSplitter Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" Background="Silver" Height="3" />
             <GroupBox Header="Invalid CSMs" Name="gbInvalidCrosslink" Grid.Row="2">

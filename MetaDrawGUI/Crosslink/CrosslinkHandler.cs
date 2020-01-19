@@ -92,7 +92,26 @@ namespace MetaDrawGUI.Crosslink
             return crosslinks;
         }
 
-        public static string Out(List<SimplePsm> psms, double fdr)
+        public static string ValidateOutput(List<SimplePsm> psms, double fdr)
+        {
+            string output = Validate(psms, fdr);
+
+            if (psms.GroupBy(p => p.FileName).Count() > 1)
+            {
+                var groups = psms.GroupBy(p => p.FileName).ToList();
+
+                int index = 1;
+                foreach (var g in groups)
+                {
+                    output += "R" + index.ToString() + ": \r";
+                    output += Validate(g.ToList(), fdr);
+                    index++;
+                }
+            }
+            return output;
+        }
+
+        private static string Validate(List<SimplePsm> psms, double fdr)
         {
             string output = "";
 
@@ -127,42 +146,10 @@ namespace MetaDrawGUI.Crosslink
             var pep_incorrect_corsslink = validateIncorrectCrosslinks(pep_crosslinks.ToArray(), fdr).Count;
 
             output += "    PEP_Total Crosslinks: " + pep_total_crosslink.ToString() + "\r";
-            output += "    PEP_Incorrect Crosslinks: " + incorrect_corsslink.ToString() + "\r";
+            output += "    PEP_Incorrect Crosslinks: " + pep_incorrect_corsslink.ToString() + "\r";
             output += "    PEP_Valid Crosslinks Fdr: " + ((double)pep_incorrect_corsslink / pep_total_crosslink).ToString("0.0000") + "\r";
 
             return output;
         }
-
-        public static string OutSplit(List<SimplePsm> psms, double fdr)
-        {
-            string output = "";
-            var groups = psms.GroupBy(p => p.FileName).ToList();
-
-            int index = 1;
-            foreach (var g in groups)
-            {
-                var psms_filtered = g.Where(p =>p.DecoyContamTarget == "T" && p.QValue <= fdr).ToArray();
-                var total = psms_filtered.Length;
-                var incorrect = validateIncorrectCrosslinks(psms_filtered, fdr).Count();
-
-                output += "R" + index.ToString() +": \r";
-                output += "    Total Csms: " + total.ToString() + "\r";
-                output += "    Incorrect Csms: " + incorrect.ToString() + "\r";
-                output += "    Valid Fdr: " + ((double)incorrect / total).ToString("0.0000") + "\r";
-
-                var crosslinks = Csms2Crosslinks(psms_filtered);
-                var total_crosslink = crosslinks.Count();
-                var incorrect_corsslink = validateIncorrectCrosslinks(crosslinks.ToArray(), fdr).Count();
-
-                output += "    Total Crosslinks: " + total_crosslink.ToString() + "\r";
-                output += "    Incorrect Crosslinks: " + incorrect_corsslink.ToString() + "\r";
-                output += "    Valid Crosslinks Fdr: " + ((double)incorrect_corsslink / total_crosslink).ToString("0.0000") + "\r";
-
-                index++;
-            }
-
-            return output;
-        }
-
     }
 }
