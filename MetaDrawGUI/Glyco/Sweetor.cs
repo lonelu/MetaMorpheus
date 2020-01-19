@@ -100,8 +100,8 @@ namespace MetaDrawGUI
                 output.WriteLine("TotalMass\tGlycanNumber\tCompostion\tIds");
                 foreach (var c in OGlycanGroup)
                 {
-                    var ids = "[" +  string.Join(",", c.GlycanIds.Select(q => q.ToString())) + "]";
-                    output.WriteLine((double)c.Mass/100000.0 + "\t" + c.NumberOfGlycans + "\t" + c.Structure + "\t" + ids);
+                    var ids = "[" +  c.GlycanIdString + "]";
+                    output.WriteLine((double)c.Mass/100000.0 + "\t" + c.NumberOfMods + "\t" + c.Structure + "\t" + ids);
                 }
             }
         }
@@ -373,9 +373,9 @@ namespace MetaDrawGUI
                 MsFeature[] msFeatures = new MsFeature[scans.Length];
                 for (int i = 0; i < scans.Length; i++)
                 {
-                    var oxi = EngineLayer.GlycoSearch.GlycoPeptides.ScanGetOxoniumIons(scans[i], massDiffAcceptor_oxiniumIons);
+                    var oxi = EngineLayer.GlycoSearch.GlycoPeptides.ScanOxoniumIonFilter(scans[i], massDiffAcceptor_oxiniumIons, MassSpectrometry.DissociationType.HCD);
                     msFeatures[i] = new MsFeature(i, scans[i].PrecursorMass, scans[i].TotalIonCurrent, scans[i].RetentionTime);
-                    msFeatures[i].ContainOxiniumIon = EngineLayer.GlycoSearch.GlycoPeptides.OxoniumIonsAnalysis(oxi);
+                    msFeatures[i].ContainOxiniumIon = EngineLayer.GlycoSearch.GlycoPeptides.OxoniumIonsAnalysis(oxi, GlycanBox.OGlycanBoxes.First());
                 }
 
                 var glycoFamily = GetGlycoFamilies(msFeatures);

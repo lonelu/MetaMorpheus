@@ -145,7 +145,7 @@ namespace MetaDrawGUI
 
         private void BtnLoadGlycans_Click(object sender, RoutedEventArgs e)
         {
-            MainWindow.thanos.sweetor.NGlycans = Glycan.LoadGlycan(GlobalVariables.NGlycanLocation).ToList();
+            MainWindow.thanos.sweetor.NGlycans = GlycanDatabase.LoadGlycan(GlobalVariables.GlycanLocations.First()).ToList();
             foreach (var glycan in MainWindow.thanos.sweetor.NGlycans)
             {
                 MainWindow.thanos.sweetor.glycanDatabaseCollection.Add(new GlycanDatabaseForDataGrid(glycan.GlyId, Glycan.GetKindString(glycan.Kind), glycan.Struc));
