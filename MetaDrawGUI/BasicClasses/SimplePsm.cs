@@ -37,6 +37,13 @@ namespace MetaDrawGUI
                 BetaPeptideMatchedIons = psmFromTsv.BetaPeptideMatchedIons;
                 BetaProteinAccess = psmFromTsv.BetaPeptideProteinAccession;
             }
+
+            if (psmFromTsv.GlycanMass.HasValue)
+            {
+                glycanMass = psmFromTsv.GlycanMass.Value;
+                glycanComposition = psmFromTsv.GlycanComposition;
+                GlycanStructure = psmFromTsv.GlycanStructure;
+            }
         }
 
         public SimplePsm(string line, char[] split, Dictionary<string, int> parsedHeader, TsvType tsvType)
@@ -104,7 +111,7 @@ namespace MetaDrawGUI
         private string GlycanStructure { get; set; }
         public byte[] glycanKind { get; set; }
         public int glycanAGNumber { get; set; }
-        public string glycanString { get; set; }
+        public string glycanComposition { get; set; }
         public Glycan glycan { get; set; }
 
         //pTOP
@@ -217,7 +224,7 @@ namespace MetaDrawGUI
 
             glycanKind = Glycan.GetKindFromKindString(spl[parsedHeader[PsmTsvHeader_pGlyco.GlycanKind]]);
             glycanAGNumber = glycanKind[2] + glycanKind[3];
-            glycanString = Glycan.GetKindString(glycanKind);
+            glycanComposition = Glycan.GetKindString(glycanKind);
             glycanMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.GlycanMass]]);
            
             MonoisotopicMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.PeptideMH]]) + glycanMass - 1.0073;
@@ -391,7 +398,7 @@ namespace MetaDrawGUI
 
             glycanKind = Glycan.GetKindFromByonic(spl[parsedHeader[PsmTsvHeader_Byonic.GlycanKind]]);
             glycanAGNumber = glycanKind[2] + glycanKind[3];
-            glycanString = Glycan.GetKindString(glycanKind);
+            glycanComposition = Glycan.GetKindString(glycanKind);
             glycanMass = Glycan.GetMass(glycanKind);
             PeptideMassNoGlycan = MonoisotopicMass - glycanMass/1E5;
 

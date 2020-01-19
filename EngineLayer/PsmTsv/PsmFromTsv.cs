@@ -156,7 +156,6 @@ namespace EngineLayer
             }
 
             //For Glyco
-            GlycanIDs = (parsedHeader[PsmTsvHeader_Glyco.GlycanIDs] < 0) ? null : spl[parsedHeader[PsmTsvHeader_Glyco.GlycanIDs]];
             GlycanStructure = (parsedHeader[PsmTsvHeader_Glyco.GlycanStructure] < 0) ? null : spl[parsedHeader[PsmTsvHeader_Glyco.GlycanStructure]];
             GlycanMass = (parsedHeader[PsmTsvHeader_Glyco.GlycanMass] < 0) ? null : (double?)double.Parse(spl[parsedHeader[PsmTsvHeader_Glyco.GlycanMass]]);
             GlycanComposition = (parsedHeader[PsmTsvHeader_Glyco.GlycanComposition] < 0) ? null : spl[parsedHeader[PsmTsvHeader_Glyco.GlycanComposition]];
