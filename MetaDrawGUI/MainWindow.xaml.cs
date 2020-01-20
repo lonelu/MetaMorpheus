@@ -435,18 +435,8 @@ namespace MetaDrawGUI
                 case Skill.merge_boxcarScan:
                     action = thanos.MergeBoxCarScan;
                     break;
-
-                case Skill.sweet_pGlcoResult:
-                    action = thanos.WritePGlycoResult;
-                    break;
-                case Skill.plot_glycoFamilcy:
-                    action = thanos.PlotGlycoFamily;
-                    break;
                 case Skill.account_ScanInfo:
                     action = thanos.ExtractScanInfo;
-                    break;
-                case Skill.sweetor_glycoFamily:
-                    action = thanos.BuildGlycoFamily;
                     break;
                 case Skill.account_ExtractPrecursorInfo:
                     action = thanos.ExtractPrecursorInfo;

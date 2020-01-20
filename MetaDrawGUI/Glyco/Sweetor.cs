@@ -87,9 +87,23 @@ namespace MetaDrawGUI
             }
         }
 
+        public Thanos _thanos { get; set; }
+
         public List<Glycan> NGlycans { get; set; }
 
         public GlycanBox[] OGlycanGroup { get; set; }
+
+        public IOrderedEnumerable<IGrouping<string, SimplePsm>> Psms_byId
+        {
+            get
+            {
+                return GetFamilySimplePsm();
+            }
+        }
+
+        public int GlycoFamilyIndex { get; set; }
+
+        public List<HashSet<MsFeature>> familyFeatures = new List<HashSet<MsFeature>>();
 
         //Write O-Glycan Group info.
         public void WriteOGlycanGroupResult(string filepath)
@@ -117,9 +131,41 @@ namespace MetaDrawGUI
             }
         }
 
+        public IOrderedEnumerable<IGrouping<string, SimplePsm>> GetFamilySimplePsm()
+        {
+            foreach (var psm in _thanos.simplePsms)
+            {
+                psm.iD = psm.BaseSeq + "_" + psm.PeptideMassNoGlycan.ToString("0.0");
+            }
+
+            var psms_byId = _thanos.simplePsms.Where(p => p.QValue < 0.01 && p.DecoyContamTarget == "T").GroupBy(p => p.iD).OrderByDescending(p => p.Count());
+
+            return psms_byId;
+        }
+
+        public void PlotAllGlycoFamily()
+        {
+            _thanos.PsmAnnoModel = _thanos.sweetor.PlotGlycoRT(_thanos.simplePsms.Where(p => p.QValue < 0.01 && p.DecoyContamTarget == "T").ToList());
+        }
+
+        public void PlotGlycoFamily()
+        {
+            if (GlycoFamilyIndex >= Psms_byId.Count())
+            {
+                GlycoFamilyIndex = 0;
+            }
+            else
+            {
+                _thanos.PsmAnnoModel = _thanos.sweetor.PlotGlycoRT(Psms_byId.ElementAt(GlycoFamilyIndex).ToList());
+                GlycoFamilyIndex++;
+            }
+        }
+
         //To plot identified glycopeptide family mass vs retention time
         public PlotModel PlotGlycoRT(List<SimplePsm> simplePsms)
         {
+            //simplePsms = simplePsms.Where(p => p.BaseSeq == "GLFIPFSVSSVTHK").ToList();
+
             if (simplePsms.Count <= 0)
             {
                 var reportModel = new PlotModel { Title = "Glycopeptide family", Subtitle = "no psms" };
@@ -129,13 +175,6 @@ namespace MetaDrawGUI
             OxyColor[] oxyColors = new OxyColor[15] { OxyColor.Parse("#F8766D"), OxyColor.Parse("#E58700"), OxyColor.Parse("#C99800"), OxyColor.Parse("#A3A500"),
                 OxyColor.Parse("#6BB100"),OxyColor.Parse("#00BA38"), OxyColor.Parse("#00BF7D"), OxyColor.Parse("#00C0AF"), OxyColor.Parse("#00BCD8"), OxyColor.Parse("#00B0F6"),
                 OxyColor.Parse("#619CFF"), OxyColor.Parse("#B983FF"), OxyColor.Parse("#E76BF3"), OxyColor.Parse("#FD61D1"), OxyColor.Parse("#FF67A4")};
-
-            foreach (var psm in simplePsms)
-            {
-                psm.iD = psm.BaseSeq + "_" + psm.PeptideMassNoGlycan.ToString("0.0");
-            }
-
-            var psms_byId = simplePsms.GroupBy(p=>p.iD);
 
             var largestRT = simplePsms.Max(p => p.RT) * 1.2;
             var leastMass = simplePsms.Min(p => p.MonoisotopicMass) * 0.8;
@@ -163,43 +202,42 @@ namespace MetaDrawGUI
                 AbsoluteMaximum = largestMass
             });
 
+            foreach (var psm in simplePsms)
+            {
+                psm.iD = psm.BaseSeq + "_" + psm.PeptideMassNoGlycan.ToString("0.0");
+            }
+
+            var psms_byId = simplePsms.GroupBy(p => p.iD);
+
             Random rand = new Random();
             foreach (var id_psms in psms_byId)
             {
+                List<DataPoint> dataPoints = new List<DataPoint>();
+                int colorId = rand.Next(0, 14);
 
-                var psms_byAG = id_psms.GroupBy(p=>p.glycanAGNumber);
-
-                foreach (var ag_psms in psms_byAG)
+                foreach (var psm in id_psms.OrderBy(p => p.GlycanAGNumber).ThenBy(p => p.MonoisotopicMass))
                 {
-                    List<DataPoint> dataPoints = new List<DataPoint>();
-                    int colorId = rand.Next(0, 14);
+                    dataPoints.Add(new DataPoint(psm.RT, psm.MonoisotopicMass));
 
-                    foreach (var psm in ag_psms.OrderBy(p => p.MonoisotopicMass))
-                    {
-                        dataPoints.Add(new DataPoint(psm.RT, psm.MonoisotopicMass));
-
-                        //var peakAnnotation = new TextAnnotation();
-                        //peakAnnotation.Font = "Arial";
-                        //peakAnnotation.FontSize = 8;
-                        //peakAnnotation.FontWeight = 1.5;
-                        //peakAnnotation.TextColor = oxyColors[colorId];
-                        //peakAnnotation.StrokeThickness = 0;
-                        //peakAnnotation.Text = ag_psms.First().glycanString;
-                        //peakAnnotation.TextPosition = new DataPoint(psm.RT, psm.MonoisotopicMass);
-                        //peakAnnotation.TextHorizontalAlignment = HorizontalAlignment.Left;
-                        //model.Annotations.Add(peakAnnotation);
-                    }
-
-                    var line = new LineSeries();
-                    line.Color = oxyColors[colorId];
-                    line.MarkerType = MarkerType.Circle;
-                    line.MarkerFill = oxyColors[colorId];
-                    line.StrokeThickness = 1.5;
-                    line.Points.AddRange(dataPoints);
-                    model.Series.Add(line);
-
-                    
+                    var peakAnnotation = new TextAnnotation();
+                    peakAnnotation.Font = "Arial";
+                    peakAnnotation.FontSize = 8;
+                    peakAnnotation.FontWeight = 1.5;
+                    peakAnnotation.TextColor = oxyColors[colorId];
+                    peakAnnotation.StrokeThickness = 0;
+                    peakAnnotation.Text = psm.GlycanComposition;
+                    peakAnnotation.TextPosition = new DataPoint(psm.RT, psm.MonoisotopicMass);
+                    peakAnnotation.TextHorizontalAlignment = HorizontalAlignment.Left;
+                    model.Annotations.Add(peakAnnotation);
                 }
+
+                var line = new LineSeries();
+                line.Color = oxyColors[colorId];
+                line.MarkerType = MarkerType.Circle;
+                line.MarkerFill = oxyColors[colorId];
+                line.StrokeThickness = 1.5;
+                line.Points.AddRange(dataPoints);
+                model.Series.Add(line);
             }
 
             return model;
@@ -220,7 +258,7 @@ namespace MetaDrawGUI
             foreach (var id_psms in psms_byId)
             {
 
-                var psms_byAG = id_psms.GroupBy(p => p.glycanAGNumber);
+                var psms_byAG = id_psms.GroupBy(p => p.GlycanAGNumber);
 
                 foreach (var ag_psms in psms_byAG)
                 {

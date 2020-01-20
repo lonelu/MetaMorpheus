@@ -188,5 +188,25 @@ namespace MetaDrawGUI
         }
 
         #endregion
+
+        private void BtnPlotGlycoFamily_Click(object sender, RoutedEventArgs e)
+        {           
+            MainWindow.thanos.sweetor.PlotGlycoFamily();
+        }
+
+        private void BtnBuildGlycoFamily_Click(object sender, RoutedEventArgs e)
+        {
+
+            MainWindow.thanos.sweetor.familyFeatures = Sweetor.GetGlycoFamilies(MainWindow.thanos.msFeatures.ToArray());
+            MainWindow.thanos.PsmAnnoModel = GlycoViewModel.PlotGlycoFamily(MainWindow.thanos.sweetor.familyFeatures);
+            
+        }
+
+        private void BtnWrite_pGlycoResult_Click(object sender, RoutedEventArgs e)
+        {
+
+            MainWindow.thanos.sweetor.WritePGlycoResult(MainWindow.thanos.ResultFilePaths, MainWindow.thanos.simplePsms);
+            
+        }
     }
 }
