@@ -19,7 +19,9 @@ namespace MetaDrawGUI
         {
             FileName = psmFromTsv.Filename;
             Ms2ScanNumber = psmFromTsv.Ms2ScanNumber;
+            RT = psmFromTsv.RetentionTime??0;
             PrecursorMass = psmFromTsv.PrecursorMass;
+            MonoisotopicMass = Double.Parse(psmFromTsv.PeptideMonoMass);
             ChargeState = psmFromTsv.PrecursorCharge;
             BaseSeq = psmFromTsv.BaseSeq;
             FullSeq = psmFromTsv.FullSequence;
@@ -36,6 +38,16 @@ namespace MetaDrawGUI
                 BetaPeptideFullSequence = psmFromTsv.BetaPeptideFullSequence;
                 BetaPeptideMatchedIons = psmFromTsv.BetaPeptideMatchedIons;
                 BetaProteinAccess = psmFromTsv.BetaPeptideProteinAccession;
+            }
+
+            if (psmFromTsv.GlycanMass.HasValue)
+            {            
+                GlycanMass = psmFromTsv.GlycanMass.Value;
+                GlycanComposition = psmFromTsv.GlycanComposition;
+                GlycanStructure = psmFromTsv.GlycanStructure;
+
+                GlycanKind = Glycan.GetKind(GlycanStructure);
+                GlycanAGNumber = GlycanKind[2] + GlycanKind[3];
             }
         }
 
@@ -99,12 +111,18 @@ namespace MetaDrawGUI
 
         //Glycopeptide
         public string iD { get; set; }
-        public double PeptideMassNoGlycan { get; set; }
-        public double glycanMass { get; set; }
+        public double PeptideMassNoGlycan
+        {
+            get
+            {
+                return MonoisotopicMass - GlycanMass;
+            }
+        }
+        public double GlycanMass { get; set; }
         private string GlycanStructure { get; set; }
-        public byte[] glycanKind { get; set; }
-        public int glycanAGNumber { get; set; }
-        public string glycanString { get; set; }
+        public byte[] GlycanKind { get; set; }
+        public int GlycanAGNumber { get; set; }
+        public string GlycanComposition { get; set; }
         public Glycan glycan { get; set; }
 
         //pTOP
@@ -198,6 +216,17 @@ namespace MetaDrawGUI
             return modification;
         }
 
+        public static byte[] GetKindFromKindString(string kindString)
+        {
+            var kind = new byte[5];
+            var kinds = kindString.Split(' ');
+            for (int i = 0; i < 5; i++)
+            {
+                kind[i] = byte.Parse(kinds[i]);
+            }
+            return kind;
+        }
+
         private void generateSimplePsm_pGlyco(string line, char[] split, Dictionary<string, int> parsedHeader)
         {
             var spl = line.Split(split);
@@ -215,13 +244,12 @@ namespace MetaDrawGUI
                 glycan = Glycan.Struct2Glycan(GlycanStructure, 0);
             }
 
-            glycanKind = Glycan.GetKindFromKindString(spl[parsedHeader[PsmTsvHeader_pGlyco.GlycanKind]]);
-            glycanAGNumber = glycanKind[2] + glycanKind[3];
-            glycanString = Glycan.GetKindString(glycanKind);
-            glycanMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.GlycanMass]]);
+            GlycanKind = GetKindFromKindString(spl[parsedHeader[PsmTsvHeader_pGlyco.GlycanKind]]);
+            GlycanAGNumber = GlycanKind[2] + GlycanKind[3];
+            GlycanComposition = Glycan.GetKindString(GlycanKind);
+            GlycanMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.GlycanMass]]);
            
-            MonoisotopicMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.PeptideMH]]) + glycanMass - 1.0073;
-            PeptideMassNoGlycan = MonoisotopicMass - glycanMass;
+            MonoisotopicMass = double.Parse(spl[parsedHeader[PsmTsvHeader_pGlyco.PeptideMH]]) + GlycanMass - 1.0073;
             var pBaseSeq = spl[parsedHeader[PsmTsvHeader_pGlyco.BaseSequence]].Trim();
             StringBuilder sb = new StringBuilder(pBaseSeq);
             sb[pBaseSeq.IndexOf('J')] = 'N';
@@ -336,6 +364,12 @@ namespace MetaDrawGUI
             return kind;
         }
 
+        public static Glycan Kind2Glycan(byte[] kind)
+        {
+            Glycan glycan = new Glycan(null, Glycan.GetMass(kind), kind, null, false);
+            return glycan;
+        }
+
         private void generateSimplePsm_GlycReSoft(string line, char[] split, Dictionary<string, int> parsedHeader)
         {
             var spl = line.Split(split);
@@ -349,8 +383,8 @@ namespace MetaDrawGUI
             double massAccuracy = double.Parse(spl[parsedHeader[PsmTsvHeader_GlycReSoft.mass_accuracy]]);
             PrecursorMass = MonoisotopicMass - massAccuracy;
             BaseSeq = GetBaseSeq_GlycReSoft(spl[parsedHeader[PsmTsvHeader_GlycReSoft.glycopeptide]]);
-            glycanKind = GetGlycan_GlycReSoft(spl[parsedHeader[PsmTsvHeader_GlycReSoft.glycopeptide]]);
-            glycan = Glycan.Kind2Glycan(glycanKind);
+            GlycanKind = GetGlycan_GlycReSoft(spl[parsedHeader[PsmTsvHeader_GlycReSoft.glycopeptide]]);
+            glycan = Kind2Glycan(GlycanKind);
             Mod = spl[parsedHeader[PsmTsvHeader_GlycReSoft.mass_shift_name]];  //TO DO: Mod is not converted to MetaMorpheus mod.
             Modification modification = GlycanToModificationWithNoMass(glycan);
             Dictionary<int, Modification> testMods = new Dictionary<int, Modification>();
@@ -380,6 +414,55 @@ namespace MetaDrawGUI
 
         #region Byonic
 
+        public static byte[] GetKindFromByonic(string line)
+        {
+            //byte[] kind = new byte[10] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+            byte[] kind = new byte[5] { 0, 0, 0, 0, 0 };
+            var x = line.Split('(', ')');
+            int i = 0;
+            while (i < x.Length - 1)
+            {
+                switch (x[i])
+                {
+                    case "Hex":
+                        kind[0] = byte.Parse(x[i + 1]);
+                        break;
+                    case "HexNAc":
+                        kind[1] = byte.Parse(x[i + 1]);
+                        break;
+                    case "NeuAc":
+                        kind[2] = byte.Parse(x[i + 1]);
+                        break;
+                    case "NeuGc":
+                        kind[3] = byte.Parse(x[i + 1]);
+                        break;
+                    case "Fuc":
+                        kind[4] = byte.Parse(x[i + 1]);
+                        break;
+                    //case "Xyl":
+                    //    kind[5] = byte.Parse(x[i + 1]);
+                    //    break;
+                    //case "KND":
+                    //    kind[6] = byte.Parse(x[i + 1]);
+                    //    break;
+                    //case "Phosphate":
+                    //    kind[7] = byte.Parse(x[i + 1]);
+                    //    break;
+                    //case "Sulfate":
+                    //    kind[8] = byte.Parse(x[i + 1]);
+                    //    break;
+                    //case "HexA":
+                    //    kind[9] = byte.Parse(x[i + 1]);
+                    //    break;
+                    default:
+                        break;
+                }
+                i = i + 2;
+            }
+            return kind;
+        }
+
         private void generateSimplePsm_Byonic(string line, char[] split, Dictionary<string, int> parsedHeader)
         {
             var spl = line.Split(split);
@@ -389,11 +472,10 @@ namespace MetaDrawGUI
             RT = double.Parse(spl[parsedHeader[PsmTsvHeader_Byonic.Ms2ScanRetentionTime]]);
             MonoisotopicMass = double.Parse(spl[parsedHeader[PsmTsvHeader_Byonic.PrecursorMH]]) - 1.0073;
 
-            glycanKind = Glycan.GetKindFromByonic(spl[parsedHeader[PsmTsvHeader_Byonic.GlycanKind]]);
-            glycanAGNumber = glycanKind[2] + glycanKind[3];
-            glycanString = Glycan.GetKindString(glycanKind);
-            glycanMass = Glycan.GetMass(glycanKind);
-            PeptideMassNoGlycan = MonoisotopicMass - glycanMass/1E5;
+            GlycanKind = GetKindFromByonic(spl[parsedHeader[PsmTsvHeader_Byonic.GlycanKind]]);
+            GlycanAGNumber = GlycanKind[2] + GlycanKind[3];
+            GlycanComposition = Glycan.GetKindString(GlycanKind);
+            GlycanMass = (double)Glycan.GetMass(GlycanKind)/1E5;
 
             BaseSeq = spl[parsedHeader[PsmTsvHeader_Byonic.BaseSequence]];
             Mod = spl[parsedHeader[PsmTsvHeader_Byonic.Mods]];

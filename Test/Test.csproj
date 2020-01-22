@@ -54,6 +54,9 @@
     <None Update="GlycoTestData\11901_AIETD.mgf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="GlycoTestData\2019_09_16_StcEmix_35trig_EThcD25_rep1_4565.mgf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="GlycoTestData\ComboGlycanDatabase.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -61,6 +64,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="GlycoTestData\Glyco_3383.mgf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="GlycoTestData\id_08-24-19_AC-P_patient146_0p12mg_0p9uL-calib_20086.mgf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="GlycoTestData\Q9C0Y4.fasta">

@@ -17,16 +17,18 @@ namespace EngineLayer.GlycoSearch
         }
 
         public double TotalScore { get; set; } //peptide + glycan psmCross
-        public int Rank { get; set; } //only contain 2 intger, consider change to Tuple
-
+        public int Rank { get; set; } 
         public Dictionary<int, List<MatchedFragmentIon>> ChildMatchedFragmentIons { get; set; }
         //Glyco properties
-        public List<Glycan> Glycan { get; set; }
-        public List<GlycanBox> glycanBoxes { get; set; }
-        public List<int[]> localizations { get; set; }
+        public List<Glycan> NGlycan { get; set; }
+        public List<int> NGlycanLocalizations { get; set; }
+
+        public List<Tuple<int, Tuple<int, int>[]>> OGlycanBoxLocalization;
+
         public double PeptideScore { get; set; }
         public double GlycanScore { get; set; }
         public double DiagnosticIonScore { get; set; }
+        public double R138vs144 { get; set; }
 
         //Motif should be writen with required form
         public static List<int> GetPossibleModSites(PeptideWithSetModifications peptide, string[] motifs)
@@ -93,6 +95,7 @@ namespace EngineLayer.GlycoSearch
             sb.Append("Start and End Residues In Protein" + '\t');
             sb.Append("Base Sequence" + '\t');
             sb.Append("Full Sequence" + '\t');
+            sb.Append("Number of Mods" + '\t');
             sb.Append("Peptide Monoisotopic Mass" + '\t');
             sb.Append("Score" + '\t');
             sb.Append("Rank" + '\t');
@@ -126,6 +129,7 @@ namespace EngineLayer.GlycoSearch
             sb.Append("Start and End Residues In Protein" + '\t');
             sb.Append("Base Sequence" + '\t');
             sb.Append("Full Sequence" + '\t');
+            sb.Append("Number of Mods" + '\t');
             sb.Append("Peptide Monoisotopic Mass" + '\t');
             sb.Append("Score" + '\t');
             sb.Append("Rank" + '\t');
@@ -139,17 +143,20 @@ namespace EngineLayer.GlycoSearch
 
             sb.Append("Decoy/Contaminant/Target" + '\t');
             sb.Append("QValue" + '\t');
+            sb.Append("PEP" + '\t');
+            sb.Append("PEP_QValue" + '\t');
 
             sb.Append("Total Score" + '\t');
             //sb.Append("Peptide Score" + '\t');
             //sb.Append("Glycan Score" + '\t');
             //sb.Append("DiagonosticIon Score" + '\t');
             sb.Append("GlycanMass" + '\t');
-            sb.Append("GlycanStructure" + '\t');
+            //sb.Append("GlycanDecoy" + '\t');   
+            sb.Append("Plausible GlycanComposition" + '\t');
+            sb.Append("R138/144" + '\t');
+            sb.Append("Plausible GlycanStructure" + '\t');                       
             sb.Append("GlycanLocalization" + '\t');
-            //sb.Append("GlycanIDs" + '\t');
-            sb.Append("GlycanDecoy" + '\t');         
-            sb.Append("GlycanComposition(H,N,A,G,F)" + '\t');
+            sb.Append("GlycanLocalizationLevel" + '\t');
             return sb.ToString();
         }
 
@@ -170,6 +177,7 @@ namespace EngineLayer.GlycoSearch
 
             sb.Append(BaseSequence + "\t");
             sb.Append(FullSequence + "\t");
+            sb.Append(BestMatchingPeptides.First().Peptide.AllModsOneIsNterminus.Count + "\t");
 
             sb.Append((PeptideMonisotopicMass.HasValue ? PeptideMonisotopicMass.Value.ToString() : "---")); sb.Append("\t");
             sb.Append(Score + "\t");
@@ -215,40 +223,47 @@ namespace EngineLayer.GlycoSearch
 
 
             sb.Append(FdrInfo.QValue.ToString() + "\t");
-
-            if (Glycan != null)
+            sb.Append("0" + "\t");
+            sb.Append("0" + "\t");
+            if (NGlycan != null)
             {
                 sb.Append(TotalScore + "\t");             
                 sb.Append(PeptideScore + "\t");
                 sb.Append(GlycanScore + "\t");
                 sb.Append(DiagnosticIonScore + "\t");
-                sb.Append(string.Join("|", Glycan.Select(p => p.GlyId.ToString()).ToArray())); sb.Append("\t");
-                sb.Append(Glycan.First().Decoy? "D": "T"); sb.Append("\t");
-                sb.Append(Glycan.First().Struc); sb.Append("\t");
-                sb.Append((double)Glycan.First().Mass/1E5); sb.Append("\t");
-                sb.Append(string.Join(" ", Glycan.First().Kind.Select(p => p.ToString()).ToArray())); sb.Append("\t");
+                sb.Append(string.Join("|", NGlycan.Select(p => p.GlyId.ToString()).ToArray())); sb.Append("\t");
+                sb.Append(NGlycan.First().Decoy? "D": "T"); sb.Append("\t");
+                sb.Append(NGlycan.First().Struc); sb.Append("\t");
+                sb.Append((double)NGlycan.First().Mass/1E5); sb.Append("\t");
+                sb.Append(string.Join(" ", NGlycan.First().Kind.Select(p => p.ToString()).ToArray())); sb.Append("\t");
             }
 
-            if (glycanBoxes != null)
+            if (OGlycanBoxLocalization != null)
             {
                 sb.Append(TotalScore + "\t");
 
-                sb.Append((double)glycanBoxes.First().Mass / 1E5); sb.Append("\t");
+                var glycanBox = GlycanBox.OGlycanBoxes[OGlycanBoxLocalization.First().Item1];
+
+                sb.Append(glycanBox.Mass); sb.Append("\t");
+
+                //sb.Append( "T" + '\t');  
+
+                sb.Append(Glycan.GetKindString(glycanBox.Kind)); sb.Append("\t");
+
+                sb.Append(R138vs144.ToString()); sb.Append("\t");
+
                 //Get glycans
-                var glycans = new Glycan[glycanBoxes.First().NumberOfGlycans];
-                for (int i = 0; i < glycanBoxes.First().NumberOfGlycans; i++)
+                var glycans = new Glycan[glycanBox.NumberOfMods];
+                for (int i = 0; i < glycanBox.NumberOfMods; i++)
                 {
-                    glycans[i] = GlycanBox.GlobalOGlycans[glycanBoxes.First().GlycanIds[i]];
+                    glycans[i] = GlycanBox.GlobalOGlycans[glycanBox.ModIds[i]];
                 }
                 sb.Append(string.Join(",", glycans.Select(p => p.Struc.ToString()).ToArray())); sb.Append("\t");
+                                 
+                string localizationLevel;
+                sb.Append(localizationInfo(OGlycanBoxLocalization, out localizationLevel)); sb.Append("\t");
 
-                sb.Append(string.Join("|", localizations.Select(p=> "[" + string.Join(",", p.Select(q =>  q.ToString())) + "]"))); sb.Append("\t");
-
-                //sb.Append(string.Join("|", glycanBoxes.First().GlycanIds.Select(p => p.ToString()).ToArray())); sb.Append("\t");
-
-                sb.Append( "T" + '\t');         
-     
-                sb.Append(string.Join("|", glycanBoxes.First().Kind.Select(p=>p.ToString()))); sb.Append("\t");
+                sb.Append(localizationLevel); sb.Append("\t");
             }
 
             return sb.ToString();
@@ -259,6 +274,98 @@ namespace EngineLayer.GlycoSearch
             Dictionary<string, string> s = new Dictionary<string, string>();
             PsmTsvWriter.AddMatchedIonsData(s, matchedFragmentIons);
             return s;
+        }
+
+        public static string localizationInfo(List<Tuple<int, Tuple<int, int>[]>> OGlycanBoxLocalization, out string localizationLevel)
+        {
+            HashSet<int> allGlycanIds = new HashSet<int>(OGlycanBoxLocalization.Select(p=>p.Item2).SelectMany(p => p.Select(q => q.Item2)));
+
+            Dictionary<int, int> seenGlycanIds = new Dictionary<int, int>();
+
+            HashSet<int> seenGlycanBoxIds = new HashSet<int>(OGlycanBoxLocalization.Select(p=>p.Item1));
+
+            //Dictionary<string, int>: mod-id, count
+            Dictionary<string, int> seenModSite = new Dictionary<string, int>();
+            foreach (var ogl in OGlycanBoxLocalization)
+            {
+                foreach (var og in ogl.Item2)
+                {
+                    var k = og.Item1.ToString() + "-" + og.Item2.ToString();
+                    if (seenModSite.ContainsKey(k))
+                    {
+                        seenModSite[k] += 1;
+                    }
+                    else
+                    {
+                        seenModSite.Add(k, 1);
+                    }
+
+                    if (seenGlycanIds.ContainsKey(og.Item2))
+                    {
+                        seenGlycanIds[og.Item2] += 1;                   
+                    }
+                    else
+                    {
+                        seenGlycanIds.Add(og.Item2, 1);
+                    }
+                }
+            }
+
+            localizationLevel = "Level5";
+            if (OGlycanBoxLocalization.Count == 1)
+            {
+                localizationLevel = "Level1";
+            }
+            else if (OGlycanBoxLocalization.Count > 1 && seenGlycanBoxIds.Count == 1)
+            {
+                if (seenModSite.Values.Where(p=>p == OGlycanBoxLocalization.Count).Count() > 0)
+                {
+                    localizationLevel = "Level2";
+                }
+                else
+                {
+                    localizationLevel = "Level3a";
+                }              
+            }
+            else if (OGlycanBoxLocalization.Count > 1 && seenGlycanBoxIds.Count > 1)
+            {
+                if (seenModSite.Values.Where(p => p == OGlycanBoxLocalization.Count).Count() > 0)
+                {
+                    localizationLevel = "Level3b";
+                }
+
+                if (seenGlycanIds.Values.Where(p=>p== OGlycanBoxLocalization.Count).Count() >0)
+                {
+                    localizationLevel = "Level4";
+                }
+
+            }
+
+
+            string local = "";
+            //Some GSP have a lot paths, in which case only output first 10 paths and the total number of the paths.
+            int maxOutputPath = 10;
+            if (OGlycanBoxLocalization.Count <= maxOutputPath)
+            {
+                maxOutputPath = OGlycanBoxLocalization.Count;
+            }
+
+            int i = 0;
+            while (i<maxOutputPath)
+            {
+                var ogl = OGlycanBoxLocalization[i];
+                local += "{@" + ogl.Item1.ToString() + "[";
+                var g = string.Join(",", ogl.Item2.Select(p => p.Item1.ToString() + "-" + p.Item2.ToString()));
+                local += g + "]}";
+                i++;
+            }
+
+            if (OGlycanBoxLocalization.Count > maxOutputPath)
+            {
+                local += "... In Total:" + OGlycanBoxLocalization.Count.ToString() + " Paths";
+            }
+
+            return local;
         }
     }
 }

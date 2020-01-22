@@ -21,13 +21,16 @@ namespace TaskLayer
             //Default parameter setting which is different from SearchTask, can be overwriten
             var digestPara = new DigestionParams(
                 minPeptideLength: 5,
-                maxPeptideLength: 40
+                maxPeptideLength: 60
 
             );
             CommonParameters = new CommonParameters(
                 precursorMassTolerance: new PpmTolerance(10),
+                childScanDissociationType: DissociationType.EThcD,
                 scoreCutoff: 3,
-                trimMsMsPeaks: false,
+                trimMsMsPeaks: false, 
+                numberOfPeaksToKeepPerWindow: 1000,
+                minimumAllowedIntensityRatioToBasePeak: 0.01,
                 digestionParams: digestPara            
                 
             );
@@ -90,8 +93,8 @@ namespace TaskLayer
                 Status("Getting ms2 scans...", thisId);
 
                 Ms2ScanWithSpecificMass[] arrayOfMs2ScansSortedByMass = GetMs2Scans(myMsDataFile, origDataFile, combinedParams).OrderBy(b => b.PrecursorMass).ToArray();
-
                 List<GlycoSpectralMatch>[] newCsmsPerMS2ScanPerFile = new List<GlycoSpectralMatch>[arrayOfMs2ScansSortedByMass.Length];
+
                 for (int currentPartition = 0; currentPartition < CommonParameters.TotalPartitions; currentPartition++)
                 {
                     List<PeptideWithSetModifications> peptideIndex = null;
@@ -101,7 +104,7 @@ namespace TaskLayer
 
                     Status("Getting fragment dictionary...", new List<string> { taskId });
 
-                    //Only reverse Decoy for crosslink search has been tested and are set as fixed parameter.
+                    //Only reverse Decoy for glyco search has been tested and are set as fixed parameter.
                     var indexEngine = new IndexingEngine(proteinListSubset, variableModifications, fixedModifications, null, null, null, currentPartition, UsefulProteomicsDatabases.DecoyType.Reverse, combinedParams, 30000.0, false, dbFilenameList.Select(p => new FileInfo(p.FilePath)).ToList(), new List<string> { taskId });
                     List<int>[] fragmentIndex = null;
                     List<int>[] precursorIndex = null;
@@ -119,8 +122,8 @@ namespace TaskLayer
                     }
 
                     Status("Searching files...", taskId);
-                    new GlycoSearchEngine(newCsmsPerMS2ScanPerFile, arrayOfMs2ScansSortedByMass, peptideIndex, fragmentIndex, secondFragmentIndex, currentPartition, combinedParams, 
-                        _glycoSearchParameters.IsOGlycoSearch, _glycoSearchParameters.RestrictToTopNHits, _glycoSearchParameters.GlycoSearchTopNum, _glycoSearchParameters.SearchGlycan182, _glycoSearchParameters.MaximumOGlycanAllowed, thisId).Run();
+                    new GlycoSearchEngine(newCsmsPerMS2ScanPerFile, arrayOfMs2ScansSortedByMass, peptideIndex, fragmentIndex, secondFragmentIndex, currentPartition, combinedParams,
+                        _glycoSearchParameters.GlycanDatabasefileIndex, _glycoSearchParameters.IsOGlycoSearch, _glycoSearchParameters.GlycoSearchTopNum, _glycoSearchParameters.MaximumOGlycanAllowed, thisId).Run();
 
                     ReportProgress(new ProgressEventArgs(100, "Done with search " + (currentPartition + 1) + "/" + CommonParameters.TotalPartitions + "!", thisId));
                     if (GlobalVariables.StopLoops) { break; }
@@ -133,8 +136,6 @@ namespace TaskLayer
             }
 
             ReportProgress(new ProgressEventArgs(100, "Done with all searches!", new List<string> { taskId, "Individual Spectra Files" }));
-
-            //List<List<GlycoSpectralMatch>> ListOfGsmsPerMS2ScanParsimony = new List<List<GlycoSpectralMatch>>();
 
             //For every Ms2Scans, each have a list of candidates psms. The allPsms from CrosslinkSearchEngine is the list (all ms2scans) of list (each ms2scan) of psm (all candidate psm). 
             //The allPsmsList is same as allPsms after ResolveAmbiguities. 

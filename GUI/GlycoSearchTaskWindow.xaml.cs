@@ -14,6 +14,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using TaskLayer;
 using UsefulProteomicsDatabases;
+using System.IO;
 
 
 namespace MetaMorpheusGUI
@@ -73,6 +74,8 @@ namespace MetaMorpheusGUI
             cbbPrecusorMsTl.Items.Add("Da");
             cbbPrecusorMsTl.Items.Add("ppm");
 
+            CmbGlycanDatabase.ItemsSource = GlobalVariables.GlycanLocations.Select(p=> Path.GetFileName(p));
+
             foreach (Protease protease in ProteaseDictionary.Dictionary.Values)
             {
                 proteaseComboBox.Items.Add(protease);
@@ -114,9 +117,8 @@ namespace MetaMorpheusGUI
             RbtOGlycoSearch.IsChecked = task._glycoSearchParameters.IsOGlycoSearch;
             TbMaxOGlycanNum.Text = task._glycoSearchParameters.MaximumOGlycanAllowed.ToString(CultureInfo.InvariantCulture);
 
-            ckbTopNum.IsChecked = task._glycoSearchParameters.RestrictToTopNHits;
             txtTopNum.Text = task._glycoSearchParameters.GlycoSearchTopNum.ToString(CultureInfo.InvariantCulture);
-
+            CmbGlycanDatabase.SelectedIndex = task._glycoSearchParameters.GlycanDatabasefileIndex;
 
             cbbPrecusorMsTl.SelectedIndex = task.CommonParameters.PrecursorMassTolerance is AbsoluteTolerance ? 0 : 1;
             PrecusorMsTlTextBox.Text = task.CommonParameters.PrecursorMassTolerance.Value.ToString(CultureInfo.InvariantCulture);
@@ -240,8 +242,8 @@ namespace MetaMorpheusGUI
                 TheTask._glycoSearchParameters.IsOGlycoSearch = true;
             }
 
+            TheTask._glycoSearchParameters.GlycanDatabasefileIndex = CmbGlycanDatabase.SelectedIndex;
             TheTask._glycoSearchParameters.MaximumOGlycanAllowed = int.Parse(TbMaxOGlycanNum.Text, CultureInfo.InvariantCulture);
-            TheTask._glycoSearchParameters.RestrictToTopNHits = ckbTopNum.IsChecked.Value;
             TheTask._glycoSearchParameters.GlycoSearchTopNum = int.Parse(txtTopNum.Text, CultureInfo.InvariantCulture);
             TheTask._glycoSearchParameters.DecoyType = checkBoxDecoy.IsChecked.Value ? DecoyType.Reverse : DecoyType.None;
 
@@ -307,6 +309,7 @@ namespace MetaMorpheusGUI
                 childScanDissociationType: childDissociationType,
                 scoreCutoff: double.Parse(minScoreAllowed.Text, CultureInfo.InvariantCulture),
                 totalPartitions: int.Parse(numberOfDatabaseSearchesTextBox.Text, CultureInfo.InvariantCulture),
+                maxThreadsToUsePerFile: int.Parse(maxThreadsTextBox.Text, CultureInfo.InvariantCulture),
                 listOfModsVariable: listOfModsVariable,
                 listOfModsFixed: listOfModsFixed,
                 assumeOrphanPeaksAreZ1Fragments: protease.Name != "top-down");

@@ -218,8 +218,10 @@ namespace MetaDrawGUI
             spectrumNumsObservableCollection.Clear();
 
             thanos.deconvolutor.Model = MainViewModel.ResetViewModel();
-        } 
-    
+        }
+        
+        #endregion
+
         private void btnLoadData_Click(object sender, RoutedEventArgs e)
         {
             var spectraFilePath = spectraFilesObservableCollection.First().FilePath;
@@ -287,8 +289,6 @@ namespace MetaDrawGUI
                 thanos.simplePsms.AddRange(psms);
             }
         }
-
-        #endregion
 
         //From raw file
         private void DataGridAllScanNums_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
@@ -446,18 +446,8 @@ namespace MetaDrawGUI
                 case Skill.merge_boxcarScan:
                     action = thanos.MergeBoxCarScan;
                     break;
-
-                case Skill.sweet_pGlcoResult:
-                    action = thanos.WritePGlycoResult;
-                    break;
-                case Skill.plot_glycoFamilcy:
-                    action = thanos.PlotGlycoFamily;
-                    break;
                 case Skill.account_ScanInfo:
                     action = thanos.ExtractScanInfo;
-                    break;
-                case Skill.sweetor_glycoFamily:
-                    action = thanos.BuildGlycoFamily;
                     break;
                 case Skill.account_ExtractPrecursorInfo:
                     action = thanos.ExtractPrecursorInfo;

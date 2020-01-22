@@ -58,6 +58,7 @@ namespace MetaDrawGUI
             spectraFileManager = new MyFileManager(true);
 
             deconvolutor._thanos = this;
+            sweetor._thanos = this;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -77,8 +78,6 @@ namespace MetaDrawGUI
         public List<SimplePsm> simplePsms = new List<SimplePsm>();
 
         public List<MsFeature> msFeatures = new List<MsFeature>();
-
-        public List<HashSet<MsFeature>> familyFeatures = new List<HashSet<MsFeature>>();
 
         public List<string> MsDataFilePaths { get; set; }
 
@@ -119,26 +118,13 @@ namespace MetaDrawGUI
             BoxMerger.MergeBoxScans(MsDataFilePaths, spectraFileManager);
         }
 
-        public void WritePGlycoResult()
-        {
-            sweetor.WritePGlycoResult(ResultFilePaths, simplePsms);
-        }
 
-        public void PlotGlycoFamily()
-        {
-            //PsmAnnoModel = sweetor.PlotGlycoRT(simplePsms);
-            PsmAnnoModel = sweetor.PlotGlycoRT(simplePsms.Where(p => p.QValue < 0.01).ToList());
-        }
+
+
 
         public void ExtractScanInfo()
         {
             accountant.ExtractNumTime(MsDataFilePaths, spectraFileManager, ControlParameter.LCTimeRange);
-        }
-
-        public void BuildGlycoFamily()
-        {
-            familyFeatures = Sweetor.GetGlycoFamilies(msFeatures.ToArray());
-            PsmAnnoModel = GlycoViewModel.PlotGlycoFamily(familyFeatures);
         }
 
         public void ExtractPrecursorInfo()
