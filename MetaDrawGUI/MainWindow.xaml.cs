@@ -293,74 +293,85 @@ namespace MetaDrawGUI
         //From raw file
         private void DataGridAllScanNums_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
-            //UpdateField();
-            //if (dataGridAllScanNums.SelectedItem == null)
-            //{
-            //    return;
-            //}
+            UpdateField();
+            if (dataGridAllScanNums.SelectedItem == null)
+            {
+                return;
+            }
 
-            //var sele = (AllScansForDataGrid)dataGridAllScanNums.SelectedItem;
+            var sele = (AllScansForDataGrid)dataGridAllScanNums.SelectedItem;
 
-            //thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
+            thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
 
-            //if (TabCrosslink.IsSelected)
-            //{
+            if (TabCrosslink.IsSelected)
+            {
 
-            //}
+            }
 
-            //if (TabDecon.IsSelected)
-            //{
-            //    ResetDataGridAndModel();
+            if (TabDecon.IsSelected)
+            {
+                
+                //TO DO: There is a bug, that the field in DeconvolutionWPF could not update here.
+                ResetDataGridAndModel();
 
-            //    if (sele.MsOrder == 2)
-            //    {
-            //        thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
-            //        thanos.deconvolutor.Model = MainViewModel.DrawScan(thanos.msDataScan);
-
-
-            //        FindChargeDecon();
-            //    }
-            //    else
-            //    {
-            //        thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
-            //        thanos.deconvolutor.Model = MainViewModel.DrawScan(thanos.msDataScan);
-            //    }
-
-            //    MzSpectrumXY mzSpectrumXY = new MzSpectrumXY(thanos.msDataScan.MassSpectrum.XArray, thanos.msDataScan.MassSpectrum.YArray, true);
-            //    thanos.deconvolutor.IsotopicEnvelopes = IsoDecon.MsDeconv_Deconvolute(mzSpectrumXY, thanos.msDataScan.ScanWindowRange, thanos.DeconvolutionParameter).ToList();
+                if (sele.MsOrder == 2)
+                {
+                    thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
+                    thanos.deconvolutor.Model = MainViewModel.DrawScan(thanos.msDataScan);
 
 
-            //    int i = 1;
-            //    foreach (var item in thanos.deconvolutor.IsotopicEnvelopes)
-            //    {
-            //        thanos.deconvolutor.IsotopicEnvelopes[i - 1].ScanNum = thanos.msDataScan.OneBasedScanNumber;
-            //        thanos.deconvolutor.IsotopicEnvelopes[i - 1].RT = thanos.msDataScan.RetentionTime;
-            //        thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.HasPartner, item.ExperimentIsoEnvelop.First().Mz, item.Charge, item.MonoisotopicMass, item.TotalIntensity, item.IntensityRatio, item.MsDeconvScore, item.MsDeconvSignificance));
-            //        i++;
-            //    }
+                    //FindChargeDecon();
+                }
+                else
+                {
+                    thanos.msDataScan = thanos.msDataScans.Where(p => p.OneBasedScanNumber == sele.ScanNum).First();
+                    thanos.deconvolutor.Model = MainViewModel.DrawScan(thanos.msDataScan);
+                }
 
-            //    if (thanos.msDataScan.MsnOrder == 1)
-            //    {
-            //        //double max = thanos.deconvolutor.mzSpectrumXY.YArray.Max();
-            //        //int indexMax = thanos.deconvolutor.mzSpectrumXY.YArray.ToList().IndexOf(max);
+                MzSpectrumXY mzSpectrumXY = new MzSpectrumXY(thanos.msDataScan.MassSpectrum.XArray, thanos.msDataScan.MassSpectrum.YArray, true);
+                thanos.deconvolutor.IsotopicEnvelopes = IsoDecon.MsDeconv_Deconvolute(mzSpectrumXY, thanos.msDataScan.ScanWindowRange, thanos.DeconvolutionParameter).ToList();
 
 
-            //        //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.FindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
-            //        //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.QuickFindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
-            //        List<IsoEnvelop> isoEnvelops;
-            //        //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.QuickChargeDeconForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter, out isoEnvelops);
-            //        thanos.deconvolutor.ChargeEnvelops = ChargeDecon.ChargeDeconIsoForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter, out isoEnvelops);
+                int i = 1;
+                foreach (var item in thanos.deconvolutor.IsotopicEnvelopes)
+                {
+                    thanos.deconvolutor.IsotopicEnvelopes[i - 1].ScanNum = thanos.msDataScan.OneBasedScanNumber;
+                    thanos.deconvolutor.IsotopicEnvelopes[i - 1].RT = thanos.msDataScan.RetentionTime;
+                    thanos.deconvolutor.envolopCollection.Add(new EnvolopForDataGrid(i, item.HasPartner, item.ExperimentIsoEnvelop.First().Mz, item.Charge, item.MonoisotopicMass, item.TotalIntensity, item.IntensityRatio, item.MsDeconvScore, item.MsDeconvSignificance));
+                    i++;
+                }
+
+                if (thanos.msDataScan.MsnOrder == 1)
+                {
+                    //double max = thanos.deconvolutor.mzSpectrumXY.YArray.Max();
+                    //int indexMax = thanos.deconvolutor.mzSpectrumXY.YArray.ToList().IndexOf(max);
 
 
-            //        int ind = 1;
-            //        foreach (var chargeEnvelop in thanos.deconvolutor.ChargeEnvelops)
-            //        {
-            //            thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, chargeEnvelop.MonoMass, chargeEnvelop.UnUsedMzsRatio, chargeEnvelop.IsoEnveNum, chargeEnvelop.ChargeDeconScore, chargeEnvelop.IntensityRatio, chargeEnvelop.mzs_box));
-            //            ind++;
-            //        }
-            //    }
+                    //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.FindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
+                    //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.QuickFindChargesForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter);
+                    List<IsoEnvelop> isoEnvelops;
+                    //thanos.deconvolutor.ChargeEnvelops = ChargeDecon.QuickChargeDeconForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter, out isoEnvelops);
+                    thanos.deconvolutor.ChargeEnvelops = ChargeDecon.ChargeDeconIsoForScan(thanos.deconvolutor.mzSpectrumXY, thanos.DeconvolutionParameter, out isoEnvelops);
 
-            //}
+
+                    int ind = 1;
+                    foreach (var chargeEnvelop in thanos.deconvolutor.ChargeEnvelops)
+                    {
+                        thanos.deconvolutor.chargeEnvelopesCollection.Add(new ChargeEnvelopesForDataGrid(ind, chargeEnvelop.MonoMass, chargeEnvelop.UnUsedMzsRatio, chargeEnvelop.IsoEnveNum, chargeEnvelop.ChargeDeconScore, chargeEnvelop.IntensityRatio, chargeEnvelop.mzs_box));
+                        ind++;
+                    }
+                }
+
+            }
+        }
+
+        private void ResetDataGridAndModel()
+        {
+            thanos.deconvolutor.envolopCollection.Clear();
+            thanos.deconvolutor.DeconModel = DeconViewModel.ResetDeconModel();
+            thanos.deconvolutor.Model = MainViewModel.ResetViewModel();
+            thanos.deconvolutor.chargeEnvelopesCollection.Clear();
+            thanos.deconvolutor.XicModel = PeakViewModel.ResetViewModel();
         }
 
         //From result file

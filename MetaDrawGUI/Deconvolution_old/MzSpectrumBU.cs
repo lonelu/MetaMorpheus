@@ -786,7 +786,7 @@ namespace MassSpectrometry
             List<int> allPossibleChargeState = new List<int>();
             for (int i = candidateForMostIntensePeak + 1; i < XArray.Length; i++)
             {
-                if (XArray[i] - candidateForMostIntensePeakMz < 1.1) //In case charge is +1
+                if (XArray[i] - candidateForMostIntensePeakMz > (1.00289/(deconvolutionParameter.DeconvolutionMaxAssumedChargeState + 1)) && XArray[i] - candidateForMostIntensePeakMz < 1.1) //In case charge is +1
                 {
                     var chargeDouble = 1.00289 / (XArray[i] - candidateForMostIntensePeakMz);
                     int charge = Convert.ToInt32(chargeDouble);

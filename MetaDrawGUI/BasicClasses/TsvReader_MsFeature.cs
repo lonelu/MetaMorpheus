@@ -9,6 +9,13 @@ using EngineLayer;
 
 namespace MetaDrawGUI
 {
+    public enum TsvFeatureType
+    {
+        MetaMorpheus,
+        FlashDeconv,
+        MaxQuant
+    }
+
     public class TsvReader_MsFeature
     {
         public static List<MsFeature> ReadTsv(string filepath)
@@ -28,6 +35,7 @@ namespace MetaDrawGUI
             int lineCount = 0;
             string line;
             Dictionary<string, int> parsedHeader = null;
+            TsvFeatureType tsvType = TsvFeatureType.FlashDeconv;
 
             char[] Split = new char[] { '\t' };
 
@@ -38,13 +46,30 @@ namespace MetaDrawGUI
 
                 if (lineCount == 1)
                 {
-                    parsedHeader = ParseHeader_MsFeature(line, Split);
+                    if (line.StartsWith("Raw file"))
+                    {
+                        tsvType = TsvFeatureType.MaxQuant;
+                    }
+                    switch (tsvType)
+                    {
+                        case TsvFeatureType.MetaMorpheus:
+                            break;
+                        case TsvFeatureType.FlashDeconv:
+                            parsedHeader = ParseHeader_MsFeature(line, Split);
+                            break;
+                        case TsvFeatureType.MaxQuant:
+                            parsedHeader = ParseHeader_MaxQuant_MsFeature(line, Split);
+                            break;
+                        default:
+                            break;
+                    }
+                    
                     continue;
                 }
 
                 //try
                 //{
-                    msFeatures.Add(new MsFeature(line, Split, parsedHeader));
+                    msFeatures.Add(new MsFeature(line, Split, parsedHeader, tsvType));
                 //}
                 //catch (Exception e)
                 //{
@@ -86,6 +111,22 @@ namespace MetaDrawGUI
             return parsedHeader;
         }
 
+        private static Dictionary<string, int> ParseHeader_MaxQuant_MsFeature(string header, char[] Split)
+        {
+            var parsedHeader = new Dictionary<string, int>();
+            var spl = header.Split(Split);
+            parsedHeader.Add(TsvHeader_MaxQuant_MsFeature.monoMass, Array.IndexOf(spl, TsvHeader_MaxQuant_MsFeature.monoMass));
+            parsedHeader.Add(TsvHeader_MaxQuant_MsFeature.Mz, Array.IndexOf(spl, TsvHeader_MaxQuant_MsFeature.Mz));
+            parsedHeader.Add(TsvHeader_MaxQuant_MsFeature.UncalMz, Array.IndexOf(spl, TsvHeader_MaxQuant_MsFeature.UncalMz));
+            parsedHeader.Add(TsvHeader_MaxQuant_MsFeature.abundance, Array.IndexOf(spl, TsvHeader_MaxQuant_MsFeature.abundance));
+            parsedHeader.Add(TsvHeader_MaxQuant_MsFeature.Charge, Array.IndexOf(spl, TsvHeader_MaxQuant_MsFeature.Charge));
+            parsedHeader.Add(TsvHeader_MaxQuant_MsFeature.RT, Array.IndexOf(spl, TsvHeader_MaxQuant_MsFeature.RT));
+            parsedHeader.Add(TsvHeader_MaxQuant_MsFeature.RTlength, Array.IndexOf(spl, TsvHeader_MaxQuant_MsFeature.RTlength));
+            parsedHeader.Add(TsvHeader_MaxQuant_MsFeature.MinScanNum, Array.IndexOf(spl, TsvHeader_MaxQuant_MsFeature.MinScanNum));
+            parsedHeader.Add(TsvHeader_MaxQuant_MsFeature.MaxScanNum, Array.IndexOf(spl, TsvHeader_MaxQuant_MsFeature.MaxScanNum));
+            return parsedHeader;
+        }
+
     }
 
 
@@ -111,5 +152,19 @@ namespace MetaDrawGUI
         public const string peakIntensities = "PeakIntensities";
         public const string isotopeCosineScore = "IsotopeCosineScore";
         public const string chargeIntensityCosineScore = "ChargeIntensityCosineScore";
+    }
+
+    public static class TsvHeader_MaxQuant_MsFeature
+    {
+        public const string monoMass = "Mass";
+        public const string Mz = "m/z";
+        public const string UncalMz = "Uncalibrated m/z";
+        public const string abundance = "Intensity";       
+        public const string Charge = "Charge";
+        public const string RT = "Retention time";
+        public const string RTlength = "Retention length";
+        public const string MinScanNum = "Min scan number";
+        public const string MaxScanNum = "Max scan number";
+
     }
 }

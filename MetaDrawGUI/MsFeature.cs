@@ -8,9 +8,22 @@ namespace MetaDrawGUI
 {
     public class MsFeature
     {
-        public MsFeature(string line, char[] split, Dictionary<string, int> parsedHeader)
+        public MsFeature(string line, char[] split, Dictionary<string, int> parsedHeader, TsvFeatureType tsvFeatureType)
         {
-            generateMsFeatures(line, split, parsedHeader);
+            switch (tsvFeatureType)
+            {
+                case TsvFeatureType.MetaMorpheus:
+                    break;
+                case TsvFeatureType.FlashDeconv:
+                    generateMsFeatures(line, split, parsedHeader);
+                    break;
+                case TsvFeatureType.MaxQuant:
+                    generateMaxQuantMsFeature(line, split, parsedHeader);
+                    break;
+                default:
+                    break;
+            }
+ 
         }
 
         public MsFeature(int aid, double monoMass, double abundance, double apexRT)
@@ -23,9 +36,9 @@ namespace MetaDrawGUI
 
         public int id { get; set; }
         public double MonoMass { get; set; }
-        public double Abundance { get; set; }
         public double ApexRT { get; set; }
 
+        //For FlashDecov
         public int ScanNum {get; set;}
         public double AvgMass { get; set; }
         public int PeakChargeRange { get; set; }
@@ -39,6 +52,15 @@ namespace MetaDrawGUI
         public List<double> PeakIntensities { get; set; }
         public double IsotopeCosineScore { get; set; }
         public double ChargeIntensityCosineScore { get; set; }
+
+        //For MaxQuant
+        public double Mz { get; set; }
+        public int Charge { get; set; }
+        public double StartRT { get; set; }
+        public double EndRT { get; set; }
+        public double Abundance { get; set; }
+        public int MinScanNum { get; set; }
+        public int MaxScanNum { get; set; }
 
 
         //The feature is from ms2 scan
@@ -122,5 +144,22 @@ namespace MetaDrawGUI
             IsotopeCosineScore = parsedHeader[TsvHeader_MsFeature.isotopeCosineScore] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MsFeature.isotopeCosineScore]]) : -1;
             ChargeIntensityCosineScore = parsedHeader[TsvHeader_MsFeature.chargeIntensityCosineScore] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MsFeature.chargeIntensityCosineScore]]) : -1;
         }
+
+        private void generateMaxQuantMsFeature(string line, char[] split, Dictionary<string, int> parsedHeader)
+        {
+            var spl = line.Split(split);
+
+            MonoMass = parsedHeader[TsvHeader_MaxQuant_MsFeature.monoMass] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MaxQuant_MsFeature.monoMass]]) : -1;
+            Abundance = parsedHeader[TsvHeader_MaxQuant_MsFeature.abundance] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MaxQuant_MsFeature.abundance]]) : -1;
+            Mz = parsedHeader[TsvHeader_MaxQuant_MsFeature.Mz] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MaxQuant_MsFeature.Mz]]) : -1;
+            Charge = parsedHeader[TsvHeader_MaxQuant_MsFeature.Charge] > 0 ? int.Parse(spl[parsedHeader[TsvHeader_MaxQuant_MsFeature.Charge]]) : -1;
+            StartRT = parsedHeader[TsvHeader_MaxQuant_MsFeature.RT] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MaxQuant_MsFeature.RT]]) : -1;
+            var RTlength = parsedHeader[TsvHeader_MaxQuant_MsFeature.RTlength] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MaxQuant_MsFeature.RTlength]]) : -1;
+            EndRT = StartRT + RTlength;
+            MinScanNum = parsedHeader[TsvHeader_MaxQuant_MsFeature.MinScanNum] > 0 ? int.Parse(spl[parsedHeader[TsvHeader_MaxQuant_MsFeature.MinScanNum]]) : -1;
+            MaxScanNum = parsedHeader[TsvHeader_MaxQuant_MsFeature.MaxScanNum] > 0 ? int.Parse(spl[parsedHeader[TsvHeader_MaxQuant_MsFeature.MaxScanNum]]) : -1;
+
+        }
+
     }
 }

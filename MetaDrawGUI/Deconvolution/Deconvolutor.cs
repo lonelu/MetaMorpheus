@@ -26,7 +26,8 @@ namespace MetaDrawGUI
         DeconDrawIntensityDistribution = 8,
         DeconCompareBoxVsNormalId = 9,
         IdFragmentationOptimize = 10,
-        IdProteoformOverlap = 11
+        IdProteoformOverlap = 11,
+        WriteDeconvResults = 12
     }
 
     public class Deconvolutor: INotifyPropertyChanged
@@ -34,6 +35,7 @@ namespace MetaDrawGUI
         //TO DO: this is not the best way to link deconvolutor to thanos.
         public Thanos _thanos { get; set; }
 
+        #region Control field
         //Isotopic deconvolution envolop Data Grid
         private ObservableCollection<EnvolopForDataGrid> envolopObservableCollection = new ObservableCollection<EnvolopForDataGrid>();
         public ObservableCollection<EnvolopForDataGrid> envolopCollection
@@ -77,10 +79,6 @@ namespace MetaDrawGUI
                 NotifyPropertyChanged("MsFeatureCollection");
             }
         }
-
-        public List<IsoEnvelop> IsotopicEnvelopes { get; set; } = new List<IsoEnvelop>();
-        public List<(int charge, double mz, double intensity, int index)> Mz_zs { get; set; } = new List<(int charge, double mz, double intensity, int index)>();
-        public List<ChargeEnvelop> ChargeEnvelops { get; set; } = new List<ChargeEnvelop>();
 
         //View model
         private MainViewModel mainViewModel = new MainViewModel();
@@ -136,6 +134,10 @@ namespace MetaDrawGUI
             }
         }
 
+        #endregion
+
+        #region Properties
+
         public MzSpectrumXY mzSpectrumXY
         {
             get
@@ -151,6 +153,12 @@ namespace MetaDrawGUI
                 return mzSpectrumXY.ExtractIndicesByY().ToArray();
             }
         }
+
+        public List<IsoEnvelop> IsotopicEnvelopes { get; set; } = new List<IsoEnvelop>();
+        public List<(int charge, double mz, double intensity, int index)> Mz_zs { get; set; } = new List<(int charge, double mz, double intensity, int index)>();
+        public List<ChargeEnvelop> ChargeEnvelops { get; set; } = new List<ChargeEnvelop>();
+
+        #endregion
 
         public void Decon()
         {
@@ -210,6 +218,7 @@ namespace MetaDrawGUI
 
         }
 
+        //Draw Charge Deconv Model
         public void PlotDeconModel()
         {
 
@@ -218,6 +227,7 @@ namespace MetaDrawGUI
             Model = DeconViewModel.DrawChargeDeconModel();
         }
 
+        //Deconvolute spectra of whole file and using FLASHLFQ to quantify the file. 
         public void DeconQuant()
         {         
             var ms1ScanForDecon = new List<MsDataScan>();
@@ -234,6 +244,7 @@ namespace MetaDrawGUI
             _thanos.msDataFileDecon.DeconQuantFile(ms1ScanForDecon, _thanos.MsDataFilePaths.First(), _thanos.CommonParameters, _thanos.DeconvolutionParameter);
         }
 
+        //Deconvolute each spectrum of NeuCode labeled data and report NeuCode Ratio of every MS1 feature.
         public void DeconTotalPartners()
         {
             var MS1Scans = _thanos.msDataScans.Where(p => p.MsnOrder == 1).ToList();
@@ -266,6 +277,7 @@ namespace MetaDrawGUI
             }
         }
 
+        //Calculate and write out the deconvolution time. The purpose of the function is to help optimize deconvolution algorithm
         public void DeconWatch()
         {
             var MS1Scans = _thanos.msDataScans.Where(p => p.MsnOrder == 1).ToList();
@@ -326,6 +338,7 @@ namespace MetaDrawGUI
 
         }
 
+        //Plot two nearby scan for comparison
         public void PlotTwoScan()
         {
             if (_thanos.msDataScan != null && _thanos.msDataScan.OneBasedScanNumber < _thanos.msDataScans.Count)
@@ -335,6 +348,7 @@ namespace MetaDrawGUI
             }
         }
 
+        //Peaks are ordered by intensity, generally only a small fraction of the peaks dominant the spectrum
         public void PlotIntensityDistribution()
         {
             if (_thanos.msDataScan != null)
@@ -343,6 +357,7 @@ namespace MetaDrawGUI
             }
         }
 
+        //TO DD: What this funciton for?
         public void DeconCompareBoxVsNormalId()
         {
             HashSet<int> seenMs2ScanNum = new HashSet<int>();
@@ -407,6 +422,7 @@ namespace MetaDrawGUI
             Model = ScanCompareViewModel.DrawBoxVsNormalId(diff_plot);
         }
 
+        //TO DD: What this funciton for?
         public void IdFragmentationOptimize()
         {
             List<(SimplePsm, MsDataScan)> x = new List<(SimplePsm, MsDataScan)>();
@@ -431,6 +447,7 @@ namespace MetaDrawGUI
 
         }
 
+        //TO DD: What this funciton for?
         public void NumberOfProteoformOverlap()
         {
             List<Dictionary<string, string>> allUniquePsms = new List<Dictionary<string, string>>();

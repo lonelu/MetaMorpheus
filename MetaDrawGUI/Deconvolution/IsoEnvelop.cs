@@ -2,6 +2,7 @@
 using System.Linq;
 using Proteomics.Fragmentation;
 using Chemistry;
+using System.Text;
 
 namespace MassSpectrometry
 {
@@ -70,6 +71,33 @@ namespace MassSpectrometry
 
         //For Ms2 Spectrum Match
         public Product Product { get; set; }
+
+        public static string TabSeparatedHeader
+        {
+            get
+            {
+                var sb = new StringBuilder();
+                sb.Append("ScanNum" + "\t");
+                sb.Append("RT" + "\t");
+                sb.Append("monoisotopicMass" + "\t");
+                sb.Append("MZ" + "\t");
+                sb.Append("TotalIntensity" + "\t");
+                sb.Append("charge" + "\t");
+                return sb.ToString();
+            }
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(ScanNum + "\t");
+            sb.Append(RT + "\t");
+            sb.Append(MonoisotopicMass + "\t");
+            sb.Append(ClassExtensions.ToMz(MonoisotopicMass, Charge) + "\t");
+            sb.Append(TotalIntensity + "\t");
+            sb.Append(Charge + "\t");
+            return sb.ToString();
+        }
 
     }
 }

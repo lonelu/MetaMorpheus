@@ -190,7 +190,7 @@
                             <RowDefinition Height="2*"/>
                         </Grid.RowDefinitions>
                         <StackPanel>
-                            <Button x:Name="BtnLoadFlashDeconResults" Content="FlashDeconv" Click="BtnLoadFlashDeconResults_Click"/>
+                            <Button x:Name="BtnLoadDeconResults" Content="Local Deconv feature" Click="BtnLoadDeconResults_Click"/>
                             <Button x:Name="BtnLoadTopResults" Content="Top" Click="BtnLoadTopResults_Click"/>
                         </StackPanel>
                         <Grid Grid.Row="2">

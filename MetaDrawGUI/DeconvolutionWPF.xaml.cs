@@ -40,6 +40,8 @@ namespace MetaDrawGUI
 
             PopulateChoice();
 
+            UpdatePanel();
+
             plotView.DataContext = MainWindow.thanos.deconvolutor;
 
             plotViewDecon.DataContext = MainWindow.thanos.deconvolutor;
@@ -98,7 +100,7 @@ namespace MetaDrawGUI
 
         #region Deconvolution Control
 
-        private void BtnLoadFlashDeconResults_Click(object sender, RoutedEventArgs e)
+        private void BtnLoadDeconResults_Click(object sender, RoutedEventArgs e)
         {
             foreach (var collection in MainWindow.resultFilesObservableCollection)
             {
