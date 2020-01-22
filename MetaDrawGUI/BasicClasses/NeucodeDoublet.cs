@@ -20,6 +20,18 @@ namespace MetaDrawGUI
             bIntensity = bPeak.Intensity;
         }
 
+        public NeucodeDoublet(MsFeature aPeak, MsFeature bPeak)
+        {
+            aMass = aPeak.MonoMass;
+            bMass = bPeak.MonoMass;
+
+            aRT = aPeak.StartRT;
+            bRT = bPeak.StartRT;
+
+            aIntensity = aPeak.Abundance;
+            bIntensity = bPeak.Abundance;
+        }
+
         public double aMass { get;  }
         public double bMass { get;  }
 

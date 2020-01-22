@@ -109,6 +109,7 @@ namespace MetaDrawGUI
                 {
                     continue;
                 }
+                MainWindow.thanos.ResultFilePaths.Add(MainWindow.resultsFilePath);
                 // load the PSMs
                 MainWindow.thanos.msFeatures.AddRange(TsvReader_MsFeature.ReadTsv(MainWindow.resultsFilePath));
             }
@@ -339,6 +340,9 @@ namespace MetaDrawGUI
                     break;
                 case DeconvolutorSkill.IdProteoformOverlap:
                     MainWindow.action = MainWindow.thanos.deconvolutor.NumberOfProteoformOverlap;
+                    break;
+                case DeconvolutorSkill.FindMaxQuantPartner:
+                    MainWindow.action = MainWindow.thanos.deconvolutor.FindMaxQuantPartner;
                     break;
                 default:
                     break;

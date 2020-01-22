@@ -89,7 +89,7 @@ namespace MetaDrawGUI
             WritePeakResults(Path.Combine(Path.GetDirectoryName(filePath), @"Peaks.tsv"), peaks);
 
             //var unmatchNeuCodePeaks = new List<FlashLFQ.ChromatographicPeak>();
-            List<NeucodeDoublet> neucodeDoublets = CheckNeocodeDoublet(results.Peaks.First().Value.OrderBy(p => p.Identifications.First().MonoisotopicMass).ToList(), deconvolutionParameter);
+            List<NeucodeDoublet> neucodeDoublets = FindNeocodeDoublet(results.Peaks.First().Value.OrderBy(p => p.Identifications.First().MonoisotopicMass).ToList(), deconvolutionParameter);
             WriteResults(Path.Combine(Path.GetDirectoryName(filePath), @"NeucodesDoublets.tsv"), neucodeDoublets);
 
             var envelops = allIsotopicEnvelops.SelectMany(p => p).ToList();
@@ -159,7 +159,7 @@ namespace MetaDrawGUI
         }
 
         //chromatographicPeaks should be ordered.
-        private List<NeucodeDoublet> CheckNeocodeDoublet(List<FlashLFQ.ChromatographicPeak> chromatographicPeaks, DeconvolutionParameter deconvolutionParameter)
+        private List<NeucodeDoublet> FindNeocodeDoublet(List<FlashLFQ.ChromatographicPeak> chromatographicPeaks, DeconvolutionParameter deconvolutionParameter)
         {
             List<NeucodeDoublet> neucodeDoublets = new List<NeucodeDoublet>();
 
@@ -184,7 +184,7 @@ namespace MetaDrawGUI
 
         private bool CheckNeuCode(FlashLFQ.ChromatographicPeak aPeak, FlashLFQ.ChromatographicPeak bPeak, DeconvolutionParameter deconvolutionParameter)
         {
-            if (aPeak.IsotopicEnvelopes.Count == 0 || bPeak.IsotopicEnvelopes.Count == 0)
+            if (aPeak.IsotopicEnvelopes.Count == 0 || bPeak.IsotopicEnvelopes.Count == 0 ||aPeak.Intensity == 0 || bPeak.Intensity == 0)
             {
                 return false;
             }
@@ -194,7 +194,48 @@ namespace MetaDrawGUI
                     && bPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Min() <= aPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Max())
                 {
                     if (deconvolutionParameter.DeconvolutionAcceptor.Within(aPeak.Identifications.First().MonoisotopicMass,
-                        bPeak.Identifications.First().MonoisotopicMass - deconvolutionParameter.PartnerMassDiff * i / 1000))
+                        bPeak.Identifications.First().MonoisotopicMass - deconvolutionParameter.PartnerMassDiff * i))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+
+        public static List<NeucodeDoublet> FindNeocodeDoublet(List<MsFeature> msFeatures, DeconvolutionParameter deconvolutionParameter)
+        {
+            List<NeucodeDoublet> neucodeDoublets = new List<NeucodeDoublet>();
+
+            for (int i = 0; i < msFeatures.Count - 1; i++)
+            {
+                for (int j = i + 1; j < msFeatures.Count; j++)
+                {
+                    if (msFeatures[j].MonoMass - msFeatures[i].MonoMass > deconvolutionParameter.PartnerMassDiff * (deconvolutionParameter.MaxmiumLabelNumber + 1))
+                    {
+                        break;
+                    }
+                    if (CheckNeuCode(msFeatures[i], msFeatures[j], deconvolutionParameter))
+                    {
+                        neucodeDoublets.Add(new NeucodeDoublet(msFeatures[i], msFeatures[j]));
+                        break;
+                    }
+                }
+            }
+
+            return neucodeDoublets;
+        }
+
+        private static bool CheckNeuCode(MsFeature aPeak, MsFeature bPeak, DeconvolutionParameter deconvolutionParameter)
+        {
+            
+            for (int i = 1; i < deconvolutionParameter.MaxmiumLabelNumber + 1; i++)
+            {
+                if (aPeak.MinScanNum <= bPeak.MaxScanNum && bPeak.MinScanNum <= aPeak.MaxScanNum)
+                {
+                    if (deconvolutionParameter.DeconvolutionAcceptor.Within(aPeak.MonoMass,
+                        bPeak.MonoMass - deconvolutionParameter.PartnerMassDiff *i))
                     {
                         return true;
                     }
@@ -216,7 +257,7 @@ namespace MetaDrawGUI
             }
         }
 
-        public void WriteResults(string peaksOutputPath, List<NeucodeDoublet> neucodeDoublets)
+        public static void WriteResults(string peaksOutputPath, List<NeucodeDoublet> neucodeDoublets)
         {
             using (StreamWriter output = new StreamWriter(peaksOutputPath))
             {
