@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Chemistry;
 
 namespace MetaDrawGUI
 {
@@ -20,22 +21,34 @@ namespace MetaDrawGUI
                 case TsvFeatureType.MaxQuant:
                     generateMaxQuantMsFeature(line, split, parsedHeader);
                     break;
+                case TsvFeatureType.Dinosaur:
+                    generateDinosaurMsFeature(line, split, parsedHeader);
+                    break;
+                case TsvFeatureType.OpenMS:
+                    generateOpenMSMsFeature(line, split, parsedHeader);
+                    break;
                 default:
                     break;
             }
  
         }
 
-        public MsFeature(int aid, double monoMass, double abundance, double apexRT)
+        public MsFeature(int aid, double monoMass, double intensity, double apexRT)
         {
             id = aid;
             MonoMass = monoMass;
-            Abundance = abundance;
+            Intensity = intensity;
             ApexRT = apexRT;
         }
 
         public int id { get; set; }
+
         public double MonoMass { get; set; }
+        public double Mz { get; set; }
+        public int Charge { get; set; }
+        public double Intensity { get; set; }
+        public double StartRT { get; set; }
+        public double EndRT { get; set; }
         public double ApexRT { get; set; }
 
         //For FlashDecov
@@ -54,11 +67,6 @@ namespace MetaDrawGUI
         public double ChargeIntensityCosineScore { get; set; }
 
         //For MaxQuant
-        public double Mz { get; set; }
-        public int Charge { get; set; }
-        public double StartRT { get; set; }
-        public double EndRT { get; set; }
-        public double Abundance { get; set; }
         public int MinScanNum { get; set; }
         public int MaxScanNum { get; set; }
 
@@ -71,7 +79,7 @@ namespace MetaDrawGUI
             var spl = line.Split(split);
 
             MonoMass = parsedHeader[TsvHeader_MsFeature.monoMass] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MsFeature.monoMass]]) : -1;
-            Abundance = parsedHeader[TsvHeader_MsFeature.abundance] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MsFeature.abundance]]) : -1;
+            Intensity = parsedHeader[TsvHeader_MsFeature.Intensity] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MsFeature.Intensity]]) : -1;
             ApexRT = parsedHeader[TsvHeader_MsFeature.apexRT] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MsFeature.apexRT]]) : -1;
 
             if (parsedHeader[TsvHeader_MsFeature.specID] > 0)
@@ -81,7 +89,7 @@ namespace MetaDrawGUI
             }
 
             MonoMass = parsedHeader[TsvHeader_MsFeature.monoisotopicMass] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MsFeature.monoisotopicMass]]) : -1;
-            Abundance = parsedHeader[TsvHeader_MsFeature.aggregatedIntensity] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MsFeature.aggregatedIntensity]]) : -1;
+            Intensity = parsedHeader[TsvHeader_MsFeature.aggregatedIntensity] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MsFeature.aggregatedIntensity]]) : -1;
             ApexRT = parsedHeader[TsvHeader_MsFeature.retentionTime] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MsFeature.retentionTime]]) : -1;
 
             AvgMass = parsedHeader[TsvHeader_MsFeature.avgMass] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MsFeature.avgMass]]) : -1;
@@ -150,7 +158,7 @@ namespace MetaDrawGUI
             var spl = line.Split(split);
 
             MonoMass = parsedHeader[TsvHeader_MaxQuant_MsFeature.monoMass] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MaxQuant_MsFeature.monoMass]]) : -1;
-            Abundance = parsedHeader[TsvHeader_MaxQuant_MsFeature.abundance] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MaxQuant_MsFeature.abundance]]) : -1;
+            Intensity = parsedHeader[TsvHeader_MaxQuant_MsFeature.Intensity] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MaxQuant_MsFeature.Intensity]]) : -1;
             Mz = parsedHeader[TsvHeader_MaxQuant_MsFeature.Mz] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MaxQuant_MsFeature.Mz]]) : -1;
             Charge = parsedHeader[TsvHeader_MaxQuant_MsFeature.Charge] > 0 ? int.Parse(spl[parsedHeader[TsvHeader_MaxQuant_MsFeature.Charge]]) : -1;
             StartRT = parsedHeader[TsvHeader_MaxQuant_MsFeature.RT] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_MaxQuant_MsFeature.RT]]) : -1;
@@ -161,5 +169,30 @@ namespace MetaDrawGUI
 
         }
 
+        private void generateDinosaurMsFeature(string line, char[] split, Dictionary<string, int> parsedHeader)
+        {
+            var spl = line.Split(split);
+
+            MonoMass = parsedHeader[TsvHeader_Dinosaur_MsFeature.monoMass] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_Dinosaur_MsFeature.monoMass]]) : -1;
+            Intensity = parsedHeader[TsvHeader_Dinosaur_MsFeature.Intensity] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_Dinosaur_MsFeature.Intensity]]) : -1;
+            Mz = parsedHeader[TsvHeader_Dinosaur_MsFeature.Mz] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_Dinosaur_MsFeature.Mz]]) : -1;
+            Charge = parsedHeader[TsvHeader_Dinosaur_MsFeature.Charge] > 0 ? int.Parse(spl[parsedHeader[TsvHeader_Dinosaur_MsFeature.Charge]]) : -1;
+            StartRT = parsedHeader[TsvHeader_Dinosaur_MsFeature.RTStart] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_Dinosaur_MsFeature.RTStart]]) : -1;
+            EndRT = parsedHeader[TsvHeader_Dinosaur_MsFeature.RTEnd] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_Dinosaur_MsFeature.RTEnd]]) : -1;
+            ApexRT = parsedHeader[TsvHeader_Dinosaur_MsFeature.apexRT] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_Dinosaur_MsFeature.apexRT]]) : -1;
+        }
+
+        private void generateOpenMSMsFeature(string line, char[] split, Dictionary<string, int> parsedHeader)
+        {
+            var spl = line.Split(split);
+
+            Intensity = parsedHeader[TsvHeader_OpenMS_MsFeature.Intensity] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_OpenMS_MsFeature.Intensity]]) : -1;
+            Mz = parsedHeader[TsvHeader_OpenMS_MsFeature.Mz] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_OpenMS_MsFeature.Mz]]) : -1;
+            Charge = parsedHeader[TsvHeader_OpenMS_MsFeature.Charge] > 0 ? int.Parse(spl[parsedHeader[TsvHeader_OpenMS_MsFeature.Charge]]) : -1;
+            MonoMass = Mz.ToMass(Charge);
+            StartRT = parsedHeader[TsvHeader_OpenMS_MsFeature.RTStart] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_OpenMS_MsFeature.RTStart]]) : -1;
+            EndRT = parsedHeader[TsvHeader_OpenMS_MsFeature.RTEnd] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_OpenMS_MsFeature.RTEnd]]) : -1;
+            ApexRT = parsedHeader[TsvHeader_OpenMS_MsFeature.apexRT] > 0 ? double.Parse(spl[parsedHeader[TsvHeader_OpenMS_MsFeature.apexRT]]) : -1;
+        }
     }
 }

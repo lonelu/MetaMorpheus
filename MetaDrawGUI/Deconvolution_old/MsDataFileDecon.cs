@@ -89,7 +89,8 @@ namespace MetaDrawGUI
             WritePeakResults(Path.Combine(Path.GetDirectoryName(filePath), @"Peaks.tsv"), peaks);
 
             //var unmatchNeuCodePeaks = new List<FlashLFQ.ChromatographicPeak>();
-            List<NeucodeDoublet> neucodeDoublets = FindNeocodeDoublet(results.Peaks.First().Value.OrderBy(p => p.Identifications.First().MonoisotopicMass).ToList(), deconvolutionParameter);
+            var filteredPeaks = results.Peaks.First().Value.Where(p=>p.Intensity > 0 && p.IsotopicEnvelopes.Count > 0).OrderBy(p => p.Identifications.First().MonoisotopicMass).ToList();
+            List<NeucodeDoublet> neucodeDoublets = FindNeocodeDoublet(filteredPeaks, deconvolutionParameter);
             WriteResults(Path.Combine(Path.GetDirectoryName(filePath), @"NeucodesDoublets.tsv"), neucodeDoublets);
 
             var envelops = allIsotopicEnvelops.SelectMany(p => p).ToList();
@@ -184,10 +185,10 @@ namespace MetaDrawGUI
 
         private bool CheckNeuCode(FlashLFQ.ChromatographicPeak aPeak, FlashLFQ.ChromatographicPeak bPeak, DeconvolutionParameter deconvolutionParameter)
         {
-            if (aPeak.IsotopicEnvelopes.Count == 0 || bPeak.IsotopicEnvelopes.Count == 0 ||aPeak.Intensity == 0 || bPeak.Intensity == 0)
-            {
-                return false;
-            }
+            //if (aPeak.IsotopicEnvelopes.Count == 0 || bPeak.IsotopicEnvelopes.Count == 0 ||aPeak.Intensity == 0 || bPeak.Intensity == 0)
+            //{
+            //    return false;
+            //}
             for (int i = 1; i < deconvolutionParameter.MaxmiumLabelNumber + 1; i++)
             {
                 if (aPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Min() <= bPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Max()
@@ -232,7 +233,7 @@ namespace MetaDrawGUI
             
             for (int i = 1; i < deconvolutionParameter.MaxmiumLabelNumber + 1; i++)
             {
-                if (aPeak.MinScanNum <= bPeak.MaxScanNum && bPeak.MinScanNum <= aPeak.MaxScanNum)
+                if (aPeak.StartRT <= bPeak.EndRT && bPeak.StartRT <= aPeak.EndRT)
                 {
                     if (deconvolutionParameter.DeconvolutionAcceptor.Within(aPeak.MonoMass,
                         bPeak.MonoMass - deconvolutionParameter.PartnerMassDiff *i))

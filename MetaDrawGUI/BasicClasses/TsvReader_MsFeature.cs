@@ -13,7 +13,9 @@ namespace MetaDrawGUI
     {
         MetaMorpheus,
         FlashDeconv,
-        MaxQuant
+        MaxQuant, 
+        Dinosaur,
+        OpenMS
     }
 
     public class TsvReader_MsFeature
@@ -50,6 +52,15 @@ namespace MetaDrawGUI
                     {
                         tsvType = TsvFeatureType.MaxQuant;
                     }
+                    else if (line.StartsWith("mz"))
+                    {
+                        tsvType = TsvFeatureType.Dinosaur;
+                    }
+                    else if (line.StartsWith("#FEATURE"))
+                    {
+                        tsvType = TsvFeatureType.OpenMS;
+                    }
+
                     switch (tsvType)
                     {
                         case TsvFeatureType.MetaMorpheus:
@@ -59,6 +70,12 @@ namespace MetaDrawGUI
                             break;
                         case TsvFeatureType.MaxQuant:
                             parsedHeader = ParseHeader_MaxQuant_MsFeature(line, Split);
+                            break;
+                        case TsvFeatureType.Dinosaur:
+                            parsedHeader = ParseHeader_Dinosaur_MsFeature(line, Split);
+                            break;
+                        case TsvFeatureType.OpenMS:
+                            parsedHeader = ParseHeader_OpenMS_MsFeature(line, Split);
                             break;
                         default:
                             break;
@@ -89,7 +106,7 @@ namespace MetaDrawGUI
             var parsedHeader = new Dictionary<string, int>();
             var spl = header.Split(Split);
             parsedHeader.Add(TsvHeader_MsFeature.monoMass, Array.IndexOf(spl, TsvHeader_MsFeature.monoMass));
-            parsedHeader.Add(TsvHeader_MsFeature.abundance, Array.IndexOf(spl, TsvHeader_MsFeature.abundance));
+            parsedHeader.Add(TsvHeader_MsFeature.Intensity, Array.IndexOf(spl, TsvHeader_MsFeature.Intensity));
             parsedHeader.Add(TsvHeader_MsFeature.apexRT, Array.IndexOf(spl, TsvHeader_MsFeature.apexRT));
 
             parsedHeader.Add(TsvHeader_MsFeature.specID, Array.IndexOf(spl, TsvHeader_MsFeature.specID));
@@ -118,12 +135,39 @@ namespace MetaDrawGUI
             parsedHeader.Add(TsvHeader_MaxQuant_MsFeature.monoMass, Array.IndexOf(spl, TsvHeader_MaxQuant_MsFeature.monoMass));
             parsedHeader.Add(TsvHeader_MaxQuant_MsFeature.Mz, Array.IndexOf(spl, TsvHeader_MaxQuant_MsFeature.Mz));
             parsedHeader.Add(TsvHeader_MaxQuant_MsFeature.UncalMz, Array.IndexOf(spl, TsvHeader_MaxQuant_MsFeature.UncalMz));
-            parsedHeader.Add(TsvHeader_MaxQuant_MsFeature.abundance, Array.IndexOf(spl, TsvHeader_MaxQuant_MsFeature.abundance));
+            parsedHeader.Add(TsvHeader_MaxQuant_MsFeature.Intensity, Array.IndexOf(spl, TsvHeader_MaxQuant_MsFeature.Intensity));
             parsedHeader.Add(TsvHeader_MaxQuant_MsFeature.Charge, Array.IndexOf(spl, TsvHeader_MaxQuant_MsFeature.Charge));
             parsedHeader.Add(TsvHeader_MaxQuant_MsFeature.RT, Array.IndexOf(spl, TsvHeader_MaxQuant_MsFeature.RT));
             parsedHeader.Add(TsvHeader_MaxQuant_MsFeature.RTlength, Array.IndexOf(spl, TsvHeader_MaxQuant_MsFeature.RTlength));
             parsedHeader.Add(TsvHeader_MaxQuant_MsFeature.MinScanNum, Array.IndexOf(spl, TsvHeader_MaxQuant_MsFeature.MinScanNum));
             parsedHeader.Add(TsvHeader_MaxQuant_MsFeature.MaxScanNum, Array.IndexOf(spl, TsvHeader_MaxQuant_MsFeature.MaxScanNum));
+            return parsedHeader;
+        }
+
+        private static Dictionary<string, int> ParseHeader_Dinosaur_MsFeature(string header, char[] Split)
+        {
+            var parsedHeader = new Dictionary<string, int>();
+            var spl = header.Split(Split);
+            parsedHeader.Add(TsvHeader_Dinosaur_MsFeature.monoMass, Array.IndexOf(spl, TsvHeader_Dinosaur_MsFeature.monoMass));
+            parsedHeader.Add(TsvHeader_Dinosaur_MsFeature.Mz, Array.IndexOf(spl, TsvHeader_Dinosaur_MsFeature.Mz));
+            parsedHeader.Add(TsvHeader_Dinosaur_MsFeature.Intensity, Array.IndexOf(spl, TsvHeader_Dinosaur_MsFeature.Intensity));
+            parsedHeader.Add(TsvHeader_Dinosaur_MsFeature.Charge, Array.IndexOf(spl, TsvHeader_Dinosaur_MsFeature.Charge));
+            parsedHeader.Add(TsvHeader_Dinosaur_MsFeature.RTStart, Array.IndexOf(spl, TsvHeader_Dinosaur_MsFeature.RTStart));
+            parsedHeader.Add(TsvHeader_Dinosaur_MsFeature.RTEnd, Array.IndexOf(spl, TsvHeader_Dinosaur_MsFeature.RTEnd));
+            parsedHeader.Add(TsvHeader_Dinosaur_MsFeature.apexRT, Array.IndexOf(spl, TsvHeader_Dinosaur_MsFeature.apexRT));
+            return parsedHeader;
+        }
+
+        private static Dictionary<string, int> ParseHeader_OpenMS_MsFeature(string header, char[] Split)
+        {
+            var parsedHeader = new Dictionary<string, int>();
+            var spl = header.Split(Split);
+            parsedHeader.Add(TsvHeader_OpenMS_MsFeature.Mz, Array.IndexOf(spl, TsvHeader_OpenMS_MsFeature.Mz));
+            parsedHeader.Add(TsvHeader_OpenMS_MsFeature.Intensity, Array.IndexOf(spl, TsvHeader_OpenMS_MsFeature.Intensity));
+            parsedHeader.Add(TsvHeader_OpenMS_MsFeature.Charge, Array.IndexOf(spl, TsvHeader_OpenMS_MsFeature.Charge));
+            parsedHeader.Add(TsvHeader_OpenMS_MsFeature.RTStart, Array.IndexOf(spl, TsvHeader_OpenMS_MsFeature.RTStart));
+            parsedHeader.Add(TsvHeader_OpenMS_MsFeature.RTEnd, Array.IndexOf(spl, TsvHeader_OpenMS_MsFeature.RTEnd));
+            parsedHeader.Add(TsvHeader_OpenMS_MsFeature.apexRT, Array.IndexOf(spl, TsvHeader_OpenMS_MsFeature.apexRT));
             return parsedHeader;
         }
 
@@ -133,7 +177,7 @@ namespace MetaDrawGUI
     public static class TsvHeader_MsFeature
     {
         public const string monoMass = "MonoMass";
-        public const string abundance = "Abundance";
+        public const string Intensity = "Abundance";
         public const string apexRT = "ApexRetentionTime";
 
         public const string specID = "SpecID";
@@ -159,12 +203,33 @@ namespace MetaDrawGUI
         public const string monoMass = "Mass";
         public const string Mz = "m/z";
         public const string UncalMz = "Uncalibrated m/z";
-        public const string abundance = "Intensity";       
+        public const string Intensity = "Intensity";       
         public const string Charge = "Charge";
         public const string RT = "Retention time";
         public const string RTlength = "Retention length";
         public const string MinScanNum = "Min scan number";
         public const string MaxScanNum = "Max scan number";
 
+    }
+
+    public static class TsvHeader_Dinosaur_MsFeature
+    {
+        public const string monoMass = "mass";
+        public const string Mz = "mz";
+        public const string Intensity = "intensitySum";
+        public const string Charge = "charge";
+        public const string apexRT = "rtApex";
+        public const string RTStart = "RTStart";
+        public const string RTEnd = "RTEnd";
+    }
+
+    public static class TsvHeader_OpenMS_MsFeature
+    {
+        public const string Mz = "mz";
+        public const string Intensity = "intensity";
+        public const string Charge = "charge";
+        public const string apexRT = "rt";
+        public const string RTStart = "rt_start";
+        public const string RTEnd = "rt_end";
     }
 }

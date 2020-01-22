@@ -341,8 +341,8 @@ namespace MetaDrawGUI
                 case DeconvolutorSkill.IdProteoformOverlap:
                     MainWindow.action = MainWindow.thanos.deconvolutor.NumberOfProteoformOverlap;
                     break;
-                case DeconvolutorSkill.FindMaxQuantPartner:
-                    MainWindow.action = MainWindow.thanos.deconvolutor.FindMaxQuantPartner;
+                case DeconvolutorSkill.FindPartnerFromReadinFeature:
+                    MainWindow.action = MainWindow.thanos.deconvolutor.FindPartnerFromReadinFeature;
                     break;
                 default:
                     break;

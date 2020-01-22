@@ -16,7 +16,7 @@ namespace MetaDrawGUI
                 ScanNum = msFeature.ScanNum;
             }
             MonoMass = msFeature.MonoMass;
-            Abundance = msFeature.Abundance;
+            Abundance = msFeature.Intensity;
             ApexRT = msFeature.ApexRT;
         }
 

@@ -28,8 +28,8 @@ namespace MetaDrawGUI
             aRT = aPeak.StartRT;
             bRT = bPeak.StartRT;
 
-            aIntensity = aPeak.Abundance;
-            bIntensity = bPeak.Abundance;
+            aIntensity = aPeak.Intensity;
+            bIntensity = bPeak.Intensity;
         }
 
         public double aMass { get;  }

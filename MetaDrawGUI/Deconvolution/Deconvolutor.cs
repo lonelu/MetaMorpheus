@@ -27,7 +27,7 @@ namespace MetaDrawGUI
         DeconCompareBoxVsNormalId = 9,
         IdFragmentationOptimize = 10,
         IdProteoformOverlap = 11,
-        FindMaxQuantPartner = 12
+        FindPartnerFromReadinFeature = 12
     }
 
     public class Deconvolutor: INotifyPropertyChanged
@@ -476,11 +476,11 @@ namespace MetaDrawGUI
             var ABC = allUniquePsms[0].Keys.Union(allUniquePsms[1].Keys).Union(allUniquePsms[2].Keys).Count();
         }
 
-        public void FindMaxQuantPartner()
+        public void FindPartnerFromReadinFeature()
         {
             var neuCodeDoublets = MsDataFileDecon.FindNeocodeDoublet(_thanos.msFeatures.OrderBy(p=>p.MonoMass).ToList(), _thanos.DeconvolutionParameter);
 
-            MsDataFileDecon.WriteResults(Path.Combine(Path.GetDirectoryName(_thanos.ResultFilePaths.First()), @"MaxQuantNeucodesDoublets.tsv"), neuCodeDoublets);
+            MsDataFileDecon.WriteResults(Path.Combine(Path.GetDirectoryName(_thanos.ResultFilePaths.First()), @"ReadinNeucodesDoublets.tsv"), neuCodeDoublets);
         }
 
         
