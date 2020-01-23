@@ -83,7 +83,7 @@ namespace MetaDrawGUI
             //WritePeakResults(Path.Combine(Path.GetDirectoryName(filePath), @"PeaksPerScans.tsv"), peaksPerScans);
 
             var idList = idts.SelectMany(p => p).ToList();
-            FlashLfqEngine engine = new FlashLfqEngine(idList, integrate:true, ppmTolerance:5, isotopeTolerancePpm:3);
+            FlashLfqEngine engine = new FlashLfqEngine(idList, integrate:false, ppmTolerance:5, isotopeTolerancePpm:3);
             var results = engine.Run();
             var peaks = results.Peaks.SelectMany(p => p.Value).ToList();
             WritePeakResults(Path.Combine(Path.GetDirectoryName(filePath), @"Peaks.tsv"), peaks);
@@ -197,8 +197,10 @@ namespace MetaDrawGUI
                 if (aPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Min() <= bPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Max()
                     && bPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Min() <= aPeak.IsotopicEnvelopes.Select(p => p.IndexedPeak.RetentionTime).Max())
                 {
+                    //Test if the 
                     if (deconvolutionParameter.DeconvolutionAcceptor.Within(aPeak.Identifications.First().MonoisotopicMass,
-                        bPeak.Identifications.First().MonoisotopicMass - deconvolutionParameter.PartnerMassDiff * i))
+                        bPeak.Identifications.First().MonoisotopicMass - deconvolutionParameter.PartnerMassDiff * i) &&
+                        aPeak.Apex.ChargeState == bPeak.Apex.ChargeState)
                     {
                         return true;
                     }
@@ -250,7 +252,8 @@ namespace MetaDrawGUI
                 if (aPeak.StartRT <= bPeak.EndRT && bPeak.StartRT <= aPeak.EndRT)
                 {
                     if (deconvolutionParameter.DeconvolutionAcceptor.Within(aPeak.MonoMass,
-                        bPeak.MonoMass - deconvolutionParameter.PartnerMassDiff *i))
+                        bPeak.MonoMass - deconvolutionParameter.PartnerMassDiff *i) &&
+                        aPeak.Charge == bPeak.Charge)
                     {
                         return true;
                     }
