@@ -222,7 +222,7 @@
     <Compile Include="Deconvolution\IsoEnvelop.cs" />
     <Compile Include="Deconvolution\Deconvolutor.cs" />
     <Compile Include="Deconvolution_old\MsDataFileDecon.cs" />
-    <Compile Include="MsFeature.cs" />
+    <Compile Include="BasicClasses\MsFeature.cs" />
     <Compile Include="Deconvolution_old\MzSpectrumBU.cs" />
     <Compile Include="Regression\GaussianModel.cs" />
     <Compile Include="Regression\LevenbergMarquardtSolver.cs" />

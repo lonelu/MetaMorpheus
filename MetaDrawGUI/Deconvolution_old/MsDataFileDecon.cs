@@ -88,10 +88,13 @@ namespace MetaDrawGUI
             var peaks = results.Peaks.SelectMany(p => p.Value).ToList();
             WritePeakResults(Path.Combine(Path.GetDirectoryName(filePath), @"Peaks.tsv"), peaks);
 
-            //var unmatchNeuCodePeaks = new List<FlashLFQ.ChromatographicPeak>();
-            var filteredPeaks = results.Peaks.First().Value.Where(p=>p.Intensity > 0 && p.IsotopicEnvelopes.Count > 0).OrderBy(p => p.Identifications.First().MonoisotopicMass).ToList();
-            List<NeucodeDoublet> neucodeDoublets = FindNeocodeDoublet(filteredPeaks, deconvolutionParameter);
-            WriteResults(Path.Combine(Path.GetDirectoryName(filePath), @"NeucodesDoublets.tsv"), neucodeDoublets);
+            if (deconvolutionParameter.ToGetPartner)
+            {
+                //var unmatchNeuCodePeaks = new List<FlashLFQ.ChromatographicPeak>();
+                var filteredPeaks = results.Peaks.First().Value.Where(p => p.Intensity > 0 && p.IsotopicEnvelopes.Count > 0).OrderBy(p => p.Identifications.First().MonoisotopicMass).ToList();
+                List<NeucodeDoublet> neucodeDoublets = FindNeocodeDoublet(filteredPeaks, deconvolutionParameter);
+                WriteResults(Path.Combine(Path.GetDirectoryName(filePath), @"NeucodesDoublets.tsv"), neucodeDoublets);
+            }
 
             var envelops = allIsotopicEnvelops.SelectMany(p => p).ToList();
             WriteEnvelopResults(Path.Combine(Path.GetDirectoryName(filePath), @"Envelops.tsv"), envelops);
@@ -204,7 +207,6 @@ namespace MetaDrawGUI
             return false;
         }
 
-
         public static List<NeucodeDoublet> FindNeocodeDoublet(List<MsFeature> msFeatures, DeconvolutionParameter deconvolutionParameter)
         {
             List<NeucodeDoublet> neucodeDoublets = new List<NeucodeDoublet>();
@@ -233,6 +235,18 @@ namespace MetaDrawGUI
             
             for (int i = 1; i < deconvolutionParameter.MaxmiumLabelNumber + 1; i++)
             {
+                //For MaxQuant output, somehow, the retention time is weird.
+                if (aPeak.MaxScanNum!=0 || bPeak.MaxScanNum!=0)
+                {
+                    if (aPeak.MinScanNum <= bPeak.MaxScanNum && bPeak.MinScanNum <= aPeak.MaxScanNum)
+                    {
+                        if (deconvolutionParameter.DeconvolutionAcceptor.Within(aPeak.MonoMass,
+                            bPeak.MonoMass - deconvolutionParameter.PartnerMassDiff * i))
+                        {
+                            return true;
+                        }
+                    }
+                }
                 if (aPeak.StartRT <= bPeak.EndRT && bPeak.StartRT <= aPeak.EndRT)
                 {
                     if (deconvolutionParameter.DeconvolutionAcceptor.Within(aPeak.MonoMass,
