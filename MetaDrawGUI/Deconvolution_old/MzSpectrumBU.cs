@@ -942,7 +942,7 @@ namespace MassSpectrometry
                         && iso.Charge == isoEnvelops.ElementAt(closestIsoIndex.Value).Charge)
                     {
                         var ratio = iso.TotalIntensity / isoEnvelops.ElementAt(closestIsoIndex.Value).TotalIntensity;
-                        if (0.5 <= ratio && ratio <= 2)
+                        if (0.001 <= ratio && ratio <= 1000)
                         {
                             iso.HasPartner = true;
                             iso.Partner = isoEnvelops.ElementAt(closestIsoIndex.Value);

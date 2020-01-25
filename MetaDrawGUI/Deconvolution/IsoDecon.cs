@@ -256,7 +256,7 @@ namespace MassSpectrometry
             List<int> allPossibleChargeState = new List<int>();
             for (int i = candidateForMostIntensePeak + 1; i < mzSpectrumXY.XArray.Length; i++)
             {
-                if (mzSpectrumXY.XArray[i] - candidateForMostIntensePeakMz < 1.1) //In case charge is +1
+                if (mzSpectrumXY.XArray[i] - candidateForMostIntensePeakMz > 0.01 && mzSpectrumXY.XArray[i] - candidateForMostIntensePeakMz < 1.1) //In case charge is +1
                 {
                     var chargeDouble = 1.00289 / (mzSpectrumXY.XArray[i] - candidateForMostIntensePeakMz);
                     int charge = Convert.ToInt32(chargeDouble);
@@ -441,7 +441,7 @@ namespace MassSpectrometry
                         && iso.Charge == isoEnvelops.ElementAt(closestIsoIndex.Value).Charge)
                     {
                         var ratio = iso.TotalIntensity / isoEnvelops.ElementAt(closestIsoIndex.Value).TotalIntensity;
-                        if (0.2 <= ratio && ratio <= 5)
+                        if (0.001 <= ratio && ratio <= 1000)
                         {
                             iso.HasPartner = true;
                             iso.IsLight = true;

@@ -13,14 +13,14 @@ using FlashLFQ;
 namespace MetaDrawGUI
 {
     public class MsDataFileDecon
-    {      
+    {
 
         #region Quantification based on selected precursor
 
         public void DeconQuantFile(List<MsDataScan> ms1DataScanList, string filePath, CommonParameters commonParameters, DeconvolutionParameter deconvolutionParameter)
         {
             SpectraFileInfo mzml = new SpectraFileInfo(filePath, "", 0, 0, 0);
-            
+
             List<Identification>[] idts = new List<Identification>[ms1DataScanList.Count];
             List<IsoEnvelop>[] allIsotopicEnvelops = new List<IsoEnvelop>[ms1DataScanList.Count];
             //FlashLfqResults[] flashLfqResults = new FlashLfqResults[ms1DataScanList.Count];
@@ -55,8 +55,8 @@ namespace MetaDrawGUI
             {
                 for (int scanIndex = range.Item1; scanIndex < range.Item2; scanIndex++)
                 {
-                    MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(ms1DataScanList[scanIndex].MassSpectrum.XArray, ms1DataScanList[scanIndex].MassSpectrum.YArray, true);
-                    var isotopicEnvelopes = mzSpectrumBU.MsDeconv_Deconvolute(ms1DataScanList[scanIndex].ScanWindowRange, deconvolutionParameter).OrderBy(p => p.MonoisotopicMass).ToList();
+                    MzSpectrumXY mzSpectrumBU = new MzSpectrumXY(ms1DataScanList[scanIndex].MassSpectrum.XArray, ms1DataScanList[scanIndex].MassSpectrum.YArray, true);
+                    var isotopicEnvelopes = IsoDecon.MsDeconv_Deconvolute(mzSpectrumBU, ms1DataScanList[scanIndex].ScanWindowRange, deconvolutionParameter).OrderBy(p => p.MonoisotopicMass).ToList();
 
                     List<Identification> ids = new List<Identification>();
                     int i = 0;
@@ -83,9 +83,11 @@ namespace MetaDrawGUI
             //WritePeakResults(Path.Combine(Path.GetDirectoryName(filePath), @"PeaksPerScans.tsv"), peaksPerScans);
 
             var idList = idts.SelectMany(p => p).ToList();
-            FlashLfqEngine engine = new FlashLfqEngine(idList, integrate:false, ppmTolerance:5, isotopeTolerancePpm:3);
+            FlashLfqEngine engine = new FlashLfqEngine(idList, integrate: false, ppmTolerance: 5, isotopeTolerancePpm: 3);
             var results = engine.Run();
             var peaks = results.Peaks.SelectMany(p => p.Value).ToList();
+            var test1 = peaks.Where(p => p.Intensity > 0).ToList();
+            //var test2 = peaks.Where(p => p.Intensity > 0 && p.NumIdentificationsByBaseSeq > 1).ToList();
             WritePeakResults(Path.Combine(Path.GetDirectoryName(filePath), @"Peaks.tsv"), peaks);
 
             if (deconvolutionParameter.ToGetPartner)
@@ -98,6 +100,144 @@ namespace MetaDrawGUI
 
             var envelops = allIsotopicEnvelops.SelectMany(p => p).ToList();
             WriteEnvelopResults(Path.Combine(Path.GetDirectoryName(filePath), @"Envelops.tsv"), envelops);
+        }
+
+        public void DeconLabelQuantFile(List<MsDataScan> ms1DataScanList, string filePath, CommonParameters commonParameters, DeconvolutionParameter deconvolutionParameter)
+        {
+            SpectraFileInfo mzml = new SpectraFileInfo(filePath, "", 0, 0, 0);
+            
+            //List<Identification>[] idts = new List<Identification>[ms1DataScanList.Count];
+            List<Identification>[] lightIdts = new List<Identification>[ms1DataScanList.Count];
+            List<Identification>[] heavyIdts = new List<Identification>[ms1DataScanList.Count];
+            List<Identification>[] unmatchedIdts = new List<Identification>[ms1DataScanList.Count];
+
+            //List<IsoEnvelop>[] allIsotopicEnvelops = new List<IsoEnvelop>[ms1DataScanList.Count];
+            //FlashLfqResults[] flashLfqResults = new FlashLfqResults[ms1DataScanList.Count];
+
+            //for (int scanIndex = 0; scanIndex < ms1DataScanList.Count; scanIndex++)
+            //{
+            //    MzSpectrumBU mzSpectrumBU = new MzSpectrumBU(ms1DataScanList[scanIndex].MassSpectrum.XArray, ms1DataScanList[scanIndex].MassSpectrum.YArray, true);
+            //    var isotopicEnvelopes = mzSpectrumBU.MsDeconv_Deconvolute(ms1DataScanList[scanIndex].ScanWindowRange, deconvolutionParameter).OrderBy(p => p.MonoisotopicMass).ToList();
+
+            //    List<Identification> ids = new List<Identification>();
+            //    int i = 0;
+            //    foreach (var enve in isotopicEnvelopes)
+            //    {
+            //        isotopicEnvelopes[i].ScanNum = ms1DataScanList[scanIndex].OneBasedScanNumber;
+            //        isotopicEnvelopes[i].RT = ms1DataScanList[scanIndex].RetentionTime;
+            //        var id = GenerateIdentification(mzml, enve, ms1DataScanList[scanIndex].RetentionTime, scanIndex, i);
+            //        i++;
+            //        ids.Add(id);
+            //    }
+            //    if (ids.Count > 0)
+            //    {
+            //        //FlashLfqEngine engi = new FlashLfqEngine(ids, integrate: true, ppmTolerance: 7.5, isotopeTolerancePpm: 3);
+            //        //flashLfqResults[scanIndex] = engi.Run();
+
+            //        idts[scanIndex] = ids;
+            //        //allIsotopicEnvelops[scanIndex] = isotopicEnvelopes;
+            //    }
+            //}
+
+
+            Parallel.ForEach(Partitioner.Create(0, ms1DataScanList.Count), new ParallelOptions { MaxDegreeOfParallelism = commonParameters.MaxThreadsToUsePerFile }, (range, loopState) =>
+            {
+                for (int scanIndex = range.Item1; scanIndex < range.Item2; scanIndex++)
+                {
+                    MzSpectrumXY mzSpectrumBU = new MzSpectrumXY(ms1DataScanList[scanIndex].MassSpectrum.XArray, ms1DataScanList[scanIndex].MassSpectrum.YArray, true);
+                    var isotopicEnvelopes = IsoDecon.MsDeconv_Deconvolute(mzSpectrumBU, ms1DataScanList[scanIndex].ScanWindowRange, deconvolutionParameter).OrderBy(p => p.MonoisotopicMass).ToList();
+
+                    //List<Identification> ids = new List<Identification>();
+                    List<Identification> LightIds = new List<Identification>();
+                    List<Identification> HeavyIds = new List<Identification>();
+                    List<Identification> UnmatchedIds = new List<Identification>();
+
+
+                    //int i = 0;
+                    //foreach (var enve in isotopicEnvelopes)
+                    for (int i = 0; i < isotopicEnvelopes.Count; i++)
+                    {
+                        if (isotopicEnvelopes[i].HasPartner && !isotopicEnvelopes[i].IsLight)
+                        {
+                            continue;
+                        }
+
+                        isotopicEnvelopes[i].ScanNum = ms1DataScanList[scanIndex].OneBasedScanNumber;
+                        isotopicEnvelopes[i].RT = ms1DataScanList[scanIndex].RetentionTime;
+                        var id = GenerateIdentification(mzml, isotopicEnvelopes[i], ms1DataScanList[scanIndex].RetentionTime, scanIndex, i);
+
+                        if (!isotopicEnvelopes[i].HasPartner)
+                        {
+                            UnmatchedIds.Add(id);
+                        }
+
+                        if (isotopicEnvelopes[i].HasPartner && isotopicEnvelopes[i].IsLight)
+                        {
+                            LightIds.Add(id);
+
+                            var heavyEnvelop = isotopicEnvelopes[i].Partner;
+                            heavyEnvelop.ScanNum = ms1DataScanList[scanIndex].OneBasedScanNumber;
+                            heavyEnvelop.RT = ms1DataScanList[scanIndex].RetentionTime;
+                            var heavyId = GenerateIdentification(mzml, heavyEnvelop, ms1DataScanList[scanIndex].RetentionTime, scanIndex, i);
+                            HeavyIds.Add(heavyId);  
+                        }
+
+                        //ids.Add(id);
+                        //i++;
+                    }
+
+                    //if (ids.Count > 0)
+                    //{
+                    //    FlashLfqEngine engi = new FlashLfqEngine(ids, integrate: true, ppmTolerance: 7.5, isotopeTolerancePpm: 3);
+                    //    flashLfqResults[scanIndex] = engi.Run();
+                    //}
+                    lightIdts[scanIndex] = LightIds;
+                    heavyIdts[scanIndex] = HeavyIds;
+                    unmatchedIdts[scanIndex] = UnmatchedIds;
+                    //idts[scanIndex] = ids;
+                    //allIsotopicEnvelops[scanIndex] = isotopicEnvelopes;
+                }
+
+            });
+
+            //var peaksPerScans = flashLfqResults.SelectMany(p => p.Peaks.First().Value).ToList();
+            //WritePeakResults(Path.Combine(Path.GetDirectoryName(filePath), @"PeaksPerScans.tsv"), peaksPerScans);
+
+            //var idList = idts.SelectMany(p => p).ToList();
+            //FlashLfqEngine engine = new FlashLfqEngine(idList, integrate:true, ppmTolerance:5, isotopeTolerancePpm:3);
+            //var results = engine.Run();
+            //var peaks = results.Peaks.SelectMany(p => p.Value).ToList();
+            //WritePeakResults(Path.Combine(Path.GetDirectoryName(filePath), @"Peaks.tsv"), peaks);
+
+            var light_idList = lightIdts.SelectMany(p => p).ToList();
+            FlashLfqEngine light_engine = new FlashLfqEngine(light_idList, integrate: true, ppmTolerance: 5, isotopeTolerancePpm: 3);
+            var light_results = light_engine.Run();
+            var light_peaks = light_results.Peaks.SelectMany(p => p.Value).ToList();
+            WritePeakResults(Path.Combine(Path.GetDirectoryName(filePath), @"light_Peaks.tsv"), light_peaks);
+
+            var heavy_idList = heavyIdts.SelectMany(p => p).ToList();
+            FlashLfqEngine heavy_engine = new FlashLfqEngine(heavy_idList, integrate: true, ppmTolerance: 5, isotopeTolerancePpm: 3);
+            var heavy_results = heavy_engine.Run();
+            var heavy_peaks = heavy_results.Peaks.SelectMany(p => p.Value).ToList();
+            WritePeakResults(Path.Combine(Path.GetDirectoryName(filePath), @"heavy_Peaks.tsv"), heavy_peaks);
+
+            var unmatch_idList = unmatchedIdts.SelectMany(p => p).ToList();
+            FlashLfqEngine unmatch_engine = new FlashLfqEngine(unmatch_idList, integrate: true, ppmTolerance: 5, isotopeTolerancePpm: 3);
+            var unmatch_results = unmatch_engine.Run();
+            var unmatch_peaks = unmatch_results.Peaks.SelectMany(p => p.Value).ToList();
+            WritePeakResults(Path.Combine(Path.GetDirectoryName(filePath), @"unmatch_Peaks.tsv"), unmatch_peaks);
+
+
+            //if (deconvolutionParameter.ToGetPartner)
+            //{
+            //    //var unmatchNeuCodePeaks = new List<FlashLFQ.ChromatographicPeak>();
+            //    var filteredPeaks = results.Peaks.First().Value.Where(p => p.Intensity > 0 && p.IsotopicEnvelopes.Count > 0).OrderBy(p => p.Identifications.First().MonoisotopicMass).ToList();
+            //    List<NeucodeDoublet> neucodeDoublets = FindNeocodeDoublet(filteredPeaks, deconvolutionParameter);
+            //    WriteResults(Path.Combine(Path.GetDirectoryName(filePath), @"NeucodesDoublets.tsv"), neucodeDoublets);
+            //}
+
+            //var envelops = allIsotopicEnvelops.SelectMany(p => p).ToList();
+            //WriteEnvelopResults(Path.Combine(Path.GetDirectoryName(filePath), @"Envelops.tsv"), envelops);
         }
 
         private ChemicalFormula GenerateChemicalFormula(double monoIsotopicMass)

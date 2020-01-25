@@ -6,13 +6,13 @@ namespace MassSpectrometry
     {
         public DeconvolutionParameter()
         {
-            DeconvolutionMinAssumedChargeState = 5;
-            DeconvolutionMaxAssumedChargeState = 60;
+            DeconvolutionMinAssumedChargeState = 2;
+            DeconvolutionMaxAssumedChargeState = 8;
             DeconvolutionMassTolerance = 4;
             DeconvolutionIntensityRatio = 3;
 
-            ToGetPartner = false;
-            PartnerMassDiff = 0.018;
+            ToGetPartner = true;
+            PartnerMassDiff = 8.0142;
             MaxmiumLabelNumber = 3;
             PartnerPairRatio = 1;
             ParterMassTolerance = 10;
