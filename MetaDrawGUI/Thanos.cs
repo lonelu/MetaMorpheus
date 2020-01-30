@@ -167,7 +167,8 @@ namespace MetaDrawGUI
 
         public List<IsoEnvelop> DoPeptideSpectrumMatch(PeptideWithSetModifications pep)
         {
-            List<Product> peptideTheorProducts = pep.Fragment(CommonParameters.DissociationType, FragmentationTerminus.Both).ToList();
+            List<Product> peptideTheorProducts = new List<Product>();
+            pep.Fragment(CommonParameters.DissociationType, FragmentationTerminus.Both, peptideTheorProducts);
 
             //Ms2ScanWithSpecificMass scan = new Ms2ScanWithSpecificMass(msDataScan, 4, 1, null, new CommonParameters());
 

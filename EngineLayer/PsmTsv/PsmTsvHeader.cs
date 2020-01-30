@@ -102,8 +102,10 @@
 
     public static class PsmTsvHeader_Glyco
     {
+        public const string GlycanIDs = "GlycanIDs";
+        public const string GlycanStructure = "GlycanStructure";
         public const string GlycanMass = "GlycanMass";
-        public const string GlycanStructure = "Plausible GlycanStructure";
-        public const string GlycanComposition = "Plausible GlycanComposition";
+        public const string GlycanComposition = "GlycanComposition(H,N,A,G,F)";
+
     }
 }

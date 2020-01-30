@@ -10,7 +10,6 @@
         Intra,
         DeadEndH2O,
         DeadEndNH2,
-        DeadEndTris, 
-        Glyco
+        DeadEndTris
     }
 }

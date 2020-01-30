@@ -8,7 +8,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:mzl="clr-namespace:MassSpectrometry;assembly=MassSpectrometry"
         KeyDown="KeyPressed"
-        Title="XL/Gly Search Task" Width="750" Height="750" WindowStartupLocation="CenterScreen">
+        Title="XL Search Task" Width="750" Height="750" WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
@@ -48,7 +48,6 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1*" />
                             <ColumnDefinition Width="1*" />
-                            <ColumnDefinition Width="1*" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="1*" />
@@ -56,10 +55,9 @@
                             <RowDefinition Height="1*" />
                             <RowDefinition Height="1*" />
                         </Grid.RowDefinitions>
-                        <RadioButton x:Name="RbSearchCrosslink" Content="Crosslink Search" GroupName="OpenSearchType"></RadioButton>
-                        <RadioButton x:Name="RbSearchNGlyco" Content="N-Glyco Search" GroupName="OpenSearchType" Grid.Column="1"></RadioButton>
-                        <RadioButton x:Name="RbSearchOGlyco" Content="O-Glyco Search" GroupName="OpenSearchType" Grid.Column="2"></RadioButton>
-                        <StackPanel Orientation="Horizontal" Margin="5" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3">
+                        <!--<RadioButton x:Name="RbSearchCrosslink" Content="Crosslink Search" GroupName="SearchType"></RadioButton>-->
+                        <!--<RadioButton x:Name="RbSearchGlyco" Content="Glyco Search" GroupName="SearchType" Grid.Column="1"></RadioButton>-->
+                        <StackPanel Orientation="Horizontal" Margin="5" Grid.Row="0" Grid.Column="1">
                             <Label x:Name="ionsToSearchLabel" Content="Dissociation Type" ToolTipService.ShowDuration="999999" ToolTipService.InitialShowDelay="500">
                                 <Label.ToolTip>
                                     <TextBlock>
@@ -77,13 +75,13 @@
                             </Label>
                             <ComboBox x:Name="ChildScanDissociationTypeComboBox" AllowDrop="False" HorizontalAlignment="Center" VerticalAlignment="Center" DropDownClosed="CustomFragmentationHandler"/>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Margin="5">
+                        <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Margin="5">
                             <Label x:Name="lblXLprecusorMsTl"  Content="Precursor mass tolerance" />
                             <TextBox x:Name="XLPrecusorMsTlTextBox" PreviewTextInput="CheckIfNumber" Width="45" />
                             <ComboBox x:Name="cbbXLprecusorMsTl" />
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="1" Margin="5">
-                            <CheckBox x:Name="ckbXLTopNum" VerticalAlignment="Center" Content="Top N peptides per precursor" />
+                        <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="1" Margin="5">
+                            <Label Content="Keep top N candidates" />
                             <TextBox x:Name="txtXLTopNum" PreviewTextInput="CheckIfNumber" Width="45" Margin="2" IsEnabled="{Binding IsChecked, ElementName=ckbXLTopNum}" />
                         </StackPanel>
                     </Grid>
@@ -116,32 +114,15 @@
                         </StackPanel>
                     </Expander>
                 </GroupBox>
-                <GroupBox Header="Glyco Search" DockPanel.Dock="Top">
+                <!--<GroupBox Header="Glyco Search" DockPanel.Dock="Top">
                     <Expander x:Name="GlycoSearchExpander">
                         <StackPanel Orientation="Vertical">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="1*"/>
-                                    <ColumnDefinition Width="1*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="1*"/>
-                                    <RowDefinition Height="1*"/>
-                                    <RowDefinition Height="1*"/>
-                                </Grid.RowDefinitions>
-                                <StackPanel >
-                                    <CheckBox x:Name="CkbSearchGlycan182" VerticalAlignment="Center" Content="Use database with 182 glycans"/>
-                                </StackPanel>
-                                <StackPanel Grid.Row="1">
-                                    <CheckBox x:Name="CkbAnalyzeOxiniumIon" VerticalAlignment="Center" Content="Analyze Oxinium Ions" />
-                                </StackPanel>
-                                <StackPanel Grid.Row="2">
-                                    <CheckBox x:Name="CkbFilterScanOxiniumIon" VerticalAlignment="Center" Content="Filter Scans Contain Oxinium Ions"/>
-                                </StackPanel>
-                            </Grid>
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <CheckBox x:Name="CkbSearchGlycoWithBgYgIndex"  VerticalAlignment="Center" Content="Search Glycopeptides with BgYg index" />
+                            </StackPanel>
                         </StackPanel>
                     </Expander>
-                </GroupBox>
+                </GroupBox>-->
                 <GroupBox Header="Search Parameters" DockPanel.Dock="Top">
                     <Expander x:Name="SearchModeExpander">
                         <Expander.Style>
@@ -210,6 +191,10 @@
                                             <ComboBox x:Name="initiatorMethionineBehaviorComboBox" />
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Margin="5">
+                                            <Label x:Name="label6_Copy" Content="Separation Type" />
+                                            <ComboBox x:Name="SeparationTypeComboBox" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="5">
                                             <Label x:Name="label55_Copy" Content="Max Modification Isoforms" />
                                             <TextBox x:Name="maxModificationIsoformsTextBox" PreviewTextInput="CheckIfNumber" Width="45" />
                                         </StackPanel>
@@ -218,10 +203,6 @@
                                             <TextBox x:Name="MinPeptideLengthTextBox" PreviewTextInput="CheckIfNumber" Width="45" />
                                             <Label x:Name="lblMaxPeptideLength" Content="Max Peptide Len" />
                                             <TextBox x:Name="MaxPeptideLengthTextBox" PreviewTextInput="CheckIfNumber" Width="45" TextChanged="NonSpecificUpdate"/>
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal" Margin="5">
-                                            <Label x:Name="lbMaxModNum" Content="Max mods per peptide" />
-                                            <TextBox x:Name="MaxModNumTextBox" PreviewTextInput="CheckIfNumber" Width="45"/>
                                         </StackPanel>
                                     </StackPanel>
                                 </Grid>
@@ -259,18 +240,6 @@
                                         </StackPanel>
                                     </StackPanel>
                                 </Grid>
-                            </GroupBox>
-                            <GroupBox Header="Mass Difference Acceptor Criterion">
-                                <StackPanel>
-                                    <RadioButton x:Name="massDiffAcceptExact" Content="Exact" />
-
-                                    <RadioButton x:Name="massDiffAccept1mm" Content="1 Missed Monoisotopic Peak" />
-
-                                    <RadioButton x:Name="massDiffAccept2mm" Content="1 or 2 Missed Monoisotopic Peaks" />
-
-                                    <RadioButton x:Name="massDiffAccept3mm" Content="1, 2, or 3 Missed Monoisotopic Peaks" />
-
-                                </StackPanel>
                             </GroupBox>
                         </StackPanel>
                     </Expander>
@@ -398,17 +367,21 @@
                 <GroupBox Header="Output Options" DockPanel.Dock="Top">
                     <Expander x:Name="OutputExpander">
                         <StackPanel Orientation="Vertical">
-                            <CheckBox x:Name="ckbPercolator" Content="Write .TSV for Percolator" />
                             <CheckBox x:Name="ckbPepXML" Content="Write .pep.XML" />
-                            <CheckBox x:Name="ckbXiNET" Content="Write .csv for XiNET" />
                         </StackPanel>
                     </Expander>
                 </GroupBox>
             </DockPanel>
         </ScrollViewer>
-        <StackPanel  Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1"  Margin="188.333,5,261,5" Grid.Column="1">
+        <StackPanel  Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1" Grid.Column="1">
             <Button x:Name="cancelButton" Content="Cancel" Click="CancelButton_Click" />
             <Button x:Name="saveButton" Content="Save Search Task" Click="SaveButton_Click" FontSize="24" />
+            <Button x:Name="setDefaultbutton" Click="SaveAsDefault_Click" Width="100" >
+                <TextBlock Text="Save As Default" TextWrapping="Wrap" TextAlignment="Center"/>
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="Save these parameters as the default. MetaMorpheus can return to original defaults by deleting the folder 'DefaultParameters'" ToolTipService.ShowDuration="999999" ToolTipService.InitialShowDelay="500" />
+                </ToolTipService.ToolTip>
+            </Button>
         </StackPanel>
     </Grid>
 </Window>

@@ -115,7 +115,7 @@ namespace MetaDrawGUI
                 foreach (var c in OGlycanGroup)
                 {
                     var ids = "[" +  c.GlycanIdString + "]";
-                    output.WriteLine((double)c.Mass/100000.0 + "\t" + c.NumberOfMods + "\t" + c.Structure + "\t" + ids);
+                    output.WriteLine((double)c.Mass/100000.0 + "\t" + c.NumberOfMods + "\t" +  ids); //c.Structure + "\t" +
                 }
             }
         }
