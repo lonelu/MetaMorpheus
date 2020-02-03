@@ -25,6 +25,7 @@ namespace MetaDrawGUI
             List<IsoEnvelop>[] allIsotopicEnvelops = new List<IsoEnvelop>[ms1DataScanList.Count];
 
             List<double>[] aggragateIntensities = new List<double>[ms1DataScanList.Count];
+            List<double>[] normalIntensities = new List<double>[ms1DataScanList.Count]; //Normalized by most intense peaks.
 
             //for (int scanIndex = 0; scanIndex < ms1DataScanList.Count; scanIndex++)
             //{
@@ -57,7 +58,10 @@ namespace MetaDrawGUI
                     var isotopicEnvelopes = IsoDecon.MsDeconv_Deconvolute(mzSpectrumBU, ms1DataScanList[scanIndex].ScanWindowRange, deconvolutionParameter).OrderByDescending(p => p.TotalIntensity).ToList();
 
                     List<Identification> ids = new List<Identification>();
+
+                    double totalIntensity = isotopicEnvelopes.Sum(p=>p.TotalIntensity);
                     List<double> intensities = new List<double>();
+                    List<double> nIntensities = new List<double>();
                     double currIntensity = 0;
                     int i = 0;
                     foreach (var enve in isotopicEnvelopes)
@@ -68,14 +72,17 @@ namespace MetaDrawGUI
                         i++;
                         ids.Add(id);
 
-                        currIntensity += enve.TotalIntensity / mzSpectrumBU.TotalIntensity;
+                        currIntensity += enve.TotalIntensity / totalIntensity;
                         intensities.Add(currIntensity);
+
+                        nIntensities.Add(enve.TotalIntensity/ isotopicEnvelopes.First().TotalIntensity);
                     }
 
                     idts[scanIndex] = ids;
                     allIsotopicEnvelops[scanIndex] = isotopicEnvelopes;
 
                     aggragateIntensities[scanIndex] = intensities;
+                    normalIntensities[scanIndex] = nIntensities;
                 }
 
             });
@@ -96,8 +103,11 @@ namespace MetaDrawGUI
             var envelops = allIsotopicEnvelops.SelectMany(p => p).ToList();
             WriteEnvelopResults(Path.Combine(Path.GetDirectoryName(filePath), @"Envelops.tsv"), envelops);
 
-            var aggIntensities = aggragateIntensities.Where(p => p.Count >= 20).ToList();
+            var aggIntensities = aggragateIntensities.Where(p => p.Count >= 40).ToList();
             WriteAggIntensityResults(Path.Combine(Path.GetDirectoryName(filePath), @"AggIntensities.tsv"), aggIntensities);
+
+            var nmIntensities = normalIntensities.Where(p => p.Count >= 40).ToList();
+            WriteAggIntensityResults(Path.Combine(Path.GetDirectoryName(filePath), @"NormalIntensities.tsv"), nmIntensities);
         }
 
         public void DeconLabelQuantFile(List<MsDataScan> ms1DataScanList, string filePath, CommonParameters commonParameters, DeconvolutionParameter deconvolutionParameter)
