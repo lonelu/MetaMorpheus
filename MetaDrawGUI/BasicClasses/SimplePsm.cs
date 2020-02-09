@@ -84,6 +84,10 @@ namespace MetaDrawGUI
 
         public string FileName { get; set; }
         public int Ms2ScanNumber { get; set; }
+
+        public int PrecursorScanNum { get; set; }
+        
+        public string DissociateType { get; set; }
         public double RT { get; set; }
         public double PrecursorMass { get; set; }
         public double PrecursorMz { get; set; }
@@ -417,10 +421,9 @@ namespace MetaDrawGUI
 
         public static byte[] GetKindFromByonic(string line)
         {
-            //byte[] kind = new byte[10] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+            byte[] kind = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-            byte[] kind = new byte[5] { 0, 0, 0, 0, 0 };
-            var x = line.Split('(', ')');
+            var x = line.Replace(";", "").Split('(', ')');
             int i = 0;
             while (i < x.Length - 1)
             {
@@ -441,21 +444,18 @@ namespace MetaDrawGUI
                     case "Fuc":
                         kind[4] = byte.Parse(x[i + 1]);
                         break;
-                    //case "Xyl":
-                    //    kind[5] = byte.Parse(x[i + 1]);
-                    //    break;
-                    //case "KND":
-                    //    kind[6] = byte.Parse(x[i + 1]);
-                    //    break;
-                    //case "Phosphate":
-                    //    kind[7] = byte.Parse(x[i + 1]);
-                    //    break;
-                    //case "Sulfate":
-                    //    kind[8] = byte.Parse(x[i + 1]);
-                    //    break;
-                    //case "HexA":
-                    //    kind[9] = byte.Parse(x[i + 1]);
-                    //    break;
+                    case "Phospho":
+                        kind[5] = byte.Parse(x[i + 1]);
+                        break;
+                    case "Sulfo":
+                        kind[6] = byte.Parse(x[i + 1]);
+                        break;
+                    case "Na":
+                        kind[7] = byte.Parse(x[i + 1]);
+                        break;
+                    case "Xylose":
+                        kind[8] = byte.Parse(x[i + 1]);
+                        break;
                     default:
                         break;
                 }
@@ -483,6 +483,9 @@ namespace MetaDrawGUI
             FullSeq = spl[parsedHeader[PsmTsvHeader_Byonic.FullSeq]];
             int peptideLength = BaseSeq.Count();
 
+            Ms2ScanNumber = int.Parse(spl[parsedHeader[PsmTsvHeader_Byonic.ScanNum]]);
+            PrecursorScanNum = int.Parse(spl[parsedHeader[PsmTsvHeader_Byonic.PrecursorScanNumber]]);
+            DissociateType = spl[parsedHeader[PsmTsvHeader_Byonic.DissociteType]];
         }
 
         #endregion

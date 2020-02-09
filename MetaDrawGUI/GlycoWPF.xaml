@@ -18,38 +18,15 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="6*"/>
-                        <RowDefinition Height="6*"/>
-                        <RowDefinition Height="1*"/>
                         <RowDefinition Height="15*"/>
                     </Grid.RowDefinitions>
                     <Grid>
                         <StackPanel>
-                            <Button x:Name="BtnPlotGlycoFamily" Content="Plot Glyco Family" Click="BtnPlotGlycoFamily_Click"/>
-                            <Button x:Name="BtnBuildGlycoFamily" Content="Build Glyco Family" Click="BtnBuildGlycoFamily_Click"/>
-                            <Button x:Name="BtnWrite_pGlycoResult" Content="Write_pGlycoResult" Click="BtnWrite_pGlycoResult_Click"/>
+                            <Button x:Name="BtnLoadMsFeatureResults" Content="Load MsFeature" Click="BtnLoadMsFeatureResults_Click" />
+                            <ComboBox x:Name="cmbStweetorAction" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Button x:Name="BtnStweetorAct" Content="Start" Click="BtnStweetorAct_Click"/>
                         </StackPanel>
                     </Grid>
-                    <GroupBox Header="Glyco Results" Name="gbGlycoResults" Grid.Row="1">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="5*"/>
-                                <RowDefinition Height="1*"/>
-                                <RowDefinition Height="1*"/>
-                            </Grid.RowDefinitions>
-                            <DataGrid x:Name="dataGridGlycoResultFiles" ItemsSource="{Binding GlycoResultCollection}" Grid.Row="0">
-                                <DataGrid.Resources>
-                                </DataGrid.Resources>
-                            </DataGrid>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
-                                <Button x:Name="BtnAddGlycoResultFiles" Content="Add" Click="BtnAddGlycoResultFiles_Click"  Height="30" VerticalAlignment="Top"/>
-                                <Button x:Name="btnClearGlycoResultFiles" Content="Clear" Click="BtnClearGlycoResultFiles_Click" Height="30" VerticalAlignment="Top"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="2">
-                                <Button x:Name="BtnLoadGlycoResults" Content="Load Glyco" Click="BtnLoadGlycoResults_Click" />
-                                <Button x:Name="BtnLoadMsFeatureResults" Content="Load MsFeature" Click="BtnLoadMsFeatureResults_Click" />
-                            </StackPanel>
-                        </Grid>
-                    </GroupBox>
                     <GroupBox Header="Glyco Structures" Name="gbGlycoStructures" Grid.Row="5">
                         <DataGrid x:Name="dataGridGlyco" VerticalAlignment="Stretch" ItemsSource="{Binding GlycoStrucureCollection}"
                                   IsReadOnly="True" ScrollViewer.CanContentScroll="True" Margin="0,0,0,0"

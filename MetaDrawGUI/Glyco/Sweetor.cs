@@ -14,9 +14,20 @@ using TaskLayer;
 using EngineLayer;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using Proteomics.ProteolyticDigestion;
+using Proteomics;
 
 namespace MetaDrawGUI
 {
+    public enum SweetorSkill
+    {
+        PlotGlycoFamily = 0,
+        BuildGlycoFamily = 1,
+        Write_pGlycoResult = 2,
+        FilterSemiTrypsinResult = 3, //Filter Semi-tryptic peptides with StcE-tryptic peptides. Byonic only work on semi-trypsin. 
+        FilterPariedScan = 4 //PariedScan HCD-EThcD can generate different identifications if search separately.
+    }
+
     public class Sweetor:INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
@@ -121,15 +132,6 @@ namespace MetaDrawGUI
         }
 
         //Write pGlyco result into out format.
-        public void WritePGlycoResult(List<string> ResultFilePaths, List<SimplePsm> simplePsms)
-        {
-            foreach (var filepath in ResultFilePaths)
-            {
-                var ForderPath = Path.Combine(Path.GetDirectoryName(filepath), Path.GetFileNameWithoutExtension(filepath), "_pGlyco.mytsv");
-
-                TsvReader_Id.WriteTsv(ForderPath, simplePsms.Where(p=>p.FileName == Path.GetFileName(filepath)).ToList());
-            }
-        }
 
         public IOrderedEnumerable<IGrouping<string, SimplePsm>> GetFamilySimplePsm()
         {
@@ -159,6 +161,12 @@ namespace MetaDrawGUI
                 _thanos.PsmAnnoModel = _thanos.sweetor.PlotGlycoRT(Psms_byId.ElementAt(GlycoFamilyIndex).ToList());
                 GlycoFamilyIndex++;
             }
+        }
+
+        public void BuildGlycoFamily()
+        {
+            _thanos.sweetor.familyFeatures = GetGlycoFamilies(_thanos.msFeatures.ToArray());
+            _thanos.PsmAnnoModel = GlycoViewModel.PlotGlycoFamily(_thanos.sweetor.familyFeatures);
         }
 
         //To plot identified glycopeptide family mass vs retention time
@@ -271,7 +279,7 @@ namespace MetaDrawGUI
             }
         }
 
-
+        #region Build Glycofamily based on features.
         //For simplicity, the A 291.09542 may not be considered.
         static double[] SugarMass = new double[10] { -406.15874, -365.13219, -203.07937, -162.05282, -146.05791, 146.05791, 162.05282, 203.07937, 365.13219, 406.15874 };
         static Tolerance tolerance = new PpmTolerance(10);
@@ -421,5 +429,123 @@ namespace MetaDrawGUI
             }
         }
 
+        #endregion
+        public void WritePGlycoResult(List<string> ResultFilePaths, List<SimplePsm> simplePsms)
+        {
+            foreach (var filepath in ResultFilePaths)
+            {
+                var ForderPath = Path.Combine(Path.GetDirectoryName(filepath), Path.GetFileNameWithoutExtension(filepath), "_pGlyco.mytsv");
+
+                TsvReader_Id.WriteTsv(ForderPath, simplePsms.Where(p => p.FileName == Path.GetFileName(filepath)).ToList());
+            }
+        }
+        public void Write_pGlycoResult()
+        {
+            WritePGlycoResult(_thanos.ResultFilePaths, _thanos.simplePsms);
+        }
+
+        public void FilterSemiTrypsinResult()
+        {
+
+            var digestPara = new DigestionParams(
+               minPeptideLength: 5,
+               maxPeptideLength: 60,
+               protease: "StcE-trypsin",
+               maxMissedCleavages: 5
+           );
+
+           var  commonParameters = new CommonParameters(
+                digestionParams: digestPara
+            );
+
+            var theoryPeptides = _thanos.GeneratePeptides(commonParameters);
+
+            HashSet<string> peptideHash = theoryPeptides.Select(p => p.BaseSequence).ToHashSet();
+
+            List<Tuple<string, bool>> filter = new List<Tuple<string, bool>>();
+
+            foreach (var psm in _thanos.simplePsms)
+            {
+                if (peptideHash.Contains(psm.BaseSeq))
+                {
+                    filter.Add(new Tuple<string, bool>(psm.BaseSeq, true));
+                }
+                else
+                {
+                    filter.Add(new Tuple<string, bool>(psm.BaseSeq, false));
+                }              
+            }
+
+            var filterPath = Path.Combine(Path.GetDirectoryName(_thanos.ResultFilePaths.First()), Path.GetFileNameWithoutExtension(_thanos.ResultFilePaths.First())+ "_filter.mytsv");
+
+            using (StreamWriter output = new StreamWriter(filterPath))
+            {
+                output.WriteLine("In DataBase");
+                foreach (var t in filter)
+                {
+                    output.WriteLine(t.Item1 + "\t" + t.Item2);
+                }
+            }
+        }
+
+        public void FilterPariedScan()
+        {
+            //<bool, bool>: <Has pairedScan, same Base sequence>
+            List<Tuple<bool, bool>> filter = new List<Tuple<bool, bool>>();
+
+            foreach (var psm in _thanos.simplePsms)
+            {
+                if (psm.DissociateType == "HCD")
+                {
+                    if (_thanos.simplePsms.Where(p => p.PrecursorScanNum == psm.Ms2ScanNumber).Count() > 0)
+                    {
+                        bool same = false;
+                        foreach (var c in _thanos.simplePsms.Where(p => p.PrecursorScanNum == psm.Ms2ScanNumber))
+                        {
+                            if (c.BaseSeq == psm.BaseSeq)
+                            {
+                                same = true;
+                            }
+                        }
+                        filter.Add(new Tuple<bool, bool>(true, same));
+                    }
+                    else
+                    {
+                        filter.Add(new Tuple<bool, bool>(false, false));
+                    }
+                }
+                else
+                {
+                    if (_thanos.simplePsms.Where(p => p.Ms2ScanNumber == psm.PrecursorScanNum).Count() > 0)
+                    {
+                        bool same = false;
+                        foreach (var c in _thanos.simplePsms.Where(p => p.Ms2ScanNumber == psm.PrecursorScanNum))
+                        {
+                            if (c.BaseSeq == psm.BaseSeq)
+                            {
+                                same = true;
+                            }
+                        }
+                        filter.Add(new Tuple<bool, bool>(true, same));
+                    }
+                    else
+                    {
+                        filter.Add(new Tuple<bool, bool>(false, false));
+                    }
+                }
+
+            }
+
+            var filterPath = Path.Combine(Path.GetDirectoryName(_thanos.ResultFilePaths.First()), Path.GetFileNameWithoutExtension(_thanos.ResultFilePaths.First())+ "_PairFilter.mytsv");
+
+            using (StreamWriter output = new StreamWriter(filterPath))
+            {
+                output.WriteLine("Has pairedScan\tSame Base sequence");
+                foreach (var t in filter)
+                {
+                    output.WriteLine(t.Item1 + "\t" + t.Item2);
+                }
+            }
+        }
     }
 }

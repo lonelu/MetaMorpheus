@@ -37,6 +37,8 @@ namespace MetaDrawGUI
         {
             InitializeComponent();
 
+            PopulateChoice();
+
             plotAnnoView.DataContext = MainWindow.thanos;
 
             //dataGridGlycoResultFiles.DataContext = resultFilesObservableCollection;
@@ -46,6 +48,16 @@ namespace MetaDrawGUI
             dataGridGlyco.DataContext = MainWindow.thanos.sweetor;
 
             dataGridGlycan.DataContext = MainWindow.thanos.sweetor;
+        }
+
+        private void PopulateChoice()
+        {
+            foreach (string aSkill in Enum.GetNames(typeof(SweetorSkill)))
+            {
+                {
+                    cmbStweetorAction.Items.Add(aSkill);
+                }
+            }
         }
 
         #region Glyco Control
@@ -60,50 +72,9 @@ namespace MetaDrawGUI
             }
         }
 
-        private void BtnAddGlycoResultFiles_Click(object sender, RoutedEventArgs e)
-        {
-            Microsoft.Win32.OpenFileDialog openFileDialog1 = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "Result Files(*.csv;*.psmtsv;*.txt)|*.csv;*.psmtsv;*.txt",
-                FilterIndex = 1,
-                RestoreDirectory = true,
-                Multiselect = true
-            };
-            if (openFileDialog1.ShowDialog() == true)
-                foreach (var rawDataFromSelected in openFileDialog1.FileNames.OrderBy(p => p))
-                {
-                    MainWindow.AddAFile(rawDataFromSelected);
-                }
-            dataGridGlycoResultFiles.Items.Refresh();
-        }
-
         private void BtnClearGlycoResultFiles_Click(object sender, RoutedEventArgs e)
         {
             MainWindow.thanos.sweetor.GlycoResultCollection.Clear();
-        }
-
-        private void BtnLoadGlycoResults_Click(object sender, RoutedEventArgs e)
-        {
-            // load the spectra file
-            (sender as Button).IsEnabled = false;
-            BtnAddGlycoResultFiles.IsEnabled = false;
-            btnClearGlycoResultFiles.IsEnabled = false;
-
-            foreach (var collection in MainWindow.resultFilesObservableCollection)
-            {
-                MainWindow.resultsFilePath = collection.FilePath;
-                if (MainWindow.resultsFilePath == null)
-                {
-                    continue;
-                }
-                // load the PSMs
-                MainWindow.thanos.simplePsms.AddRange(TsvReader_Id.ReadTsv(MainWindow.resultsFilePath));
-            }
-
-            foreach (var psm in MainWindow.thanos.simplePsms)
-            {
-                MainWindow.thanos.sweetor.GlycoStrucureCollection.Add(new GlycoStructureForDataGrid(psm.Ms2ScanNumber));
-            }
         }
 
         private void BtnLoadMsFeatureResults_Click(object sender, RoutedEventArgs e)
@@ -189,24 +160,35 @@ namespace MetaDrawGUI
 
         #endregion
 
-        private void BtnPlotGlycoFamily_Click(object sender, RoutedEventArgs e)
-        {           
-            MainWindow.thanos.sweetor.PlotGlycoFamily();
-        }
-
-        private void BtnBuildGlycoFamily_Click(object sender, RoutedEventArgs e)
+        private void BtnStweetorAct_Click(object sender, RoutedEventArgs e)
         {
+            SweetorSkill sweetorSkill = ((SweetorSkill)cmbStweetorAction.SelectedIndex);
 
-            MainWindow.thanos.sweetor.familyFeatures = Sweetor.GetGlycoFamilies(MainWindow.thanos.msFeatures.ToArray());
-            MainWindow.thanos.PsmAnnoModel = GlycoViewModel.PlotGlycoFamily(MainWindow.thanos.sweetor.familyFeatures);
-            
-        }
+            switch (sweetorSkill)
+            {
+                case SweetorSkill.PlotGlycoFamily:
+                    MainWindow.action = MainWindow.thanos.sweetor.PlotGlycoFamily;
+                    break;
+                case SweetorSkill.BuildGlycoFamily:
+                    MainWindow.action = MainWindow.thanos.sweetor.BuildGlycoFamily;
+                    break;
+                case SweetorSkill.Write_pGlycoResult:
+                    MainWindow.action = MainWindow.thanos.sweetor.Write_pGlycoResult;
+                    break;
+                case SweetorSkill.FilterSemiTrypsinResult:
+                    MainWindow.action = MainWindow.thanos.sweetor.FilterSemiTrypsinResult;
+                    break;
+                case SweetorSkill.FilterPariedScan:
+                    MainWindow.action = MainWindow.thanos.sweetor.FilterPariedScan;
+                    break;
+                default:
+                    break;
+            }
 
-        private void BtnWrite_pGlycoResult_Click(object sender, RoutedEventArgs e)
-        {
-
-            MainWindow.thanos.sweetor.WritePGlycoResult(MainWindow.thanos.ResultFilePaths, MainWindow.thanos.simplePsms);
-            
+            if (MainWindow.action != null)
+            {
+                MainWindow.action();
+            }
         }
     }
 }

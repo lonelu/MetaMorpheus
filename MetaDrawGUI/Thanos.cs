@@ -25,10 +25,11 @@ using Proteomics.Fragmentation;
 using Proteomics.ProteolyticDigestion;
 using Proteomics.Fragmentation;
 using MetaDrawGUI.Crosslink;
+using UsefulProteomicsDatabases;
 
 namespace MetaDrawGUI
 {
-    public class Thanos : INotifyPropertyChanged
+    public class Thanos: INotifyPropertyChanged
     {
         //Thanos' subordinate
         public Accumulator accumulator = new Accumulator();
@@ -77,6 +78,8 @@ namespace MetaDrawGUI
 
         public List<SimplePsm> simplePsms = new List<SimplePsm>();
 
+        public List<Protein> Proteins = new List<Protein>();
+
         public List<MsFeature> msFeatures = new List<MsFeature>();
 
         public List<string> MsDataFilePaths { get; set; }
@@ -117,9 +120,6 @@ namespace MetaDrawGUI
         {
             BoxMerger.MergeBoxScans(MsDataFilePaths, spectraFileManager);
         }
-
-
-
 
 
         public void ExtractScanInfo()
@@ -181,5 +181,75 @@ namespace MetaDrawGUI
             return matchedIons;
         }
 
+        //Copied from MetaMorpheus task due to protection level.
+        public List<Protein> LoadProteins(string taskId, List<DbForTask> dbFilenameList, bool searchTarget, DecoyType decoyType, List<string> localizeableModificationTypes, CommonParameters commonParameters)
+        {
+            int emptyProteinEntries = 0;
+            List<Protein> proteinList = new List<Protein>();
+            foreach (var db in dbFilenameList)
+            {
+                var dbProteinList = LoadProteinDb(db.FilePath, searchTarget, decoyType, localizeableModificationTypes, db.IsContaminant, out Dictionary<string, Modification> unknownModifications, out int emptyProteinEntriesForThisDb, commonParameters);
+                proteinList = proteinList.Concat(dbProteinList).ToList();
+                emptyProteinEntries += emptyProteinEntriesForThisDb;
+            }
+            return proteinList;
+        }
+
+        private static List<Protein> LoadProteinDb(string fileName, bool generateTargets, DecoyType decoyType, List<string> localizeableModificationTypes, bool isContaminant, out Dictionary<string, Modification> um,
+    out int emptyEntriesCount, CommonParameters commonParameters)
+        {
+            List<string> dbErrors = new List<string>();
+            List<Protein> proteinList = new List<Protein>();
+
+            string theExtension = Path.GetExtension(fileName).ToLowerInvariant();
+            bool compressed = theExtension.EndsWith("gz"); // allows for .bgz and .tgz, too which are used on occasion
+            theExtension = compressed ? Path.GetExtension(Path.GetFileNameWithoutExtension(fileName)).ToLowerInvariant() : theExtension;
+
+            if (theExtension.Equals(".fasta") || theExtension.Equals(".fa"))
+            {
+                um = null;
+                proteinList = ProteinDbLoader.LoadProteinFasta(fileName, generateTargets, decoyType, isContaminant, ProteinDbLoader.UniprotAccessionRegex, ProteinDbLoader.UniprotFullNameRegex, ProteinDbLoader.UniprotFullNameRegex, ProteinDbLoader.UniprotGeneNameRegex,
+                    ProteinDbLoader.UniprotOrganismRegex, out dbErrors, commonParameters.MaxThreadsToUsePerFile);
+            }
+            else
+            {
+                List<string> modTypesToExclude = GlobalVariables.AllModTypesKnown.Where(b => !localizeableModificationTypes.Contains(b)).ToList();
+                proteinList = ProteinDbLoader.LoadProteinXML(fileName, generateTargets, decoyType, GlobalVariables.AllModsKnown, isContaminant, modTypesToExclude, out um, commonParameters.MaxThreadsToUsePerFile, commonParameters.MaxHeterozygousVariants, commonParameters.MinVariantDepth);
+            }
+
+            emptyEntriesCount = proteinList.Count(p => p.BaseSequence.Length == 0);
+            return proteinList.Where(p => p.BaseSequence.Length > 0).ToList();
+        }
+
+        public List<PeptideWithSetModifications> GeneratePeptides(CommonParameters commonParameters)
+        {
+            List<PeptideWithSetModifications> peptides = new List<PeptideWithSetModifications>();
+
+
+            List<Modification> VariableModifications = GlobalVariables.AllModsKnown.OfType<Modification>().Where(b => commonParameters.ListOfModsVariable.Contains((b.ModificationType, b.IdWithMotif))).ToList();
+            List<Modification> FixedModifications = GlobalVariables.AllModsKnown.OfType<Modification>().Where(b => commonParameters.ListOfModsFixed.Contains((b.ModificationType, b.IdWithMotif))).ToList();
+
+            int maxThreadsPerFile = commonParameters.MaxThreadsToUsePerFile;
+            int[] threads = Enumerable.Range(0, maxThreadsPerFile).ToArray();
+            Parallel.ForEach(threads, (i) =>
+            {
+                List<PeptideWithSetModifications> localPeptides = new List<PeptideWithSetModifications>();
+
+                for (; i < Proteins.Count; i += maxThreadsPerFile)
+                {
+                    // Stop loop if canceled
+                    if (GlobalVariables.StopLoops) { return; }
+
+                    localPeptides.AddRange(Proteins[i].Digest(commonParameters.DigestionParams, FixedModifications, VariableModifications));
+                }
+
+                lock (peptides)
+                {
+                    peptides.AddRange(localPeptides);
+                }
+            });
+
+            return peptides;
+        }
     }
 }

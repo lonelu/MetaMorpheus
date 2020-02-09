@@ -15,6 +15,7 @@ using System.ComponentModel;
 using TaskLayer;
 using System.Threading.Tasks;
 using Chemistry;
+using UsefulProteomicsDatabases;
 
 namespace MetaDrawGUI
 {
@@ -26,11 +27,12 @@ namespace MetaDrawGUI
         //Data file and Result file Data Gid
         public readonly ObservableCollection<RawDataForDataGrid> spectraFilesObservableCollection = new ObservableCollection<RawDataForDataGrid>();
         public readonly ObservableCollection<RawDataForDataGrid> resultFilesObservableCollection = new ObservableCollection<RawDataForDataGrid>();
+        public readonly ObservableCollection<RawDataForDataGrid> fastaFilesObservableCollection = new ObservableCollection<RawDataForDataGrid>();
 
         //All Scan Data Grid
         public readonly ObservableCollection<AllScansForDataGrid> allScansObservableCollection = new ObservableCollection<AllScansForDataGrid>();
         public readonly ObservableCollection<SpectrumForDataGrid> spectrumNumsObservableCollection = new ObservableCollection<SpectrumForDataGrid>();
-    
+
         public string resultsFilePath;            
 
         public Thanos thanos = new Thanos();
@@ -60,18 +62,15 @@ namespace MetaDrawGUI
 
             dataGridResultFiles.DataContext = resultFilesObservableCollection;
 
+            dataGridFastaFiles.DataContext = fastaFilesObservableCollection;
+
             dataGridPsms.DataContext = spectrumNumsObservableCollection;
 
             dataGridAllScanNums.DataContext = allScansObservableCollection;
 
             Title = "MetaDraw" + GlobalVariables.MetaMorpheusVersion;
 
-            //CommonParameters = new CommonParameters();
-            productMassToleranceComboBox.Items.Add("Da");
-            productMassToleranceComboBox.Items.Add("ppm");
             UpdatePanel();
-
-
         }
 
         private void PopulateChoice()
@@ -197,6 +196,10 @@ namespace MetaDrawGUI
                     RawDataForDataGrid resultFileDataGrid = new RawDataForDataGrid(draggedFilePath);
                     if (!SpectraFileExists(resultFilesObservableCollection, resultFileDataGrid)) { resultFilesObservableCollection.Add(resultFileDataGrid); }
                     break;
+                case "fasta":
+                    RawDataForDataGrid fastaFileDataGrid = new RawDataForDataGrid(draggedFilePath);
+                    if (!SpectraFileExists(fastaFilesObservableCollection, fastaFileDataGrid)) { fastaFilesObservableCollection.Add(fastaFileDataGrid); }
+                    break;
                 default:
                     break;
             }
@@ -288,6 +291,17 @@ namespace MetaDrawGUI
                 }
                 thanos.simplePsms.AddRange(psms);
             }
+        }
+
+        private void BtnLoadDatabase_Click(object sender, RoutedEventArgs e)
+        {
+            List<DbForTask> dbForTasks = new List<DbForTask>();
+            foreach (var fasta in fastaFilesObservableCollection)
+            {
+                dbForTasks.Add(new DbForTask(fasta.FilePath, false)); 
+            }
+            // load proteins
+            thanos.Proteins = thanos.LoadProteins("", dbForTasks, true, DecoyType.Reverse, new List<string>(), thanos.CommonParameters);
         }
 
         //From raw file
@@ -467,6 +481,5 @@ namespace MetaDrawGUI
                 action();
             }
         }
-
     }
 }
