@@ -172,8 +172,8 @@ namespace MetaDrawGUI
                 case SweetorSkill.BuildGlycoFamily:
                     MainWindow.action = MainWindow.thanos.sweetor.BuildGlycoFamily;
                     break;
-                case SweetorSkill.Write_pGlycoResult:
-                    MainWindow.action = MainWindow.thanos.sweetor.Write_pGlycoResult;
+                case SweetorSkill.Write_GlycoResult:
+                    MainWindow.action = MainWindow.thanos.sweetor.Write_GlycoResult;
                     break;
                 case SweetorSkill.FilterSemiTrypsinResult:
                     MainWindow.action = MainWindow.thanos.sweetor.FilterSemiTrypsinResult;

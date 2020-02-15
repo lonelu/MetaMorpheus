@@ -23,7 +23,7 @@ namespace MetaDrawGUI
     {
         PlotGlycoFamily = 0,
         BuildGlycoFamily = 1,
-        Write_pGlycoResult = 2,
+        Write_GlycoResult = 2,
         FilterSemiTrypsinResult = 3, //Filter Semi-tryptic peptides with StcE-tryptic peptides. Byonic only work on semi-trypsin. 
         FilterPariedScan = 4 //PariedScan HCD-EThcD can generate different identifications if search separately.
     }
@@ -430,18 +430,15 @@ namespace MetaDrawGUI
         }
 
         #endregion
-        public void WritePGlycoResult(List<string> ResultFilePaths, List<SimplePsm> simplePsms)
+        public void Write_GlycoResult()
         {
-            foreach (var filepath in ResultFilePaths)
-            {
-                var ForderPath = Path.Combine(Path.GetDirectoryName(filepath), Path.GetFileNameWithoutExtension(filepath), "_pGlyco.mytsv");
 
-                TsvReader_Id.WriteTsv(ForderPath, simplePsms.Where(p => p.FileName == Path.GetFileName(filepath)).ToList());
+            foreach (var filepath in _thanos.ResultFilePaths)
+            {
+                var ForderPath = Path.Combine(Path.GetDirectoryName(filepath), Path.GetFileNameWithoutExtension(filepath) + "_Glyco.mytsv");
+
+                TsvReader_Id.WriteTsv(ForderPath, _thanos.simplePsms);
             }
-        }
-        public void Write_pGlycoResult()
-        {
-            WritePGlycoResult(_thanos.ResultFilePaths, _thanos.simplePsms);
         }
 
         public void FilterSemiTrypsinResult()

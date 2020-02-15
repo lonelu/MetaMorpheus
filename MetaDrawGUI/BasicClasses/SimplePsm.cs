@@ -486,6 +486,8 @@ namespace MetaDrawGUI
             Ms2ScanNumber = int.Parse(spl[parsedHeader[PsmTsvHeader_Byonic.ScanNum]]);
             PrecursorScanNum = int.Parse(spl[parsedHeader[PsmTsvHeader_Byonic.PrecursorScanNumber]]);
             DissociateType = spl[parsedHeader[PsmTsvHeader_Byonic.DissociteType]];
+
+            DecoyContamTarget = "T";
         }
 
         #endregion
@@ -660,17 +662,17 @@ namespace MetaDrawGUI
             sb.Append(RT.ToString() + '\t');
             sb.Append(ChargeState.ToString() + '\t');
             sb.Append(PrecursorMass.ToString() + '\t');
-            sb.Append(ProteinAccess + '\t');
+            sb.Append((ProteinAccess == null ? "" : ProteinAccess) + '\t');
             sb.Append(ProteinName + '\t');
-            sb.Append(ProteinStartEnd + '\t');
+            sb.Append((ProteinStartEnd == null ? "" : ProteinStartEnd) + '\t');
             sb.Append(BaseSeq + '\t');
-            sb.Append(PeptideWithMod.FullSequence + '\t');
+            sb.Append((PeptideWithMod==null? "" : PeptideWithMod.FullSequence) + '\t');
             sb.Append(MonoisotopicMass.ToString() + '\t');
             sb.Append(DecoyContamTarget == "T" ? "Y" : "N" + '\t');
             sb.Append(QValue.ToString() + '\t');
-            sb.Append(glycan.Struc + '\t');
-            sb.Append(glycan.Mass.ToString() + '\t');
-            sb.Append(Glycan.GetKindString(glycan.Kind) + '\t');
+            sb.Append((glycan == null ? "" : glycan.Struc) + '\t');
+            sb.Append((glycan ==null ? GlycanMass.ToString() : glycan.Mass.ToString()) + '\t');
+            sb.Append((glycan == null ? GlycanComposition : Glycan.GetKindString(glycan.Kind)) + '\t');
             return sb.ToString();
         }
 
