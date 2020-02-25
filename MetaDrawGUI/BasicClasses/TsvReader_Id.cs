@@ -154,7 +154,7 @@ namespace MetaDrawGUI
             return simplePsms;
         }
 
-        public static void WriteTsv(string filePath, List<SimplePsm> simplePsms)
+        public static void WriteTsv(string filePath, List<SimplePsm> simplePsms, string csmType)
         {
             if (simplePsms.Count == 0)
             {
@@ -163,12 +163,12 @@ namespace MetaDrawGUI
 
             using (StreamWriter output = new StreamWriter(filePath))
             {
-                string header = SimplePsm.GetTabSepHeaderGlyco();
+                string header = SimplePsm.GetTabSepHeader(csmType);
 
                 output.WriteLine(header);
-                foreach (var heh in simplePsms.OrderBy(p=>p.QValue).Where(p=>p.QValue < 0.01))
+                foreach (var heh in simplePsms)
                 {
-                    output.WriteLine(heh.ToString());
+                    output.WriteLine(heh.ToString(csmType));
                 }
             }
         }

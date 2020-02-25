@@ -54,7 +54,7 @@ namespace MetaDrawGUI.Crosslink
             }
         }
 
-        public static List<SimplePsm> validateIncorrectCrosslinks(SimplePsm[] psms_filtered, double fdr)
+        public static List<SimplePsm> validateIncorrectCrosslinks(SimplePsm[] psms_filtered)
         {
             List<SimplePsm> incorrectCsms = new List<SimplePsm>();
             for (int i = 0; i < psms_filtered.Length; i++)
@@ -117,7 +117,7 @@ namespace MetaDrawGUI.Crosslink
 
             var psms_filtered = psms.Where(p => p.DecoyContamTarget == "T" && p.QValue <= fdr).ToArray();
             var total = psms_filtered.Length;
-            var incorrect = validateIncorrectCrosslinks(psms_filtered, fdr).Count();
+            var incorrect = validateIncorrectCrosslinks(psms_filtered).Count();
 
             output += "    Total Csms: " + total.ToString() + "\r";
             output += "    Incorrect Csms: " + incorrect.ToString() + "\r";
@@ -125,7 +125,7 @@ namespace MetaDrawGUI.Crosslink
 
             var crosslinks = Csms2Crosslinks(psms_filtered);
             var total_crosslink = crosslinks.Count();
-            var incorrect_corsslink = validateIncorrectCrosslinks(crosslinks.ToArray(), fdr).Count;
+            var incorrect_corsslink = validateIncorrectCrosslinks(crosslinks.ToArray()).Count;
 
             output += "    Total Crosslinks: " + total_crosslink.ToString() + "\r";
             output += "    Incorrect Crosslinks: " + incorrect_corsslink.ToString() + "\r";
@@ -135,7 +135,7 @@ namespace MetaDrawGUI.Crosslink
 
             var pep_psms_filtered = psms.Where(p => p.DecoyContamTarget == "T" && p.PEP_QValue <= fdr).ToArray();
             var pep_total = pep_psms_filtered.Length;
-            var pep_incorrect = validateIncorrectCrosslinks(pep_psms_filtered, fdr).Count();
+            var pep_incorrect = validateIncorrectCrosslinks(pep_psms_filtered).Count();
 
             output += "    PEP_Total Csms: " + pep_total.ToString() + "\r";
             output += "    PEP_Incorrect Csms: " + pep_incorrect.ToString() + "\r";
@@ -143,7 +143,7 @@ namespace MetaDrawGUI.Crosslink
 
             var pep_crosslinks = Csms2Crosslinks(pep_psms_filtered);
             var pep_total_crosslink = pep_crosslinks.Count();
-            var pep_incorrect_corsslink = validateIncorrectCrosslinks(pep_crosslinks.ToArray(), fdr).Count;
+            var pep_incorrect_corsslink = validateIncorrectCrosslinks(pep_crosslinks.ToArray()).Count;
 
             output += "    PEP_Total Crosslinks: " + pep_total_crosslink.ToString() + "\r";
             output += "    PEP_Incorrect Crosslinks: " + pep_incorrect_corsslink.ToString() + "\r";

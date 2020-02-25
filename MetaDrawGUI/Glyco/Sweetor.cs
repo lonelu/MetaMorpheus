@@ -437,7 +437,7 @@ namespace MetaDrawGUI
             {
                 var ForderPath = Path.Combine(Path.GetDirectoryName(filepath), Path.GetFileNameWithoutExtension(filepath) + "_Glyco.mytsv");
 
-                TsvReader_Id.WriteTsv(ForderPath, _thanos.simplePsms);
+                TsvReader_Id.WriteTsv(ForderPath, _thanos.simplePsms, "Glyco");
             }
         }
 

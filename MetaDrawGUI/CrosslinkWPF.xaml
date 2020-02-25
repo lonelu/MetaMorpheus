@@ -34,6 +34,7 @@
                 <Label Content="FDR"/>
                 <TextBox x:Name="TbCrosslinkFdrCutOff" PreviewTextInput="CheckIfNumber" Text="0.01"/>
                 <Button x:Name="BtnValidate" Content="Validate" Click="BtnValidate_Click"/>
+                <Button x:Name="BtnWriteIncorrectFile" Content="Write Incorrect" Click="BtnWriteIncorrectFile_Click"/>
                 <Label Content="Result:"/>
                 <Grid>
                     <ScrollViewer Height="400" VerticalScrollBarVisibility="Auto">

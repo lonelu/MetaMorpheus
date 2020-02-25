@@ -627,7 +627,7 @@ namespace MetaDrawGUI
 
         #endregion
 
-        public static string GetTabSepHeaderGlyco()
+        public static string GetTabSepHeader(string csmType)
         {
             var sb = new StringBuilder();
             sb.Append("File Name" + '\t');
@@ -643,18 +643,33 @@ namespace MetaDrawGUI
 
             sb.Append("Base Sequence" + '\t');
             sb.Append("Full Sequence" + '\t');
+            if (csmType == "Cross")
+            {
+                sb.Append("Beta Base Sequence" + '\t');
+                sb.Append("Beta Full Sequence" + '\t');
+            }
+
             sb.Append("Peptide Monoisotopic Mass" + '\t');
 
             sb.Append("Decoy" + '\t');
             sb.Append("QValue" + '\t');
 
-            sb.Append("GlycanStructure" + '\t');
-            sb.Append("GlycanMass" + '\t');
-            sb.Append("GlycanComposition(H,N,A,G,F)" + '\t');
+            if (csmType == "Cross")
+            {
+                sb.Append("PEP_QValue" + '\t');
+            }
+
+            if (csmType == "Glyco")
+            {
+                sb.Append("GlycanStructure" + '\t');
+                sb.Append("GlycanMass" + '\t');
+                sb.Append("GlycanComposition(H,N,A,G,F)" + '\t');
+            }
+
             return sb.ToString();
         }
 
-        public override string ToString()
+        public string ToString(string csmType)
         {
             var sb = new StringBuilder();
             sb.Append(FileName + '\t');
@@ -666,13 +681,29 @@ namespace MetaDrawGUI
             sb.Append(ProteinName + '\t');
             sb.Append((ProteinStartEnd == null ? "" : ProteinStartEnd) + '\t');
             sb.Append(BaseSeq + '\t');
-            sb.Append((PeptideWithMod==null? "" : PeptideWithMod.FullSequence) + '\t');
+            sb.Append((FullSeq == null? "" : FullSeq) + '\t');
+            if (csmType == "Cross")
+            {
+                sb.Append(BetaPeptideBaseSequence + '\t');
+                sb.Append((BetaPeptideFullSequence == null ? "" : BetaPeptideFullSequence) + '\t');
+            }
+
             sb.Append(MonoisotopicMass.ToString() + '\t');
-            sb.Append(DecoyContamTarget == "T" ? "Y" : "N" + '\t');
+            sb.Append(DecoyContamTarget == "T" ? "Y" + '\t' : "N" + '\t');
             sb.Append(QValue.ToString() + '\t');
-            sb.Append((glycan == null ? "" : glycan.Struc) + '\t');
-            sb.Append((glycan ==null ? GlycanMass.ToString() : glycan.Mass.ToString()) + '\t');
-            sb.Append((glycan == null ? GlycanComposition : Glycan.GetKindString(glycan.Kind)) + '\t');
+
+            if (csmType == "Cross")
+            {
+                sb.Append(PEP_QValue.ToString() + '\t');
+            }
+
+            if (csmType == "Glyco")
+            {
+                sb.Append((glycan == null ? "" : glycan.Struc) + '\t');
+                sb.Append((glycan == null ? GlycanMass.ToString() : glycan.Mass.ToString()) + '\t');
+                sb.Append((glycan == null ? GlycanComposition : Glycan.GetKindString(glycan.Kind)) + '\t');
+            }
+
             return sb.ToString();
         }
 

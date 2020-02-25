@@ -11,12 +11,12 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 using MetaDrawGUI.Crosslink;
 using ViewModels;
 using System.ComponentModel;
 using EngineLayer;
 using EngineLayer.CrosslinkSearch;
+using System.IO;
 
 namespace MetaDrawGUI
 {
@@ -38,13 +38,45 @@ namespace MetaDrawGUI
 
         private void BtnValidate_Click(object sender, RoutedEventArgs e)
         {
-            var incorrectCsms = CrosslinkHandler.validateIncorrectCrosslinks(MainWindow.thanos.simplePsms.ToArray(), Convert.ToDouble(TbCrosslinkFdrCutOff.Text));
+            var incorrectCsms = CrosslinkHandler.validateIncorrectCrosslinks(MainWindow.thanos.simplePsms.ToArray());
+
+
             foreach (var ic in incorrectCsms)
             {
                 MainWindow.thanos.crosslinkHandler.IncorrectCsmsCollection.Add(new SpectrumForDataGrid(ic.Ms2ScanNumber, 0, ic.PrecursorMass, ""));
             }
 
             TbkCrosslinkValidateResult.Text = CrosslinkHandler.ValidateOutput(MainWindow.thanos.simplePsms, Convert.ToDouble(TbCrosslinkFdrCutOff.Text));
+        }
+
+        private void BtnWriteIncorrectFile_Click(object sender, RoutedEventArgs e)
+        {
+            var fdr = Convert.ToDouble(TbCrosslinkFdrCutOff.Text);
+
+            var incorrectCsms = CrosslinkHandler.validateIncorrectCrosslinks(MainWindow.thanos.simplePsms.Where(p => p.DecoyContamTarget == "T" && p.QValue <= fdr).ToArray());
+
+            if (incorrectCsms.Count > 0)
+            {
+                var filepath = MainWindow.thanos.ResultFilePaths.First();
+
+                var ForderPath = Path.Combine(Path.GetDirectoryName(filepath), Path.GetFileNameWithoutExtension(filepath) + "_incorrectCsms.mytsv");
+
+                TsvReader_Id.WriteTsv(ForderPath, incorrectCsms, "Cross");
+            }
+
+
+            var pep_psms_filtered = MainWindow.thanos.simplePsms.Where(p => p.DecoyContamTarget == "T" && p.PEP_QValue <= fdr).ToArray();
+            var pep_incorrectCsms = CrosslinkHandler.validateIncorrectCrosslinks(pep_psms_filtered);
+
+
+            if (pep_incorrectCsms.Count > 0)
+            {
+                var filepath = MainWindow.thanos.ResultFilePaths.First();
+
+                var ForderPath = Path.Combine(Path.GetDirectoryName(filepath), Path.GetFileNameWithoutExtension(filepath) + "_pep_incorrectCsms.mytsv");
+
+                TsvReader_Id.WriteTsv(ForderPath, pep_incorrectCsms, "Cross");
+            }
         }
 
         private void CheckIfNumber(object sender, TextCompositionEventArgs e)
@@ -62,6 +94,9 @@ namespace MetaDrawGUI
 
         private void DataGridIncorrectCsms_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
+            return;
+
+            //The function is not working now.
             if (dataGridIncorrectCsms.SelectedItem == null)
             {
                 return;
@@ -81,5 +116,6 @@ namespace MetaDrawGUI
                 MainWindow.thanos.crosslinkHandler.CrosslinkModel = PsmAnnotationViewModel.DrawScanMatch(MainWindow.thanos.msDataScan, selePsm.MatchedIons, selePsm.BetaPeptideMatchedIons);
             }
         }
+
     }
 }
