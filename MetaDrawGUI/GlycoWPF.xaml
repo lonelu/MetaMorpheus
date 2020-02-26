@@ -22,7 +22,6 @@
                     </Grid.RowDefinitions>
                     <Grid>
                         <StackPanel>
-                            <Button x:Name="BtnLoadMsFeatureResults" Content="Load MsFeature" Click="BtnLoadMsFeatureResults_Click" />
                             <ComboBox x:Name="cmbStweetorAction" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             <Button x:Name="BtnStweetorAct" Content="Start" Click="BtnStweetorAct_Click"/>
                         </StackPanel>

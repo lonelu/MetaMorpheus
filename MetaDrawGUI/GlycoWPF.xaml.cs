@@ -77,25 +77,6 @@ namespace MetaDrawGUI
             MainWindow.thanos.sweetor.GlycoResultCollection.Clear();
         }
 
-        private void BtnLoadMsFeatureResults_Click(object sender, RoutedEventArgs e)
-        {
-            foreach (var collection in MainWindow.resultFilesObservableCollection)
-            {
-                MainWindow.resultsFilePath = collection.FilePath;
-                if (MainWindow.resultsFilePath == null)
-                {
-                    continue;
-                }
-                // load the PSMs
-                MainWindow.thanos.msFeatures.AddRange(TsvReader_MsFeature.ReadTsv(MainWindow.resultsFilePath));
-            }
-
-            foreach (var feature in MainWindow.thanos.msFeatures)
-            {
-                MainWindow.thanos.sweetor.MsFeatureCollection.Add(new MsFeatureForDataGrid(feature));
-            }
-        }
-
         private void DataGridGlyco_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
             if (dataGridGlyco.SelectedItem == null)

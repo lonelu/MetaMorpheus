@@ -481,5 +481,25 @@ namespace MetaDrawGUI
                 action();
             }
         }
+
+        private void BtnLoadMsFeatureResults_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (var collection in resultFilesObservableCollection)
+            {
+                resultsFilePath = collection.FilePath;
+                if (resultsFilePath == null)
+                {
+                    continue;
+                }
+                // load the PSMs
+                thanos.msFeatures.AddRange(TsvReader_MsFeature.ReadTsv(resultsFilePath));
+            }
+
+            foreach (var feature in thanos.msFeatures)
+            {
+                thanos.sweetor.MsFeatureCollection.Add(new MsFeatureForDataGrid(feature));
+            }
+        }
+
     }
 }

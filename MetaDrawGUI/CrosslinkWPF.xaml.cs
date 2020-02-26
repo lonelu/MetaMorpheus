@@ -53,6 +53,7 @@ namespace MetaDrawGUI
         {
             var fdr = Convert.ToDouble(TbCrosslinkFdrCutOff.Text);
 
+            //QValue incorrect result
             var incorrectCsms = CrosslinkHandler.validateIncorrectCrosslinks(MainWindow.thanos.simplePsms.Where(p => p.DecoyContamTarget == "T" && p.QValue <= fdr).ToArray());
 
             if (incorrectCsms.Count > 0)
@@ -65,6 +66,7 @@ namespace MetaDrawGUI
             }
 
 
+            //PEP_QValue incorrect result
             var pep_psms_filtered = MainWindow.thanos.simplePsms.Where(p => p.DecoyContamTarget == "T" && p.PEP_QValue <= fdr).ToArray();
             var pep_incorrectCsms = CrosslinkHandler.validateIncorrectCrosslinks(pep_psms_filtered);
 
@@ -77,6 +79,55 @@ namespace MetaDrawGUI
 
                 TsvReader_Id.WriteTsv(ForderPath, pep_incorrectCsms, "Cross");
             }
+
+            //PEP_QValue incorrect pecolator
+            string percolatorFath = Path.Combine(Path.GetDirectoryName(MainWindow.thanos.ResultFilePaths.First()), "Crosslinks_Percolator.tsv");
+            string incorrect_percolatorFath = Path.Combine(Path.GetDirectoryName(MainWindow.thanos.ResultFilePaths.First()), "Crosslinks_Percolator_incorrect.tsv");
+
+            List<string> incorrect_percolators = new List<string>();
+
+            StreamReader reader = new StreamReader(percolatorFath);
+            int lineCount = 0;
+            string line;
+            char[] split = new char[] { '\t' };
+            while (reader.Peek() > 0)
+            {
+                lineCount++;
+                line = reader.ReadLine();
+
+                if (lineCount > 2)
+                {
+                    var x = line.Split(split);
+
+                    var y = pep_incorrectCsms.Where(p => p.Ms2ScanNumber == int.Parse(x[2]));
+
+                    if (y.Count() >0)
+                    {
+                        foreach (var z in y)
+                        {
+                            if (line.Contains(z.FullSeq.Substring(0, z.FullSeq.Length - 4)) && line.Contains(z.BetaPeptideFullSequence.Substring(0, z.BetaPeptideFullSequence.Length - 4)))
+                            {
+                                incorrect_percolators.Add(line);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    incorrect_percolators.Add(line);
+                }
+            }
+            reader.Close();
+
+            using (StreamWriter output = new StreamWriter(incorrect_percolatorFath))
+            {
+                foreach (var heh in incorrect_percolators)
+                {
+                    output.WriteLine(heh);
+                }
+            }
+
+
         }
 
         private void CheckIfNumber(object sender, TextCompositionEventArgs e)

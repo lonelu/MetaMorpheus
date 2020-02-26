@@ -120,6 +120,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="30"/>
+                            <RowDefinition Height="30"/>
                         </Grid.RowDefinitions>
                         <DataGrid x:Name="dataGridResultFiles" ItemsSource="{Binding}" >
                             <DataGrid.Resources>
@@ -128,7 +129,10 @@
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
                             <Button x:Name="btnAddResultFiles" Content="Add" Click="btnAddResults_Click" Height="30" VerticalAlignment="Top"/>
                             <Button x:Name="btnClearResultFiles" Content="Clear" Click="btnClearFiles_Click"/>
-                            <Button x:Name="BtnLoadResults" Content="Load" Click="BtnLoadResults_Click"/>
+                            <Button x:Name="BtnLoadResults" Content="Load Psms" Click="BtnLoadResults_Click"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="2">
+                            <Button x:Name="BtnLoadMsFeatureResults" Content="Load_MsFeature" Click="BtnLoadMsFeatureResults_Click" />
                         </StackPanel>
                     </Grid>
                 </GroupBox>
