@@ -162,6 +162,12 @@ namespace MetaDrawGUI
                 case SweetorSkill.FilterPariedScan:
                     MainWindow.action = MainWindow.thanos.sweetor.FilterPariedScan;
                     break;
+                case SweetorSkill.Compare_Byonic_MetaMorpheus:
+                    MainWindow.action = MainWindow.thanos.sweetor.Compare_Byonic_MetaMorpheus;
+                    break;
+                case SweetorSkill.MetaMorpheus_coisolation_Evaluation:
+                    MainWindow.action = MainWindow.thanos.sweetor.MetaMorpheus_coisolation_Evaluation;
+                    break;
                 default:
                     break;
             }

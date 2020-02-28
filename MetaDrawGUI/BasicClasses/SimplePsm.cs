@@ -82,6 +82,8 @@ namespace MetaDrawGUI
             
         }
 
+        public SimplePsm PairedPsm { get; set; }
+
         public string FileName { get; set; }
         public int Ms2ScanNumber { get; set; }
 
@@ -430,31 +432,31 @@ namespace MetaDrawGUI
                 switch (x[i])
                 {
                     case "Hex":
-                        kind[0] = byte.Parse(x[i + 1]);
+                        kind[0] += byte.Parse(x[i + 1]);
                         break;
                     case "HexNAc":
-                        kind[1] = byte.Parse(x[i + 1]);
+                        kind[1] += byte.Parse(x[i + 1]);
                         break;
                     case "NeuAc":
-                        kind[2] = byte.Parse(x[i + 1]);
+                        kind[2] += byte.Parse(x[i + 1]);
                         break;
                     case "NeuGc":
-                        kind[3] = byte.Parse(x[i + 1]);
+                        kind[3] += byte.Parse(x[i + 1]);
                         break;
                     case "Fuc":
-                        kind[4] = byte.Parse(x[i + 1]);
+                        kind[4] += byte.Parse(x[i + 1]);
                         break;
                     case "Phospho":
-                        kind[5] = byte.Parse(x[i + 1]);
+                        kind[5] += byte.Parse(x[i + 1]);
                         break;
                     case "Sulfo":
-                        kind[6] = byte.Parse(x[i + 1]);
+                        kind[6] += byte.Parse(x[i + 1]);
                         break;
                     case "Na":
-                        kind[7] = byte.Parse(x[i + 1]);
+                        kind[7] += byte.Parse(x[i + 1]);
                         break;
                     case "Xylose":
-                        kind[8] = byte.Parse(x[i + 1]);
+                        kind[8] += byte.Parse(x[i + 1]);
                         break;
                     default:
                         break;

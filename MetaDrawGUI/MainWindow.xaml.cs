@@ -284,7 +284,7 @@ namespace MetaDrawGUI
                 }
                 thanos.ResultFilePaths.Add(aResultfilePath);
 
-                var psms = TsvReader_Id.ReadTsv(resultsFilePath);
+                var psms = TsvReader_Id.ReadTsv(aResultfilePath);
                 foreach (var psm in psms)
                 {
                     spectrumNumsObservableCollection.Add(new SpectrumForDataGrid(psm.Ms2ScanNumber, 0, psm.PrecursorMass, ""));

@@ -25,7 +25,9 @@ namespace MetaDrawGUI
         BuildGlycoFamily = 1,
         Write_GlycoResult = 2,
         FilterSemiTrypsinResult = 3, //Filter Semi-tryptic peptides with StcE-tryptic peptides. Byonic only work on semi-trypsin. 
-        FilterPariedScan = 4 //PariedScan HCD-EThcD can generate different identifications if search separately.
+        FilterPariedScan = 4, //In Byonic, PariedScan HCD-EThcD can generate different identifications if search separately.
+        Compare_Byonic_MetaMorpheus = 5,
+        MetaMorpheus_coisolation_Evaluation = 6
     }
 
     public class Sweetor:INotifyPropertyChanged
@@ -544,5 +546,98 @@ namespace MetaDrawGUI
                 }
             }
         }
+
+        public void Compare_Byonic_MetaMorpheus()
+        {
+            var x = _thanos.simplePsms.GroupBy(p => p.FileName);
+
+            var byonic_result = Pair_Byonic_Scan(x.ElementAt(0).ToList());
+
+            var mm_result = x.ElementAt(1).Where(p=>p.DecoyContamTarget == "T" && p.QValue <= 0.01).ToList();
+
+            List<List<SimplePsm>> overlap = new List<List<SimplePsm>>();
+
+            foreach (var b in byonic_result)
+            {
+                List<SimplePsm> thisId = new List<SimplePsm>();
+                thisId.AddRange(byonic_result.Where(p => p.Ms2ScanNumber == b.Ms2ScanNumber));
+                thisId.AddRange(mm_result.Where(p => p.Ms2ScanNumber == b.Ms2ScanNumber));
+
+                overlap.Add(thisId);
+            }
+
+
+            var filterPath = Path.Combine(Path.GetDirectoryName(_thanos.ResultFilePaths.First()), Path.GetFileNameWithoutExtension(_thanos.ResultFilePaths.First()) + "_ScanNumberOverlap.tsv");
+
+            using (StreamWriter output = new StreamWriter(filterPath))
+            {
+                foreach (var os in overlap)
+                {
+                    string line = "";
+                    foreach (var o in os)
+                    {
+                        line += o.Ms2ScanNumber + "\t" + o.BaseSeq + "\t" + o.FullSeq + "\t" + o.GlycanComposition + "\t";
+                    }
+                    output.WriteLine(line);
+                }
+            }
+
+        }
+
+        private List<SimplePsm> Pair_Byonic_Scan(List<SimplePsm> simplePsms)
+        {
+            List<SimplePsm> paired_psms = new List<SimplePsm>();
+
+            foreach (var psm in simplePsms)
+            {
+                if (psm.DissociateType == "HCD")
+                {
+                    if (simplePsms.Where(p => p.PrecursorScanNum == psm.Ms2ScanNumber).Count() > 0)
+                    {       
+                        foreach (var c in simplePsms.Where(p => p.PrecursorScanNum == psm.Ms2ScanNumber))
+                        {
+                            psm.PairedPsm = c;                 
+                        }                  
+                    }
+
+                    paired_psms.Add(psm);
+                }
+                else
+                {
+                    if (_thanos.simplePsms.Where(p => p.Ms2ScanNumber == psm.PrecursorScanNum).Count() == 0)
+                    {
+                        psm.Ms2ScanNumber = psm.PrecursorScanNum; //ETD scan number to HCD scan number.
+                        paired_psms.Add(psm);
+                    }
+
+                }
+
+            }
+
+            return paired_psms;
+        }
+
+        public void MetaMorpheus_coisolation_Evaluation()
+        {
+            var psms = _thanos.simplePsms.Where(p => p.DecoyContamTarget == "T" && p.QValue <= 0.01).GroupBy(p=>p.Ms2ScanNumber).ToList();
+
+            var filterPath = Path.Combine(Path.GetDirectoryName(_thanos.ResultFilePaths.First()), Path.GetFileNameWithoutExtension(_thanos.ResultFilePaths.First()) + "_MetaMorpheusCoiso.tsv");
+
+            using (StreamWriter output = new StreamWriter(filterPath))
+            {
+                foreach (var os in psms)
+                {
+                    string line = "";
+                    foreach (var o in os)
+                    {
+                        line += o.Ms2ScanNumber + "\t" + o.BaseSeq + "\t" + o.GlycanComposition + "\t";
+                    }
+                    output.WriteLine(line);
+                }
+            }
+
+
+        }
+
     }
 }
