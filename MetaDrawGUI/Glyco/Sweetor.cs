@@ -26,8 +26,9 @@ namespace MetaDrawGUI
         Write_GlycoResult = 2,
         FilterSemiTrypsinResult = 3, //Filter Semi-tryptic peptides with StcE-tryptic peptides. Byonic only work on semi-trypsin. 
         FilterPariedScan = 4, //In Byonic, PariedScan HCD-EThcD can generate different identifications if search separately.
-        Compare_Byonic_MetaMorpheus = 5,
-        MetaMorpheus_coisolation_Evaluation = 6
+        Compare_Byonic_MetaMorpheus_EachScan = 5,
+        MetaMorpheus_coisolation_Evaluation = 6,
+        Compare_Seq_overlap = 7
     }
 
     public class Sweetor:INotifyPropertyChanged
@@ -547,15 +548,16 @@ namespace MetaDrawGUI
             }
         }
 
-        public void Compare_Byonic_MetaMorpheus()
+        public void Compare_Byonic_MetaMorpheus_EachScan()
         {
             var x = _thanos.simplePsms.GroupBy(p => p.FileName);
 
             var byonic_result = Pair_Byonic_Scan(x.ElementAt(0).ToList());
+            //var byonic_result = x.ElementAt(0).Where(p => p.DecoyContamTarget == "T" && p.QValue <= 0.01).ToList();
 
             var mm_result = x.ElementAt(1).Where(p=>p.DecoyContamTarget == "T" && p.QValue <= 0.01).ToList();
 
-            List<List<SimplePsm>> overlap = new List<List<SimplePsm>>();
+            List<List<SimplePsm>> overlap_byonic_by_mm = new List<List<SimplePsm>>();
 
             foreach (var b in byonic_result)
             {
@@ -563,15 +565,42 @@ namespace MetaDrawGUI
                 thisId.AddRange(byonic_result.Where(p => p.Ms2ScanNumber == b.Ms2ScanNumber));
                 thisId.AddRange(mm_result.Where(p => p.Ms2ScanNumber == b.Ms2ScanNumber));
 
-                overlap.Add(thisId);
+                overlap_byonic_by_mm.Add(thisId);
             }
 
 
-            var filterPath = Path.Combine(Path.GetDirectoryName(_thanos.ResultFilePaths.First()), Path.GetFileNameWithoutExtension(_thanos.ResultFilePaths.First()) + "_ScanNumberOverlap.tsv");
+            var filterPath_byonic_by_mm = Path.Combine(Path.GetDirectoryName(_thanos.ResultFilePaths.First()), Path.GetFileNameWithoutExtension(_thanos.ResultFilePaths.First()) + "_Scan_overlap_byonic_by_mm.tsv");
 
-            using (StreamWriter output = new StreamWriter(filterPath))
+            using (StreamWriter output = new StreamWriter(filterPath_byonic_by_mm))
             {
-                foreach (var os in overlap)
+                foreach (var os in overlap_byonic_by_mm)
+                {
+                    string line = "";
+                    foreach (var o in os)
+                    {
+                        line += o.Ms2ScanNumber + "\t" + o.BaseSeq + "\t" + o.FullSeq + "\t" + o.GlycanComposition + "\t";
+                    }
+                    output.WriteLine(line);
+                }
+            }
+
+            List<List<SimplePsm>> overlap_mm_by_byonic = new List<List<SimplePsm>>();
+
+            foreach (var m in mm_result)
+            {
+                List<SimplePsm> thisId = new List<SimplePsm>();
+                thisId.AddRange(mm_result.Where(p => p.Ms2ScanNumber == m.Ms2ScanNumber));
+                thisId.AddRange(byonic_result.Where(p => p.Ms2ScanNumber == m.Ms2ScanNumber));
+
+                overlap_mm_by_byonic.Add(thisId);
+            }
+
+
+            var filterPath_mm_by_byonic = Path.Combine(Path.GetDirectoryName(_thanos.ResultFilePaths.First()), Path.GetFileNameWithoutExtension(_thanos.ResultFilePaths.First()) + "_Scan_overlap_mm_by_byonic.tsv");
+
+            using (StreamWriter output = new StreamWriter(filterPath_mm_by_byonic))
+            {
+                foreach (var os in overlap_mm_by_byonic)
                 {
                     string line = "";
                     foreach (var o in os)
@@ -585,33 +614,37 @@ namespace MetaDrawGUI
         }
 
         private List<SimplePsm> Pair_Byonic_Scan(List<SimplePsm> simplePsms)
-        {
+        {           
             List<SimplePsm> paired_psms = new List<SimplePsm>();
 
             foreach (var psm in simplePsms)
             {
                 if (psm.DissociateType == "HCD")
                 {
-                    if (simplePsms.Where(p => p.PrecursorScanNum == psm.Ms2ScanNumber).Count() > 0)
-                    {       
-                        foreach (var c in simplePsms.Where(p => p.PrecursorScanNum == psm.Ms2ScanNumber))
-                        {
-                            psm.PairedPsm = c;                 
-                        }                  
+                    foreach (var c in simplePsms.Where(p => p.PrecursorScanNum == psm.Ms2ScanNumber && p.DissociateType == "ETD"))
+                    {
+                        psm.PairedPsm = c;
                     }
 
                     paired_psms.Add(psm);
                 }
                 else
                 {
-                    if (_thanos.simplePsms.Where(p => p.Ms2ScanNumber == psm.PrecursorScanNum).Count() == 0)
-                    {
-                        psm.Ms2ScanNumber = psm.PrecursorScanNum; //ETD scan number to HCD scan number.
+                    if (simplePsms.Where(p => p.Ms2ScanNumber == psm.PrecursorScanNum).Count() == 0)
+                    {                        
+                        //psm.Ms2ScanNumber = psm.PrecursorScanNum; //ETD scan number to HCD scan number.
                         paired_psms.Add(psm);
                     }
-
                 }
 
+            }
+
+            foreach (var pp in paired_psms)
+            {
+                if (pp.DissociateType == "ETD")
+                {
+                    pp.Ms2ScanNumber = pp.PrecursorScanNum;
+                }
             }
 
             return paired_psms;
@@ -632,6 +665,72 @@ namespace MetaDrawGUI
                     {
                         line += o.Ms2ScanNumber + "\t" + o.BaseSeq + "\t" + o.GlycanComposition + "\t";
                     }
+                    output.WriteLine(line);
+                }
+            }
+
+
+        }
+
+        public void Compare_Seq_overlap()
+        {
+            var x = _thanos.simplePsms.GroupBy(p => p.FileName);
+
+            var byonic_result = x.ElementAt(0).ToList();
+
+            var mm_result = x.ElementAt(1).Where(p=>p.DecoyContamTarget == "T" && p.QValue <= 0.01).ToList();
+
+            List<bool> byonic_by_mm = new List<bool>();
+
+            foreach (var b in byonic_result)
+            {
+                //if (mm_result.Where(p=>p.BaseSeq == b.BaseSeq && p.GlycanComposition == b.GlycanComposition).Count() > 0)
+                if (mm_result.Where(p => p.BaseSeq == b.BaseSeq).Count() > 0)
+                {
+                    byonic_by_mm.Add(true);
+                }
+                else
+                {
+                    byonic_by_mm.Add(false);
+                }
+            }
+
+            var filterPath = Path.Combine(Path.GetDirectoryName(_thanos.ResultFilePaths.First()), Path.GetFileNameWithoutExtension(_thanos.ResultFilePaths.First()) + "_byonic_by_mm_Seq_Overlap.tsv");
+
+            using (StreamWriter output = new StreamWriter(filterPath))
+            {
+                for (int i = 0; i < byonic_result.Count; i++)
+                {
+                    string line = "";
+                    line += byonic_result[i].Ms2ScanNumber + "\t" + byonic_result[i].BaseSeq + "\t" + byonic_result[i].GlycanComposition + "\t" + byonic_by_mm[i];
+                    output.WriteLine(line);
+                }
+            }
+
+            List<bool> mm_by_byonic = new List<bool>();
+
+            foreach (var m in mm_result)
+            {
+                //if (byonic_result.Where(p => p.BaseSeq == m.BaseSeq && p.GlycanComposition == m.GlycanComposition).Count() > 0)
+                if (byonic_result.Where(p => p.BaseSeq == m.BaseSeq).Count() > 0)
+                {
+                    mm_by_byonic.Add(true);
+                }
+                else
+                {
+                    mm_by_byonic.Add(false);
+                }
+            }
+
+
+            filterPath = Path.Combine(Path.GetDirectoryName(_thanos.ResultFilePaths.First()), Path.GetFileNameWithoutExtension(_thanos.ResultFilePaths.First()) + "_mm_by_byonic_Seq_Overlap.tsv");
+
+            using (StreamWriter output = new StreamWriter(filterPath))
+            {
+                for (int i = 0; i < mm_result.Count; i++)
+                {
+                    string line = "";
+                    line += mm_result[i].Ms2ScanNumber + "\t" + mm_result[i].BaseSeq + "\t" + mm_result[i].GlycanComposition + "\t" + mm_by_byonic[i];
                     output.WriteLine(line);
                 }
             }
