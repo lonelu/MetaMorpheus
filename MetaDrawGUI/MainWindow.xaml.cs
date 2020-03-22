@@ -472,6 +472,9 @@ namespace MetaDrawGUI
                 case Skill.fixPrecursor_BoxCarScan:
                     action = thanos.FixPrecursorBoxCarScan;
                     break;
+                case Skill.ModelDrawPdf:
+                    action = thanos.ModelDrawPdf;
+                    break;
                 default:
                     break;
             }

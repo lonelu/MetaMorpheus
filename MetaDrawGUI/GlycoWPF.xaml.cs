@@ -171,6 +171,9 @@ namespace MetaDrawGUI
                 case SweetorSkill.Compare_Seq_overlap:
                     MainWindow.action = MainWindow.thanos.sweetor.Compare_Seq_overlap;
                     break;
+                case SweetorSkill.CorrectRT:
+                    MainWindow.action = MainWindow.thanos.sweetor.CorrectRT;
+                    break;
                 default:
                     break;
             }

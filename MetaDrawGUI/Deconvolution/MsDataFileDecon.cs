@@ -461,6 +461,5 @@ namespace MetaDrawGUI
         }
 
         #endregion
-
     }
 }

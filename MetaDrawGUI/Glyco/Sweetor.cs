@@ -16,6 +16,10 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Proteomics.ProteolyticDigestion;
 using Proteomics;
+using FlashLFQ;
+using MassSpectrometry;
+using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace MetaDrawGUI
 {
@@ -28,7 +32,8 @@ namespace MetaDrawGUI
         FilterPariedScan = 4, //In Byonic, PariedScan HCD-EThcD can generate different identifications if search separately.
         Compare_Byonic_MetaMorpheus_EachScan = 5,
         MetaMorpheus_coisolation_Evaluation = 6,
-        Compare_Seq_overlap = 7
+        Compare_Seq_overlap = 7,
+        CorrectRT = 8
     }
 
     public class Sweetor:INotifyPropertyChanged
@@ -738,5 +743,43 @@ namespace MetaDrawGUI
 
         }
 
+        public void CorrectRT()
+        {
+            var ms1ScanForDecon = new List<MsDataScan>();
+            foreach (var scan in _thanos.msDataScans.Where(p => p.MsnOrder == 1))
+            {         
+                ms1ScanForDecon.Add(scan);
+            }
+            QuantFile(_thanos.simplePsms, ms1ScanForDecon, _thanos.MsDataFilePaths.First(), _thanos.CommonParameters);
+        }
+
+        public void QuantFile(List<SimplePsm> simplePsms, List<MsDataScan> ms1DataScanList, string filePath, CommonParameters commonParameters)
+        {
+            SpectraFileInfo mzml = new SpectraFileInfo(filePath, "", 0, 0, 0);
+
+            List<Identification> ids = new List<Identification>();
+            for (int scanIndex = 0; scanIndex < simplePsms.Count; scanIndex++)
+            {
+                var id = new Identification(mzml, simplePsms[scanIndex].BaseSeq, simplePsms[scanIndex].FullSeq, simplePsms[scanIndex].MonoisotopicMass, simplePsms[scanIndex].RT, simplePsms[scanIndex].ChargeState, new List<FlashLFQ.ProteinGroup>(), useForProteinQuant: false);
+                ids.Add(id);
+            }
+
+            FlashLfqEngine engine = new FlashLfqEngine(ids, integrate:true, ppmTolerance: 5, isotopeTolerancePpm: 3);
+            var results = engine.Run();
+            var peaks = results.Peaks.SelectMany(p => p.Value).ToList();
+            //MsDataFileDecon.WritePeakResults(Path.Combine(Path.GetDirectoryName(filePath), @"Peaks.tsv"), peaks);
+
+            foreach (var psm in simplePsms)
+            {
+                var apex = peaks.Where(p => p.Identifications.Select(x => x.ModifiedSequence).Contains(psm.FullSeq)).First().Apex;
+                if (apex!=null)
+                {
+                    psm.CorrectedRT = apex.IndexedPeak.RetentionTime;
+                }
+            }
+
+
+            Write_GlycoResult();
+        }
     }
 }

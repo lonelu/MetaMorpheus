@@ -267,7 +267,7 @@ namespace MetaDrawGUI
 
             var envo = MainWindow.thanos.deconvolutor.IsotopicEnvelopes[sele.Ind - 1];
             MainWindow.thanos.deconvolutor.DeconModel = DeconViewModel.UpdataModelForDecon(MainWindow.thanos.msDataScan, envo);
-            MainWindow.thanos.deconvolutor.XicModel = PeakViewModel.DrawXic(envo.MonoisotopicMass, envo.Charge, MainWindow.thanos.msDataScan.RetentionTime, MainWindow.thanos.msDataFile, new PpmTolerance(5), 5.0, 3, "");
+            MainWindow.thanos.deconvolutor.XicModel = PeakViewModel.DrawXic(envo.MonoisotopicMass, envo.Charge, MainWindow.thanos.msDataScan.RetentionTime, MainWindow.thanos.msDataFile, new PpmTolerance(5), 5.0, 3, "");            
         }
 
         //From Charge Decon chargeEnvelop

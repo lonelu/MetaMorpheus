@@ -155,5 +155,24 @@ namespace MetaDrawGUI.Glyco
         //    Assert.AreEqual(glycans.Count, 182);
 
         //}
+
+
+        //public static void OGlycoTest_GlycanDecoyDatabase()
+        //{
+        //    var MyOGlycanBoxes = GlycanBox.BuildOGlycanBoxes(4, true).OrderBy(p => p.Mass).ToArray();
+
+        //    var filterPath = "E:\\MassData\\Glycan\\GlycanDatabase\\GlycanDatabaseTargetDecoy.tsv";
+
+        //    using (StreamWriter output = new StreamWriter(filterPath))
+        //    {
+        //        int id = 0;
+        //        foreach (var o in MyOGlycanBoxes)
+        //        {
+        //            var childs = string.Join("\t", o.ChildGlycanBoxes.Select(p => p.Mass.ToString()));
+        //            output.WriteLine(id + "\t" + o.Mass + "\t" + o.GlycanIdString + "\t" + o.TargetDecoy + "\t" + childs);
+        //            id++;
+        //        }
+        //    }
+        //}
     }
 }

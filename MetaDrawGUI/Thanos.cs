@@ -148,6 +148,17 @@ namespace MetaDrawGUI
             PngExporter.Export(plotModel, fileName, 1200, 800, OxyColors.White);
         }
 
+        public void ModelDrawPdf()
+        {
+            var plotModel = deconvolutor.XicModel;
+            string fileName = Path.GetDirectoryName(this.MsDataFilePaths.First()) + "\\" + Path.GetFileNameWithoutExtension(this.MsDataFilePaths.First()) +  "current.pdf";
+            using (var stream = File.Create(fileName))
+            {
+                PdfExporter pdf = new PdfExporter { Width = 800, Height = 500 };
+                pdf.Export(plotModel, stream);
+            }
+        }
+
         public PeptideWithSetModifications PeptideFromInput(string baseSeq, List<(int, string, double)> mods)
         {
             Dictionary<int, Modification> allModsOneIsNterminus = new Dictionary<int, Modification>();

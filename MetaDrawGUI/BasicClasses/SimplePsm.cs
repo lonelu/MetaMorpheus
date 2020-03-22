@@ -91,6 +91,8 @@ namespace MetaDrawGUI
         
         public string DissociateType { get; set; }
         public double RT { get; set; }
+
+        public double CorrectedRT { get; set; }
         public double PrecursorMass { get; set; }
         public double PrecursorMz { get; set; }
         public int ChargeState { get; set; }
@@ -130,6 +132,7 @@ namespace MetaDrawGUI
         public int GlycanAGNumber { get; set; }
         public string GlycanComposition { get; set; }
         public Glycan glycan { get; set; }
+        public string LocalizationLevel { get; set; }
 
         //pTOP
         public int MatchedPeakNum { get; set; }
@@ -663,9 +666,11 @@ namespace MetaDrawGUI
 
             if (csmType == "Glyco")
             {
+                sb.Append("CorrectRT" + '\t');
                 sb.Append("GlycanStructure" + '\t');
                 sb.Append("GlycanMass" + '\t');
                 sb.Append("GlycanComposition(H,N,A,G,F)" + '\t');
+                sb.Append("GlycanComposition" + '\t');
             }
 
             return sb.ToString();
@@ -701,9 +706,11 @@ namespace MetaDrawGUI
 
             if (csmType == "Glyco")
             {
+                sb.Append(CorrectedRT);
                 sb.Append((glycan == null ? "" : glycan.Struc) + '\t');
                 sb.Append((glycan == null ? GlycanMass.ToString() : glycan.Mass.ToString()) + '\t');
                 sb.Append((glycan == null ? GlycanComposition : Glycan.GetKindString(glycan.Kind)) + '\t');
+                sb.Append(LocalizationLevel + '\t');
             }
 
             return sb.ToString();

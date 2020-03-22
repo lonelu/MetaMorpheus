@@ -11,8 +11,9 @@ namespace MetaDrawGUI
         accumulate_intensity = 0,
         merge_boxcarScan = 1,
         account_ScanInfo = 2,
-        account_ExtractPrecursorInfo = 6,
-        acount_ExtractPrecursorInfo_Decon = 7,
-        fixPrecursor_BoxCarScan = 8
+        account_ExtractPrecursorInfo = 3,
+        acount_ExtractPrecursorInfo_Decon = 4,
+        fixPrecursor_BoxCarScan = 5,
+        ModelDrawPdf = 6
     }
 }
