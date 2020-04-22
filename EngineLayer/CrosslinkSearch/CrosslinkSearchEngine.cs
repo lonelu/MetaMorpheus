@@ -116,8 +116,11 @@ namespace EngineLayer.CrosslinkSearch
                     // get fragment bins for this scan
                     List<int> allBinsToSearch = GetBinsToSearch(scan, FragmentIndex, CommonParameters.DissociationType);
 
+                    //Limit the high bound limitation, here assume it is possible to has max 3 Da shift. This allows for correcting precursor in the future.
+                    var high_bound_limitation = scan.PrecursorMass + 4;
+
                     // first-pass scoring
-                    IndexedScoring(FragmentIndex, allBinsToSearch, scoringTable, byteScoreCutoff, idsOfPeptidesPossiblyObserved, scan.PrecursorMass, Double.NegativeInfinity, Double.PositiveInfinity, PeptideIndex, MassDiffAcceptor, 0, CommonParameters.DissociationType);
+                    IndexedScoring(FragmentIndex, allBinsToSearch, scoringTable, byteScoreCutoff, idsOfPeptidesPossiblyObserved, scan.PrecursorMass, Double.NegativeInfinity, high_bound_limitation, PeptideIndex, MassDiffAcceptor, 0, CommonParameters.DissociationType);
 
                     //child scan first-pass scoring
                     if (scan.ChildScans != null && CommonParameters.MS2ChildScanDissociationType != DissociationType.Unknown && CommonParameters.MS2ChildScanDissociationType != DissociationType.LowCID)
@@ -133,7 +136,7 @@ namespace EngineLayer.CrosslinkSearch
                             childBinsToSearch.AddRange(x);
                         }
 
-                        IndexedScoring(SecondFragmentIndex, childBinsToSearch, secondScoringTable, byteScoreCutoff, childIdsOfPeptidesPossiblyObserved, scan.PrecursorMass, Double.NegativeInfinity, Double.PositiveInfinity, PeptideIndex, MassDiffAcceptor, 0, CommonParameters.MS2ChildScanDissociationType);
+                        IndexedScoring(SecondFragmentIndex, childBinsToSearch, secondScoringTable, byteScoreCutoff, childIdsOfPeptidesPossiblyObserved, scan.PrecursorMass, Double.NegativeInfinity, high_bound_limitation, PeptideIndex, MassDiffAcceptor, 0, CommonParameters.MS2ChildScanDissociationType);
 
                         foreach (var childId in childIdsOfPeptidesPossiblyObserved)
                         {
@@ -176,12 +179,28 @@ namespace EngineLayer.CrosslinkSearch
                             continue;
                         }
 
+                        foreach (var csm in csms.Where(p => p != null))
+                        {
+                            csm.ResolveAllAmbiguities();
+                            if (csm.BetaPeptide!=null)
+                            {
+                                csm.BetaPeptide.ResolveAllAmbiguities();
+                            }
+                        }
+
+                        var csms_wrap = CrosslinkSpectralMatch.RemoveDuplicateFromCsmsPerScan(csms);
+
                         if (GlobalCsms[scanIndex] == null)
                         {
                             GlobalCsms[scanIndex] = new List<CrosslinkSpectralMatch>();
+                            GlobalCsms[scanIndex].AddRange(csms_wrap.OrderByDescending(c => c.XLTotalScore).ThenBy(c => c.FullSequence + (c.BetaPeptide != null ? c.BetaPeptide.FullSequence : "")).Take(10));
                         }
-                        //scans are sorted here so that the first one in the list is the top score. The others are ignored for now. We sort it here because this step is parallelized.
-                        GlobalCsms[scanIndex].AddRange(csms.Where(p => p != null));
+                        else
+                        {
+                            csms.AddRange(GlobalCsms[scanIndex]);
+                            GlobalCsms[scanIndex].Clear();
+                            GlobalCsms[scanIndex].AddRange(csms_wrap.OrderByDescending(c => c.XLTotalScore).ThenBy(c => c.FullSequence + (c.BetaPeptide != null ? c.BetaPeptide.FullSequence : "")).Take(10));
+                        }
                     }
 
                     // report search progress

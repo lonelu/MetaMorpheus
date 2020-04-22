@@ -74,7 +74,7 @@ namespace TaskLayer
             ProseCreatedWhileRunning.Append("initiator methionine behavior = " + CommonParameters.DigestionParams.InitiatorMethionineBehavior + "; ");
             ProseCreatedWhileRunning.Append("max modification isoforms = " + CommonParameters.DigestionParams.MaxModificationIsoforms + "; ");
 
-            ProseCreatedWhileRunning.Append("fixed modifications = " + string.Join(", ", fixedModifications.Select(m => m.IdWithMotif) + "; "));
+            ProseCreatedWhileRunning.Append("fixed modifications = " + string.Join(", ", fixedModifications.Select(m => m.IdWithMotif)) + "; ");
             ProseCreatedWhileRunning.Append("variable modifications = " + string.Join(", ", variableModifications.Select(m => m.IdWithMotif)) + "; ");
 
             ProseCreatedWhileRunning.Append("parent mass tolerance(s) = " + CommonParameters.PrecursorMassTolerance + "; ");
@@ -137,7 +137,13 @@ namespace TaskLayer
                     if (GlobalVariables.StopLoops) { break; }
                 }
 
-                ListOfCsmsPerMS2Scan.AddRange(newCsmsPerMS2ScanPerFile.Where(p => p != null).ToList());
+                foreach (var psmsPerFile in newCsmsPerMS2ScanPerFile)
+                {
+                    if (psmsPerFile != null)
+                    {
+                        ListOfCsmsPerMS2Scan.Add(psmsPerFile);
+                    }
+                }
 
                 completedFiles++;
                 ReportProgress(new ProgressEventArgs(completedFiles / currentRawFileList.Count, "Searching...", new List<string> { taskId, "Individual Spectra Files" }));
@@ -145,55 +151,32 @@ namespace TaskLayer
 
             ReportProgress(new ProgressEventArgs(100, "Done with all searches!", new List<string> { taskId, "Individual Spectra Files" }));
 
-            List<List<CrosslinkSpectralMatch>> ListOfCsmsPerMS2ScanParsimony = new List<List<CrosslinkSpectralMatch>>();
+            ListOfCsmsPerMS2Scan = SortListsOfCsms(ListOfCsmsPerMS2Scan);
 
-            //For every Ms2Scans, each have a list of candidates psms. The allPsms from CrosslinkSearchEngine is the list (all ms2scans) of list (each ms2scan) of psm (all candidate psm).
-            //The allPsmsList is same as allPsms after ResolveAmbiguities.
-            foreach (var csmsPerScan in ListOfCsmsPerMS2Scan)
-            {
-                foreach (var csm in csmsPerScan)
-                {
-                    csm.ResolveAllAmbiguities();
-                    if (csm.BetaPeptide != null)
-                    {
-                        csm.BetaPeptide.ResolveAllAmbiguities();
-                    }
-                    csm.ResolveProteinPosAmbiguitiesForXl();
-                }
+            AssignCrossType(ListOfCsmsPerMS2Scan);
 
-                var orderedCsmsPerScan = RemoveDuplicateFromCsmsPerScan(csmsPerScan).ToList();
-
-                ListOfCsmsPerMS2ScanParsimony.Add(orderedCsmsPerScan);
-            }
-            ListOfCsmsPerMS2ScanParsimony = SortListsOfCsms(ListOfCsmsPerMS2ScanParsimony, CommonParameters);
-            AssignCrossType(ListOfCsmsPerMS2ScanParsimony);
             var filteredAllPsms = new List<CrosslinkSpectralMatch>();
 
             //For each ms2scan, try to find the best candidate psm from the psms list. Add it into filteredAllPsms
             //This function is for current usage, this can be replaced with PEP value.
-            foreach (var csmsPerScan in ListOfCsmsPerMS2ScanParsimony)
+            foreach (var csmsPerScan in ListOfCsmsPerMS2Scan)
             {
+                CsmsSetSecondBestScore(csmsPerScan, CommonParameters);
                 filteredAllPsms.Add(csmsPerScan[0]);
             }
 
             PostXLSearchAnalysisTask postXLSearchAnalysisTask = new PostXLSearchAnalysisTask();
             postXLSearchAnalysisTask.FileSpecificParameters = this.FileSpecificParameters;
 
-            return postXLSearchAnalysisTask.Run(OutputFolder, dbFilenameList, currentRawFileList, taskId, fileSettingsList, filteredAllPsms.OrderByDescending(p => p.XLTotalScore).ToList(), CommonParameters, XlSearchParameters, proteinList, variableModifications, fixedModifications, localizeableModificationTypes, MyTaskResults);
+            return postXLSearchAnalysisTask.Run(OutputFolder, dbFilenameList, currentRawFileList, taskId, fileSettingsList, filteredAllPsms, CommonParameters, XlSearchParameters, proteinList, variableModifications, fixedModifications, localizeableModificationTypes, MyTaskResults);
         }
 
-        public static List<List<CrosslinkSpectralMatch>> SortListsOfCsms(List<List<CrosslinkSpectralMatch>> ListOfCsmsPerMS2Scan, CommonParameters commonParameters)
+        public static List<List<CrosslinkSpectralMatch>> SortListsOfCsms(List<List<CrosslinkSpectralMatch>> ListOfCsmsPerMS2Scan)
         {
-            List<List<CrosslinkSpectralMatch>> newLists = new List<List<CrosslinkSpectralMatch>>();
-            foreach (var csmsPerScan in ListOfCsmsPerMS2Scan)
-            {
-                newLists.Add(SortOneListCsmsSetSecondBestScore(csmsPerScan, commonParameters));
-            }
-
-            return newLists.OrderByDescending(c => c.First().XLTotalScore).ThenByDescending(c => c.First().FullSequence + (c.First().BetaPeptide != null ? c.First().BetaPeptide.FullSequence : "")).ToList();
+            return ListOfCsmsPerMS2Scan.OrderByDescending(c => c.First().XLTotalScore).ThenByDescending(c => c.First().FullSequence + (c.First().BetaPeptide != null ? c.First().BetaPeptide.FullSequence : "")).ToList();
         }
 
-        public static List<CrosslinkSpectralMatch> SortOneListCsmsSetSecondBestScore(List<CrosslinkSpectralMatch> csmsPerScan, CommonParameters commonParameters)
+        public static void CsmsSetSecondBestScore(List<CrosslinkSpectralMatch> csmsPerScan, CommonParameters commonParameters)
         {
             List<double> xlTotalScores = csmsPerScan.Select(s => s.XLTotalScore).OrderByDescending(s => s).ToList();
             xlTotalScores.RemoveAt(0);
@@ -208,9 +191,8 @@ namespace TaskLayer
             {
                 csm.SecondBestXlScore = secondBestSore;
             }
-            csmsPerScan = csmsPerScan.OrderByDescending(c => c.XLTotalScore).ThenBy(c => c.FullSequence + (c.BetaPeptide != null ? c.BetaPeptide.FullSequence : "")).ToList();
 
-            return csmsPerScan;
+            return;
         }
 
         public static void AssignCrossType(List<List<CrosslinkSpectralMatch>> ListOfCsmsPerMS2Scan)
@@ -234,39 +216,5 @@ namespace TaskLayer
             }
         }
 
-        //Remove same peptide with from different protein. We search for every possible peptides from every protein for each scan, and do parsimony later.
-        //Same peptides from different proteins are kept for csmsPerScan and parsimony is done here.
-        public static List<CrosslinkSpectralMatch> RemoveDuplicateFromCsmsPerScan(List<CrosslinkSpectralMatch> crosslinkSpectralMatches)
-        {
-            //A dictionary is used for parsimony. the key of the dictionary is 'alphs_fullseq + beta_fullseq'.
-            Dictionary<string, CrosslinkSpectralMatch> keyValuePairs = new Dictionary<string, CrosslinkSpectralMatch>();
-            foreach (var csm in crosslinkSpectralMatches)
-            {
-                if (csm == null)
-                {
-                    continue;
-                }
-                string betaFullseq = "-";
-                if (csm.BetaPeptide != null)
-                {
-                    betaFullseq += csm.BetaPeptide.FullSequence;
-                }
-
-                if (keyValuePairs.ContainsKey(csm.FullSequence + betaFullseq))
-                {
-                    keyValuePairs[csm.FullSequence + betaFullseq].AddProteinMatch(csm.BestMatchingPeptides.First(), csm.PeptidesToMatchingFragments[csm.BestMatchingPeptides.First().Peptide]);
-
-                    if (csm.BetaPeptide != null)
-                    {
-                        keyValuePairs[csm.FullSequence + betaFullseq].BetaPeptide.AddProteinMatch(csm.BetaPeptide.BestMatchingPeptides.First(), csm.PeptidesToMatchingFragments[csm.BestMatchingPeptides.First().Peptide]);
-                    }
-                }
-                else
-                {
-                    keyValuePairs.Add(csm.FullSequence + betaFullseq, csm);
-                }
-            }
-            return keyValuePairs.Values.ToList();
-        }
     }
 }
