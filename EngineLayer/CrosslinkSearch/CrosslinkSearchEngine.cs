@@ -117,7 +117,7 @@ namespace EngineLayer.CrosslinkSearch
                     List<int> allBinsToSearch = GetBinsToSearch(scan, FragmentIndex, CommonParameters.DissociationType);
 
                     //Limit the high bound limitation, here assume it is possible to has max 3 Da shift. This allows for correcting precursor in the future.
-                    var high_bound_limitation = scan.PrecursorMass + 4;
+                    var high_bound_limitation = scan.PrecursorMass + 3;
 
                     // first-pass scoring
                     IndexedScoring(FragmentIndex, allBinsToSearch, scoringTable, byteScoreCutoff, idsOfPeptidesPossiblyObserved, scan.PrecursorMass, Double.NegativeInfinity, high_bound_limitation, PeptideIndex, MassDiffAcceptor, 0, CommonParameters.DissociationType);
@@ -182,24 +182,24 @@ namespace EngineLayer.CrosslinkSearch
                         foreach (var csm in csms.Where(p => p != null))
                         {
                             csm.ResolveAllAmbiguities();
-                            if (csm.BetaPeptide!=null)
+                            if (csm.BetaPeptide != null)
                             {
                                 csm.BetaPeptide.ResolveAllAmbiguities();
                             }
                         }
 
-                        var csms_wrap = CrosslinkSpectralMatch.RemoveDuplicateFromCsmsPerScan(csms);
-
                         if (GlobalCsms[scanIndex] == null)
                         {
+                            csms = CrosslinkSpectralMatch.RemoveDuplicateFromCsmsPerScan(csms);
                             GlobalCsms[scanIndex] = new List<CrosslinkSpectralMatch>();
-                            GlobalCsms[scanIndex].AddRange(csms_wrap.OrderByDescending(c => c.XLTotalScore).ThenBy(c => c.FullSequence + (c.BetaPeptide != null ? c.BetaPeptide.FullSequence : "")).Take(10));
+                            GlobalCsms[scanIndex].AddRange(csms.OrderByDescending(c => c.XLTotalScore).ThenBy(c => c.FullSequence + (c.BetaPeptide != null ? c.BetaPeptide.FullSequence : "")).Take(10));
                         }
                         else
                         {
                             csms.AddRange(GlobalCsms[scanIndex]);
+                            csms = CrosslinkSpectralMatch.RemoveDuplicateFromCsmsPerScan(csms);
                             GlobalCsms[scanIndex].Clear();
-                            GlobalCsms[scanIndex].AddRange(csms_wrap.OrderByDescending(c => c.XLTotalScore).ThenBy(c => c.FullSequence + (c.BetaPeptide != null ? c.BetaPeptide.FullSequence : "")).Take(10));
+                            GlobalCsms[scanIndex].AddRange(csms.OrderByDescending(c => c.XLTotalScore).ThenBy(c => c.FullSequence + (c.BetaPeptide != null ? c.BetaPeptide.FullSequence : "")).Take(10));
                         }
                     }
 
@@ -316,7 +316,7 @@ namespace EngineLayer.CrosslinkSearch
 
                     while (betaMassLowIndex < massTable.Length && massTable[betaMassLowIndex] <= betaMassHigh)
                     {
-                        if (scoringTable[betaMassLowIndex] >= byteScoreCutoff)
+                        if (scoringTable[betaMassLowIndex] >= 1)
                         {
                             var key = new Tuple<int, int>(betaMassLowIndex, id);
                             if (!seenPair.Contains(key))

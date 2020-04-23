@@ -108,11 +108,18 @@ namespace EngineLayer.CrosslinkSearch
 
                 if (keyValuePairs.ContainsKey(csm.FullSequence + betaFullseq))
                 {
-                    keyValuePairs[csm.FullSequence + betaFullseq].AddProteinMatch(csm.BestMatchingPeptides.First(), csm.PeptidesToMatchingFragments[csm.BestMatchingPeptides.First().Peptide]);
+                    foreach (var bestMatchPeptide in csm.BestMatchingPeptides)
+                    {
+                        keyValuePairs[csm.FullSequence + betaFullseq].AddProteinMatch(bestMatchPeptide, csm.PeptidesToMatchingFragments[bestMatchPeptide.Peptide]);
+
+                    }
 
                     if (csm.BetaPeptide != null)
                     {
-                        keyValuePairs[csm.FullSequence + betaFullseq].BetaPeptide.AddProteinMatch(csm.BetaPeptide.BestMatchingPeptides.First(), csm.PeptidesToMatchingFragments[csm.BestMatchingPeptides.First().Peptide]);
+                        foreach (var betaBestMatchPeptide in csm.BetaPeptide.BestMatchingPeptides)
+                        {
+                            keyValuePairs[csm.FullSequence + betaFullseq].BetaPeptide.AddProteinMatch(betaBestMatchPeptide, csm.BetaPeptide.PeptidesToMatchingFragments[betaBestMatchPeptide.Peptide]);
+                        }
                     }
                 }
                 else

@@ -254,103 +254,6 @@ namespace Test
         }
 
         [Test]
-        public static void TestCsmSort()
-        {
-            Protein protForward = new Protein(sequence: "VPEPTIDELPEPTIDEAPEPTIDE", accession: "", isDecoy: false);
-
-            Ms2ScanWithSpecificMass scan = new Ms2ScanWithSpecificMass(
-                new MsDataScan(
-                    new MzSpectrum(new double[] { }, new double[] { }, false),
-                    2, 1, true, Polarity.Positive, double.NaN, null, null, MZAnalyzerType.Orbitrap, double.NaN, null, null, "scan=1", double.NaN, null, null, double.NaN, null, DissociationType.AnyActivationType, 1, null),
-                100, 1, null, new CommonParameters(), null);
-            Dictionary<int, Modification> mod = new Dictionary<int, Modification>();
-
-            PeptideWithSetModifications pwsmV = new PeptideWithSetModifications(protForward, new DigestionParams(), 1, 8, CleavageSpecificity.Full, "VPEPTIDE", 0, mod, 0, null);
-            //PeptideWithSetModifications pwsmL = new PeptideWithSetModifications(protForward, new DigestionParams(), 9, 16, CleavageSpecificity.Full, "LPEPTIDE", 0, mod, 0, null);
-            PeptideWithSetModifications pwsmA = new PeptideWithSetModifications(protForward, new DigestionParams(), 17, 24, CleavageSpecificity.Full, "APEPTIDE", 0, mod, 0, null);
-
-            PeptideWithSetModifications pwsmVbetaA = new PeptideWithSetModifications(protForward, new DigestionParams(), 17, 20, CleavageSpecificity.Full, "APEP", 0, mod, 0, null);
-            PeptideWithSetModifications pwsmLbetaV = new PeptideWithSetModifications(protForward, new DigestionParams(), 1, 4, CleavageSpecificity.Full, "VPEP", 0, mod, 0, null);
-            PeptideWithSetModifications pwsmAbetaL = new PeptideWithSetModifications(protForward, new DigestionParams(), 9, 12, CleavageSpecificity.Full, "LPEP", 0, mod, 0, null);
-
-            CrosslinkSpectralMatch csmOne = new CrosslinkSpectralMatch(pwsmV, 0, 3, 1, scan, new CommonParameters(), new List<MatchedFragmentIon>());
-            CrosslinkSpectralMatch csmThree = new CrosslinkSpectralMatch(pwsmV, 0, 3, 1, scan, new CommonParameters(), new List<MatchedFragmentIon>());
-            CrosslinkSpectralMatch csmTwo = new CrosslinkSpectralMatch(pwsmA, 0, 2, 1, scan, new CommonParameters(), new List<MatchedFragmentIon>());
-
-            CrosslinkSpectralMatch csmOneBetaA = new CrosslinkSpectralMatch(pwsmVbetaA, 0, 30, 1, scan, new CommonParameters(), new List<MatchedFragmentIon>());
-            CrosslinkSpectralMatch csmThreeBetaV = new CrosslinkSpectralMatch(pwsmLbetaV, 0, 30, 1, scan, new CommonParameters(), new List<MatchedFragmentIon>());
-            CrosslinkSpectralMatch csmTwoBetaL = new CrosslinkSpectralMatch(pwsmAbetaL, 0, 20, 1, scan, new CommonParameters(), new List<MatchedFragmentIon>());
-
-            csmOne.BetaPeptide = csmOneBetaA;
-            csmTwo.BetaPeptide = csmTwoBetaL;
-            csmThree.BetaPeptide = csmThreeBetaV;
-
-            csmOne.XLTotalScore = 33;
-            csmTwo.XLTotalScore = 22;
-            csmThree.XLTotalScore = 33;
-
-            csmOne.ResolveAllAmbiguities();
-            csmTwo.ResolveAllAmbiguities();
-            csmThree.ResolveAllAmbiguities();
-
-            csmOne.BetaPeptide.ResolveAllAmbiguities();
-            csmTwo.BetaPeptide.ResolveAllAmbiguities();
-            csmThree.BetaPeptide.ResolveAllAmbiguities();
-
-            List<CrosslinkSpectralMatch> forward = new List<CrosslinkSpectralMatch> { csmOne, csmThree, csmTwo };
-
-            Protein protReverse = new Protein(sequence: "AEDITPEPVEDITPEPLEDITPEP", accession: "", isDecoy: false);
-
-            PeptideWithSetModifications mswpA = new PeptideWithSetModifications(protReverse, new DigestionParams(), 1, 8, CleavageSpecificity.Full, "AEDITPEP", 0, mod, 0, null);
-            PeptideWithSetModifications mswpV = new PeptideWithSetModifications(protReverse, new DigestionParams(), 9, 16, CleavageSpecificity.Full, "VEDITPEP", 0, mod, 0, null);
-            PeptideWithSetModifications mswpL = new PeptideWithSetModifications(protReverse, new DigestionParams(), 17, 24, CleavageSpecificity.Full, "LEDITPEP", 0, mod, 0, null);
-
-            PeptideWithSetModifications mswpAbetaL = new PeptideWithSetModifications(protReverse, new DigestionParams(), 17, 20, CleavageSpecificity.Full, "LEDI", 0, mod, 0, null);
-            PeptideWithSetModifications mswpVbetaA = new PeptideWithSetModifications(protReverse, new DigestionParams(), 1, 4, CleavageSpecificity.Full, "AEDI", 0, mod, 0, null);
-            PeptideWithSetModifications mswpLbetaV = new PeptideWithSetModifications(protReverse, new DigestionParams(), 9, 12, CleavageSpecificity.Full, "VEDI", 0, mod, 0, null);
-
-            CrosslinkSpectralMatch twoCsm = new CrosslinkSpectralMatch(mswpA, 0, 2, 1, scan, new CommonParameters(), new List<MatchedFragmentIon>());
-            CrosslinkSpectralMatch oneCsm = new CrosslinkSpectralMatch(mswpV, 0, 1, 1, scan, new CommonParameters(), new List<MatchedFragmentIon>());
-            CrosslinkSpectralMatch threeCsm = new CrosslinkSpectralMatch(mswpL, 0, 1, 3, scan, new CommonParameters(), new List<MatchedFragmentIon>());
-
-            CrosslinkSpectralMatch twoCsmBetaL = new CrosslinkSpectralMatch(mswpAbetaL, 0, 20, 1, scan, new CommonParameters(), new List<MatchedFragmentIon>());
-            CrosslinkSpectralMatch oneCsmBetaA = new CrosslinkSpectralMatch(mswpVbetaA, 0, 10, 1, scan, new CommonParameters(), new List<MatchedFragmentIon>());
-            CrosslinkSpectralMatch threeCsmBetaV = new CrosslinkSpectralMatch(mswpLbetaV, 0, 40, 1, scan, new CommonParameters(), new List<MatchedFragmentIon>());
-
-            twoCsm.BetaPeptide = twoCsmBetaL;
-            oneCsm.BetaPeptide = oneCsmBetaA;
-            threeCsm.BetaPeptide = threeCsmBetaV;
-
-            twoCsm.XLTotalScore = 22;
-            oneCsm.XLTotalScore = 11;
-            threeCsm.XLTotalScore = 43;
-
-            twoCsm.ResolveAllAmbiguities();
-            oneCsm.ResolveAllAmbiguities();
-            threeCsm.ResolveAllAmbiguities();
-
-            twoCsm.BetaPeptide.ResolveAllAmbiguities();
-            oneCsm.BetaPeptide.ResolveAllAmbiguities();
-            threeCsm.BetaPeptide.ResolveAllAmbiguities();
-
-            List<CrosslinkSpectralMatch> reverse = new List<CrosslinkSpectralMatch> { twoCsm, oneCsm, threeCsm };
-
-            CommonParameters commonParameters = new CommonParameters(scoreCutoff: 2);
-            List<CrosslinkSpectralMatch> sortedForward = XLSearchTask.SortOneListCsmsSetSecondBestScore(forward, commonParameters);
-
-            Assert.That(sortedForward.Select(s => s.XLTotalScore).ToList(), Is.EquivalentTo(new List<double> { 33d, 33d, 22d }));
-            Assert.That(sortedForward.Select(s => s.DeltaScore).ToList(), Is.EquivalentTo(new List<double> { 0d, 0d, -11d }));
-            Assert.That(sortedForward.Select(aSeq => aSeq.BaseSequence).ToList(), Is.EquivalentTo(new List<string> { "VPEPTIDE", "VPEPTIDE", "APEPTIDE" }));
-            Assert.That(sortedForward.Select(bSeq => bSeq.BetaPeptide.BaseSequence).ToList(), Is.EquivalentTo(new List<string> { "APEP", "VPEP", "LPEP" }));
-
-            List<List<CrosslinkSpectralMatch>> csmListList = new List<List<CrosslinkSpectralMatch>> { forward, reverse };
-            csmListList = XLSearchTask.SortListsOfCsms(csmListList, commonParameters);
-            Assert.That(csmListList.Select(c => c.First().XLTotalScore).ToList(), Is.EquivalentTo(new List<double> { 43d, 33d }));
-            Assert.That(csmListList.Select(c => c.First().BaseSequence).ToList(), Is.EquivalentTo(new List<string> { "LEDITPEP", "VPEPTIDE" }));
-            Assert.That(csmListList.Select(c => c.First().BetaPeptide.BaseSequence).ToList(), Is.EquivalentTo(new List<string> { "VEDI", "APEP" }));
-        }
-
-        [Test]
         public static void XlTest_MoreComprehensive()
         {
             //Generate parameters
@@ -420,33 +323,9 @@ namespace Test
 
             var nonNullCsmsStillLists = possiblePsms.Where(p => p != null).ToList();
 
-            #region Parsimony and assign crosslink
-
-            List<List<CrosslinkSpectralMatch>> ListOfCsmsPerMS2ScanParsimony = new List<List<CrosslinkSpectralMatch>>();
-            foreach (var csmsPerScan in nonNullCsmsStillLists)
-            {
-                foreach (var csm in csmsPerScan)
-                {
-                    csm.ResolveAllAmbiguities();
-                    if (csm.BetaPeptide != null)
-                    {
-                        csm.BetaPeptide.ResolveAllAmbiguities();
-                    }
-                    csm.ResolveProteinPosAmbiguitiesForXl();
-                }
-
-                var orderedCsmsPerScan = XLSearchTask.RemoveDuplicateFromCsmsPerScan(csmsPerScan).OrderByDescending(p => p.XLTotalScore).ThenBy(p => p.FullSequence + ((p.BetaPeptide == null) ? "" : p.BetaPeptide.FullSequence)).ToList();
-
-                ListOfCsmsPerMS2ScanParsimony.Add(orderedCsmsPerScan);
-            }
-
-            nonNullCsmsStillLists = ListOfCsmsPerMS2ScanParsimony;
-
             XLSearchTask.AssignCrossType(nonNullCsmsStillLists);
 
-            #endregion Parsimony and assign crosslink
-
-            nonNullCsmsStillLists = XLSearchTask.SortListsOfCsms(nonNullCsmsStillLists, commonParameters);
+            nonNullCsmsStillLists = XLSearchTask.SortListsOfCsms(nonNullCsmsStillLists);
             foreach (List<CrosslinkSpectralMatch> xlinkCsmList in nonNullCsmsStillLists.Where(x => x.First().XLTotalScore > 0))
             {
                 if (xlinkCsmList != null && xlinkCsmList.Any() && xlinkCsmList.Count > 1)
@@ -1283,17 +1162,8 @@ namespace Test
             new CrosslinkSearchEngine(csms, scans, indexingResults.PeptideIndex, indexingResults.FragmentIndex, secondIndexingResults.FragmentIndex, 0, commonParameters, fsp,
                 GlobalVariables.Crosslinkers.First(p => p.CrosslinkerName == "DSSO"), 50, true, false, false, true, new List<string>()).Run();
 
-            foreach (var c in csms.First())
-            {
-                c.ResolveAllAmbiguities();
-                if (c.BetaPeptide != null)
-                {
-                    c.BetaPeptide.ResolveAllAmbiguities();
-                }
-            }
-
             //This function is important for crosslink protein ambiguious assignment.
-            var csm = XLSearchTask.RemoveDuplicateFromCsmsPerScan(csms.First()).First();
+            var csm = csms.First().First();
             var isIntra = csm.IsIntraCsm();
             Assert.That(isIntra == true);
             csm.ResolveProteinPosAmbiguitiesForXl();
