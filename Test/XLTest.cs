@@ -326,6 +326,12 @@ namespace Test
             XLSearchTask.AssignCrossType(nonNullCsmsStillLists);
 
             nonNullCsmsStillLists = XLSearchTask.SortListsOfCsms(nonNullCsmsStillLists);
+
+            foreach (var csmsPerScan in nonNullCsmsStillLists)
+            {
+                XLSearchTask.CsmsSetSecondBestScore(csmsPerScan, CommonParameters);
+            }
+
             foreach (List<CrosslinkSpectralMatch> xlinkCsmList in nonNullCsmsStillLists.Where(x => x.First().XLTotalScore > 0))
             {
                 if (xlinkCsmList != null && xlinkCsmList.Any() && xlinkCsmList.Count > 1)
@@ -389,12 +395,12 @@ namespace Test
                 }
             }
 
-            Assert.AreEqual(203, inter);
-            Assert.AreEqual(126, intra);
-            Assert.AreEqual(291, single);
-            Assert.AreEqual(15, loop);
+            Assert.AreEqual(264, inter);
+            Assert.AreEqual(153, intra);
+            Assert.AreEqual(320, single);
+            Assert.AreEqual(20, loop);
             Assert.AreEqual(0, deadend);
-            Assert.AreEqual(60, deadendH2O);
+            Assert.AreEqual(73, deadendH2O);
             Assert.AreEqual(0, deadendNH2);
             Assert.AreEqual(0, deadendTris);
             Assert.AreEqual(0, unnasignedCrossType);
@@ -455,9 +461,9 @@ namespace Test
                 }
             }
 
-            Assert.AreEqual(50, inter);
+            Assert.AreEqual(51, inter);
             Assert.AreEqual(74, intra);
-            Assert.AreEqual(229, single);
+            Assert.AreEqual(230, single);
             Assert.AreEqual(8, loop);
             Assert.AreEqual(0, deadend);
             Assert.AreEqual(46, deadendH2O);
@@ -507,7 +513,7 @@ namespace Test
             Assert.That(intraPsmData.AlphaIntensity, Is.EqualTo(1).Within(0.1));
             Assert.AreEqual(intraPsmData.Ambiguity, 0);
             Assert.That(intraPsmData.BetaIntensity, Is.EqualTo(1).Within(0.1));
-            Assert.That(intraPsmData.DeltaScore, Is.EqualTo(5).Within(0.1));
+            Assert.That(intraPsmData.DeltaScore, Is.EqualTo(9).Within(0.1));
             Assert.AreEqual(intraPsmData.HydrophobicityZScore, Double.NaN);
             Assert.AreEqual(intraPsmData.Intensity, 0);
             Assert.AreEqual(intraPsmData.IsDeadEnd, 0);
@@ -643,7 +649,7 @@ namespace Test
             Assert.AreEqual(237, single);
             Assert.AreEqual(8, loop);
             Assert.AreEqual(0, deadend);
-            Assert.AreEqual(47, deadendH2O);
+            Assert.AreEqual(46, deadendH2O);
             Assert.AreEqual(0, deadendNH2);
             Assert.AreEqual(0, deadendTris);
         }
@@ -1063,7 +1069,7 @@ namespace Test
             var results = Path.Combine(outputFolder, @"TestPercolator\XL_Intralinks_Percolator.txt");
             var lines = File.ReadAllLines(results);
             Assert.That(lines[0].Equals("SpecId\tLabel\tScannr\tScore\tdScore\tCharge\tMass\tPPM\tLenShort\tLenLong\tLenSum\tPeptide\tProtein"));
-            Assert.That(lines[1].Equals("T-1-30.61909926666667\t1\t1\t26.06004534434461\t11.026813997502483\t3\t1994.0520231384269\t0.6649793543976755\t7\t9\t16\t-.EKVLTSSAR2--LSQKFPK4.-\t3336842(211)\t3336842(245)"));
+            Assert.That(lines[1].Equals("T-1-30.61909926666667\t1\t1\t26.06004534434461\t24.06004534434461\t3\t1994.0520231384269\t0.6649793543976755\t7\t9\t16\t-.EKVLTSSAR2--LSQKFPK4.-\t3336842()\t3336842()"));
 
             Directory.Delete(outputFolder, true);
         }

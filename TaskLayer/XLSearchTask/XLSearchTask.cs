@@ -137,29 +137,23 @@ namespace TaskLayer
                     if (GlobalVariables.StopLoops) { break; }
                 }
 
-                foreach (var psmsPerFile in newCsmsPerMS2ScanPerFile)
-                {
-                    if (psmsPerFile != null)
-                    {
-                        ListOfCsmsPerMS2Scan.Add(psmsPerFile);
-                    }
-                }
+                ListOfCsmsPerMS2Scan.AddRange(newCsmsPerMS2ScanPerFile.Where(p => p != null).ToList());
 
                 completedFiles++;
-                ReportProgress(new ProgressEventArgs(completedFiles / currentRawFileList.Count, "Searching...", new List<string> { taskId, "Individual Spectra Files" }));
+                 ReportProgress(new ProgressEventArgs(completedFiles / currentRawFileList.Count, "Searching...", new List<string> { taskId, "Individual Spectra Files" }));
             }
 
             ReportProgress(new ProgressEventArgs(100, "Done with all searches!", new List<string> { taskId, "Individual Spectra Files" }));
 
-            ListOfCsmsPerMS2Scan = SortListsOfCsms(ListOfCsmsPerMS2Scan);
+            var ListOfCsmsPerMS2ScanParsimony = SortListsOfCsms(ListOfCsmsPerMS2Scan);
 
-            AssignCrossType(ListOfCsmsPerMS2Scan);
+            AssignCrossType(ListOfCsmsPerMS2ScanParsimony);
 
             var filteredAllPsms = new List<CrosslinkSpectralMatch>();
 
             //For each ms2scan, try to find the best candidate psm from the psms list. Add it into filteredAllPsms
             //This function is for current usage, this can be replaced with PEP value.
-            foreach (var csmsPerScan in ListOfCsmsPerMS2Scan)
+            foreach (var csmsPerScan in ListOfCsmsPerMS2ScanParsimony)
             {
                 CsmsSetSecondBestScore(csmsPerScan, CommonParameters);
                 filteredAllPsms.Add(csmsPerScan[0]);

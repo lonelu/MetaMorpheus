@@ -88,48 +88,6 @@ namespace EngineLayer.CrosslinkSearch
             }
         }
 
-        //Remove same peptide with from different protein. We search for every possible peptides from every protein for each scan, and do parsimony later.
-        //Same peptides from different proteins are kept for csmsPerScan and parsimony is done here.
-        public static List<CrosslinkSpectralMatch> RemoveDuplicateFromCsmsPerScan(List<CrosslinkSpectralMatch> crosslinkSpectralMatches)
-        {
-            //A dictionary is used for parsimony. the key of the dictionary is 'alphs_fullseq + beta_fullseq'.
-            Dictionary<string, CrosslinkSpectralMatch> keyValuePairs = new Dictionary<string, CrosslinkSpectralMatch>();
-            foreach (var csm in crosslinkSpectralMatches)
-            {
-                if (csm == null)
-                {
-                    continue;
-                }
-                string betaFullseq = "-";
-                if (csm.BetaPeptide != null)
-                {
-                    betaFullseq += csm.BetaPeptide.FullSequence;
-                }
-
-                if (keyValuePairs.ContainsKey(csm.FullSequence + betaFullseq))
-                {
-                    foreach (var bestMatchPeptide in csm.BestMatchingPeptides)
-                    {
-                        keyValuePairs[csm.FullSequence + betaFullseq].AddProteinMatch(bestMatchPeptide, csm.PeptidesToMatchingFragments[bestMatchPeptide.Peptide]);
-
-                    }
-
-                    if (csm.BetaPeptide != null)
-                    {
-                        foreach (var betaBestMatchPeptide in csm.BetaPeptide.BestMatchingPeptides)
-                        {
-                            keyValuePairs[csm.FullSequence + betaFullseq].BetaPeptide.AddProteinMatch(betaBestMatchPeptide, csm.BetaPeptide.PeptidesToMatchingFragments[betaBestMatchPeptide.Peptide]);
-                        }
-                    }
-                }
-                else
-                {
-                    keyValuePairs.Add(csm.FullSequence + betaFullseq, csm);
-                }
-            }
-            return keyValuePairs.Values.ToList();
-        }
-
         public static List<int> GetPossibleCrosslinkerModSites(char[] crosslinkerModSites, PeptideWithSetModifications peptide, InitiatorMethionineBehavior initiatorMethionineBehavior, bool CrosslinkAtCleavageSite)
         {
             List<int> possibleXlPositions = null;

@@ -179,27 +179,73 @@ namespace EngineLayer.CrosslinkSearch
                             continue;
                         }
 
-                        foreach (var csm in csms.Where(p => p != null))
-                        {
-                            csm.ResolveAllAmbiguities();
-                            if (csm.BetaPeptide != null)
-                            {
-                                csm.BetaPeptide.ResolveAllAmbiguities();
-                            }
-                        }
-
                         if (GlobalCsms[scanIndex] == null)
                         {
-                            csms = CrosslinkSpectralMatch.RemoveDuplicateFromCsmsPerScan(csms);
-                            GlobalCsms[scanIndex] = new List<CrosslinkSpectralMatch>();
-                            GlobalCsms[scanIndex].AddRange(csms.OrderByDescending(c => c.XLTotalScore).ThenBy(c => c.FullSequence + (c.BetaPeptide != null ? c.BetaPeptide.FullSequence : "")).Take(10));
+                            GlobalCsms[scanIndex] = new List<CrosslinkSpectralMatch>();                       
                         }
-                        else
+
+                        csms.AddRange(GlobalCsms[scanIndex]);
+                        GlobalCsms[scanIndex].Clear();
+
+                        //keep top 10 candidates.
+                        double preScore = 0;
+                        int csmsCount = 1;
+                        string preString = "";
+
+                        foreach (var csm in csms.Where(p => p != null).OrderByDescending(p => p.XLTotalScore).ThenBy(c => c.FullSequence + "_" + (c.BetaPeptide != null ? c.BetaPeptide.FullSequence : "")))
                         {
-                            csms.AddRange(GlobalCsms[scanIndex]);
-                            csms = CrosslinkSpectralMatch.RemoveDuplicateFromCsmsPerScan(csms);
-                            GlobalCsms[scanIndex].Clear();
-                            GlobalCsms[scanIndex].AddRange(csms.OrderByDescending(c => c.XLTotalScore).ThenBy(c => c.FullSequence + (c.BetaPeptide != null ? c.BetaPeptide.FullSequence : "")).Take(10));
+                            if (csmsCount <= 10)
+                            {
+                                csm.ResolveAllAmbiguities();
+                                if (csm.BetaPeptide != null)
+                                {
+                                    csm.BetaPeptide.ResolveAllAmbiguities();
+                                }
+
+                                if (csmsCount == 1)
+                                {
+                                    preScore = csm.XLTotalScore;
+                                    preString = csm.FullSequence + "_" + (csm.BetaPeptide != null ? csm.BetaPeptide.FullSequence : "");
+
+                                    GlobalCsms[scanIndex].Add(csm);
+                                    csmsCount++;
+                                }
+                                else
+                                {
+                                    if (csm.XLTotalScore - preScore < ToleranceForMassDifferentiation &&
+                                    csm.XLTotalScore - preScore > -ToleranceForMassDifferentiation)
+                                    {
+                                        string currentString = csm.FullSequence + "_" + (csm.BetaPeptide != null ? csm.BetaPeptide.FullSequence : "");
+
+                                        if (preString == currentString)
+                                        {
+                                            foreach (var bestMatchPeptide in csm.BestMatchingPeptides)
+                                            {
+                                                GlobalCsms[scanIndex].Last().AddProteinMatch(bestMatchPeptide, csm.PeptidesToMatchingFragments[bestMatchPeptide.Peptide]);
+
+                                            }
+
+                                            if (csm.BetaPeptide != null)
+                                            {
+                                                foreach (var betaBestMatchPeptide in csm.BetaPeptide.BestMatchingPeptides)
+                                                {
+                                                    GlobalCsms[scanIndex].Last().BetaPeptide.AddProteinMatch(betaBestMatchPeptide, csm.BetaPeptide.PeptidesToMatchingFragments[betaBestMatchPeptide.Peptide]);
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            preString = currentString;
+                                            GlobalCsms[scanIndex].Add(csm);
+                                            csmsCount++;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                break;
+                            }
                         }
                     }
 
