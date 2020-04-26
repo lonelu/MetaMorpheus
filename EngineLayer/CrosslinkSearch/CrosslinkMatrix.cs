@@ -33,6 +33,17 @@ namespace EngineLayer.CrosslinkSearch
 
         public static CrosslinkMatrix XLGetTheoreticalFragmentsMatrix(Ms2ScanWithSpecificMass ms2Scan, DissociationType dissociationType, Crosslinker crosslinker, double otherPeptideMass, PeptideWithSetModifications peptide, Tolerance tolerance)
         {
+            var matrix = BuildMatrix(dissociationType, crosslinker, otherPeptideMass, peptide);
+
+            CalMatrix(matrix, ms2Scan, tolerance);
+
+            //var scores = GetAllScore(matrix);
+
+            return matrix;
+        }
+
+        public static CrosslinkMatrix BuildMatrix(DissociationType dissociationType, Crosslinker crosslinker, double otherPeptideMass, PeptideWithSetModifications peptide)
+        {
             List<double> massesToLocalize = new List<double>();
             if (crosslinker.Cleavable && crosslinker.CleaveDissociationTypes.Contains(dissociationType))
             {
@@ -52,16 +63,12 @@ namespace EngineLayer.CrosslinkSearch
 
             CrosslinkMatrix matrix = new CrosslinkMatrix(peptide.Length, massesToLocalize.Count + 1);
 
-            matrix.BuildMatrix(nfragments, cfragments, massesToLocalize);
-
-            CalMatrix(matrix, ms2Scan, tolerance);
-
-            //var scores = GetAllScore(matrix);
+            matrix.ConstructMatrix(nfragments, cfragments, massesToLocalize);
 
             return matrix;
         }
 
-        public void BuildMatrix(List<Product> nfragments, List<Product> cfragments, List<double> massesToLocalize)
+        public void ConstructMatrix(List<Product> nfragments, List<Product> cfragments, List<double> massesToLocalize)
         {
             for (int i = 0; i < Depth; i++)
             {
@@ -112,8 +119,6 @@ namespace EngineLayer.CrosslinkSearch
                     n.Cost = CalCost(theScan, productTolerance, n.Product);
                 }
             }
-
-
         } 
 
         public static double CalCost(Ms2ScanWithSpecificMass theScan, Tolerance productTolerance, Product product)
@@ -150,6 +155,7 @@ namespace EngineLayer.CrosslinkSearch
             return allScores;
         }
 
+        // crosslink at peptide position position+1
         public static List<Product> GetProducts(CrosslinkMatrix crosslinkMatrix, int position)
         {
             List<Product> products = new List<Product>();
@@ -157,7 +163,7 @@ namespace EngineLayer.CrosslinkSearch
             products.AddRange(crosslinkMatrix.N_Matrix[0].Where(p => p.Product.AminoAcidPosition < position + 1).Select(p=>p.Product));
             products.AddRange(crosslinkMatrix.C_Matrix[0].Where(p => p.Product.AminoAcidPosition > position + 1).Select(p => p.Product));
 
-            for (int j = 0; j < crosslinkMatrix.Depth; j++)
+            for (int j = 1; j < crosslinkMatrix.Depth; j++)
             {
                 products.AddRange(crosslinkMatrix.N_Matrix[j].Where(p => p.Product.AminoAcidPosition >= position + 1).Select(p => p.Product));
                 products.AddRange(crosslinkMatrix.C_Matrix[j].Where(p => p.Product.AminoAcidPosition <= position + 1).Select(p => p.Product));

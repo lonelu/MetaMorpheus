@@ -659,14 +659,6 @@ namespace EngineLayer.CrosslinkSearch
         {
             CrosslinkSpectralMatch localizedCrosslinkedSpectralMatch = null;
 
-            var alpha_matrix = CrosslinkMatrix.XLGetTheoreticalFragmentsMatrix(theScan, DissociationType, crosslinker, PeptideIndex[betaIndex].MonoisotopicMass, PeptideIndex[alphaIndex], CommonParameters.ProductMassTolerance);
-
-            var alpha_scores = CrosslinkMatrix.GetAllScore(alpha_matrix);
-
-            var beta_matrix = CrosslinkMatrix.XLGetTheoreticalFragmentsMatrix(theScan, DissociationType, crosslinker, PeptideIndex[alphaIndex].MonoisotopicMass, PeptideIndex[betaIndex], CommonParameters.ProductMassTolerance);
-
-            var beta_scores = CrosslinkMatrix.GetAllScore(beta_matrix);
-
             //The crosslink can crosslink same or different amino acid. Pairs are potential crosslink sites for alpha or beta. 
             List<Tuple<List<int>, List<int>>> pairs = new List<Tuple<List<int>, List<int>>>();
 
@@ -690,33 +682,122 @@ namespace EngineLayer.CrosslinkSearch
                 pairs.Add(new Tuple<List<int>, List<int>>(possibleAlphaXlSites2, possibleBetaXlSites2));
             }
 
+            //Get matrix of the crosslinked peptide candidates
+            //The matrix currently hasn't been used for MS2-MS2 type of data. Which could limit the performance.
+            var alpha_matrix = CrosslinkMatrix.XLGetTheoreticalFragmentsMatrix(theScan, DissociationType, crosslinker, PeptideIndex[betaIndex].MonoisotopicMass, PeptideIndex[alphaIndex], CommonParameters.ProductMassTolerance);
+
+            var alpha_scores = CrosslinkMatrix.GetAllScore(alpha_matrix);
+
+            var beta_matrix = CrosslinkMatrix.XLGetTheoreticalFragmentsMatrix(theScan, DissociationType, crosslinker, PeptideIndex[alphaIndex].MonoisotopicMass, PeptideIndex[betaIndex], CommonParameters.ProductMassTolerance);
+
+            var beta_scores = CrosslinkMatrix.GetAllScore(beta_matrix);
+
             double best_score = 0;
 
             foreach (var pair in pairs)
             {
                 if (pair.Item1 != null && pair.Item2 != null)
                 {
-                    int bestAlphaSite = pair.Item1.First();
-                    int bestBetaSite = pair.Item2.First();
+                    int bestAlphaSite = 0;
+                    int bestBetaSite = 0;
+                    Dictionary<int, List<MatchedFragmentIon>> bestMatchedChildAlphaIons = null;
+                    Dictionary<int, List<MatchedFragmentIon>> bestMatchedChildBetaIons = null;
+                    double bestAlphaLocalizedScore = 0;
+                    double bestBetaLocalizedScore = 0;
+                    double bestMS3AlphaScore = 0;
+                    double bestMS3BetaScore = 0;
 
                     foreach (var ind in pair.Item1)
                     {
-                        if (alpha_scores[ind-1] > alpha_scores[bestAlphaSite-1])
+                        double score = alpha_scores[ind - 1];
+                        double ms3score = 0;
+                        Dictionary<int, List<MatchedFragmentIon>> matchedChildAlphaIons = null;
+
+                        // search child scans (MS2+MS3)
+                        foreach (Ms2ScanWithSpecificMass childScan in theScan.ChildScans)
                         {
+                            var matchedChildIons = ScoreChildScan(theScan, childScan, ind, PeptideIndex[alphaIndex], PeptideIndex[betaIndex]);
+
+                            if (matchedChildIons == null)
+                            {
+                                continue;
+                            }
+
+                            if (matchedChildAlphaIons == null)
+                            {
+                                matchedChildAlphaIons = new Dictionary<int, List<MatchedFragmentIon>>();
+                            }
+
+                            matchedChildAlphaIons.Add(childScan.OneBasedScanNumber, matchedChildIons);
+
+                            double childScore = CalculatePeptideScore(childScan.TheScan, matchedChildIons);
+
+                            if (childScan.TheScan.MsnOrder == 2 && CommonParameters.MS2ChildScanDissociationType != DissociationType.LowCID)
+                            {
+                                //Note that for  MS2(HCD)-(MS2)ETD type of data, add the childScore to score will bias the  alpha score more than beta score. 
+                                //We add 1/3 of childScore here, but better scoring is needed.
+                                score += childScore / 3;
+                            }
+                            else
+                            {
+                                ms3score += childScore;
+                            }
+                        }
+
+                        if (score > bestAlphaLocalizedScore)
+                        {
+                            bestAlphaLocalizedScore = score;
+                            bestMS3AlphaScore = ms3score;
                             bestAlphaSite = ind;
+                            bestMatchedChildAlphaIons = matchedChildAlphaIons;
                         }
                     }
 
                     foreach (var ind in pair.Item2)
                     {
-                        if (beta_scores[ind-1] > beta_scores[bestBetaSite-1])
+                        double score = beta_scores[ind - 1];
+                        double ms3score = 0;
+                        Dictionary<int, List<MatchedFragmentIon>> matchedChildBetaIons = null;
+
+                        // search child scans (MS2+MS3)
+                        foreach (Ms2ScanWithSpecificMass childScan in theScan.ChildScans)
                         {
+                            var matchedChildIons = ScoreChildScan(theScan, childScan, ind, PeptideIndex[betaIndex], PeptideIndex[alphaIndex]);
+
+                            if (matchedChildIons == null)
+                            {
+                                continue;
+                            }
+
+                            if (matchedChildBetaIons == null)
+                            {
+                                matchedChildBetaIons = new Dictionary<int, List<MatchedFragmentIon>>();
+                            }
+
+                            matchedChildBetaIons.Add(childScan.OneBasedScanNumber, matchedChildIons);
+
+                            double childScore = CalculatePeptideScore(childScan.TheScan, matchedChildIons);
+
+                            if (childScan.TheScan.MsnOrder == 2 && CommonParameters.MS2ChildScanDissociationType != DissociationType.LowCID)
+                            {
+                                //Note that for  MS2(HCD)-(MS2)ETD type of data, add the childScore to score will bias the  alpha score more than beta score. 
+                                //We add 1/3 of childScore here, but better scoring is needed.
+                                score += childScore / 3;
+                            }
+                            else
+                            {
+                                ms3score += childScore;
+                            }
+                        }
+
+                        if (score > bestBetaLocalizedScore)
+                        {
+                            bestBetaLocalizedScore = score;
+                            bestMS3BetaScore = ms3score;
                             bestBetaSite = ind;
+                            bestMatchedChildBetaIons = matchedChildBetaIons;
                         }
                     }
-
-                    double bestAlphaLocalizedScore = alpha_scores[bestAlphaSite - 1];
-                    double bestBetaLocalizedScore = beta_scores[bestBetaSite - 1];
 
                     if (bestAlphaLocalizedScore + bestBetaLocalizedScore <= best_score)
                     {
@@ -728,12 +809,7 @@ namespace EngineLayer.CrosslinkSearch
 
                     var beta_products = CrosslinkMatrix.GetProducts(beta_matrix, bestBetaSite);
                     List<MatchedFragmentIon> bestMatchedBetaIons = MatchFragmentIons(theScan, beta_products, CommonParameters);
-  
-                    Dictionary<int, List<MatchedFragmentIon>> bestMatchedChildAlphaIons = null;
-                    Dictionary<int, List<MatchedFragmentIon>> bestMatchedChildBetaIons = null;
- 
-                    double bestMS3AlphaScore = 0;
-                    double bestMS3BetaScore = 0;
+
 
                     //Remove any matched beta ions that also matched to the alpha peptide. The higher score one is alpha peptide.
                     if (PeptideIndex[alphaIndex].FullSequence != PeptideIndex[betaIndex].FullSequence)
@@ -768,6 +844,12 @@ namespace EngineLayer.CrosslinkSearch
 
                     localizedAlpha.ChildMatchedFragmentIons = bestMatchedChildAlphaIons;
                     localizedBeta.ChildMatchedFragmentIons = bestMatchedChildBetaIons;
+
+                    localizedAlpha.MS3ChildScore = bestMS3AlphaScore;
+                    localizedBeta.MS3ChildScore = bestMS3BetaScore;
+
+                    localizedAlpha.XLSiteScores = alpha_scores;
+                    localizedBeta.XLSiteScores = beta_scores;
 
                     localizedAlpha.LinkPositions = new List<int> { bestAlphaSite };
                     localizedBeta.LinkPositions = new List<int> { bestBetaSite };
@@ -804,9 +886,6 @@ namespace EngineLayer.CrosslinkSearch
                             localizedBeta.ParentIonMaxIntensityRanks.Add(intensityRanks[ind]);
                         }
                     }
-
-                    localizedAlpha.MS3ChildScore = bestMS3AlphaScore;
-                    localizedBeta.MS3ChildScore = bestMS3BetaScore;
 
                     //Decide which is alpha and which is beta.
                     if (bestAlphaLocalizedScore < bestBetaLocalizedScore)

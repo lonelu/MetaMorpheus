@@ -33,6 +33,8 @@ namespace EngineLayer.CrosslinkSearch
         public int? XlProteinPosLoop { get; private set; }
         public new double DeltaScore { get { return (XLTotalScore - SecondBestXlScore); } }
 
+        public double[] XLSiteScores { get; set; } //Calculate score for every amino acid as crosslink site 
+
         public bool IsIntraCsm()
         {
             //The pair "ProteinA and Decoy_ProteinA" is count for intra-crosslink. 
@@ -158,6 +160,7 @@ namespace EngineLayer.CrosslinkSearch
             sb.Append(PsmTsvHeader.MatchedIonMassDiffPpm + '\t');
             sb.Append(PsmTsvHeader.MatchedIonIntensities + '\t');
             sb.Append(PsmTsvHeader.MatchedIonCounts + '\t');
+            sb.Append("Peptide link site scores" + '\t');
 
             sb.Append("Beta Peptide Info -->" + '\t');
             sb.Append(PsmTsvHeader.BetaPeptideProteinAccessionLabel + '\t');
@@ -168,16 +171,18 @@ namespace EngineLayer.CrosslinkSearch
             sb.Append(PsmTsvHeader.BetaPeptideScoreLabel + '\t');
 
             sb.Append("Beta Peptide Matched Ions" + '\t');
-            sb.Append(PsmTsvHeader.BetaPeptideMatchedIonsLabel + '\t');
+            sb.Append(PsmTsvHeader.BetaPeptideMatchedIonsLabel + '\t'); 
             sb.Append("Beta Peptide Matched Ion Mass Diff (Da)" + '\t');
             sb.Append("Beta Peptide Matched Ion Mass Diff (Ppm)" + '\t');
             sb.Append("Beta Peptide Matched Ion Intensities" + '\t');
             sb.Append("Beta Peptide Matched Ion Counts" + '\t');
+            sb.Append("Beta Peptide link site scores" + '\t');
+
 
             sb.Append("Summary Info -->" + '\t');
             sb.Append(PsmTsvHeader.XLTotalScoreLabel + '\t');
             sb.Append(PsmTsvHeader.MassDiffDa + '\t');
-            sb.Append("AlphaIndexingRank" + '\t');
+            sb.Append("AlphaIndexingRank" + '\t');            
             sb.Append(PsmTsvHeader.ParentIonsLabel + '\t');
             sb.Append("ParentIonsNum" + '\t');
             sb.Append("AlphaParentIonMaxIntensityRank" + '\t');
@@ -317,9 +322,17 @@ namespace EngineLayer.CrosslinkSearch
                 }
             }
 
-
             if (BetaPeptide != null)
             {
+                string a_site_score = "[";
+                for (int i = 0; i < XLSiteScores.Length; i++)
+                {
+                    a_site_score += BaseSequence[i] + "-" + XLSiteScores[i].ToString("0.000") + ",";
+                }
+                a_site_score = a_site_score.Remove(a_site_score.Length - 1, 1) + "]";
+
+                sb.Append(a_site_score + "\t");
+
                 sb.Append("\t"); //Intentionally left empty for readability in the tsv file.
                 List<PeptideWithSetModifications> betaPepsWithMods = BetaPeptide.BestMatchingPeptides.Select(p => p.Peptide).ToList();
                 var betaProteinAccessionString = BetaPeptide.ProteinAccession ?? PsmTsvWriter.Resolve(betaPepsWithMods.Select(b => b.Protein.Accession), FullSequence).ResolvedString;
@@ -363,6 +376,15 @@ namespace EngineLayer.CrosslinkSearch
                         sb.Append(s.ToString() + "\t");
                     }
                 }
+
+                string b_site_score = "[";
+                for (int i = 0; i < BetaPeptide.XLSiteScores.Length; i++)
+                {
+                    b_site_score += BetaPeptide.BaseSequence[i] + "-" + BetaPeptide.XLSiteScores[i].ToString("0.000") + ",";
+                }
+                b_site_score = b_site_score.Remove(b_site_score.Length - 1, 1) + "]";
+
+                sb.Append(a_site_score + "\t");
 
                 sb.Append("\t");
                 sb.Append(XLTotalScore + "\t");
