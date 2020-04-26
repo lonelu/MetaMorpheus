@@ -381,7 +381,7 @@ namespace EngineLayer.CrosslinkSearch
                                     continue;
                                 }
 
-                                CrosslinkSpectralMatch csm = LocalizeCrosslinkSites(scan, id, betaMassLowIndex, Crosslinker, experimentFragmentMasses, intensityRanks);
+                                CrosslinkSpectralMatch csm = LocalizeCrosslinkSitesHash(scan, id, betaMassLowIndex, Crosslinker, experimentFragmentMasses, intensityRanks);
 
                                 if (csm!=null)
                                 {
@@ -645,6 +645,186 @@ namespace EngineLayer.CrosslinkSearch
                     localizedAlpha.CrossType = PsmCrossType.Cross;
 
                     localizedCrosslinkedSpectralMatch = localizedAlpha;
+                }
+            }
+
+            return localizedCrosslinkedSpectralMatch;
+        }
+
+
+        /// <summary>
+        /// Localizes the crosslink position on the alpha and beta peptides
+        /// </summary>
+        private CrosslinkSpectralMatch LocalizeCrosslinkSitesHash(Ms2ScanWithSpecificMass theScan, int alphaIndex, int betaIndex, Crosslinker crosslinker, double[] experimentFragmentMasses, int[] intensityRanks)
+        {
+            CrosslinkSpectralMatch localizedCrosslinkedSpectralMatch = null;
+
+            var alpha_matrix = CrosslinkMatrix.XLGetTheoreticalFragmentsMatrix(theScan, DissociationType, crosslinker, PeptideIndex[betaIndex].MonoisotopicMass, PeptideIndex[alphaIndex], CommonParameters.ProductMassTolerance);
+
+            var alpha_scores = CrosslinkMatrix.GetAllScore(alpha_matrix);
+
+            var beta_matrix = CrosslinkMatrix.XLGetTheoreticalFragmentsMatrix(theScan, DissociationType, crosslinker, PeptideIndex[alphaIndex].MonoisotopicMass, PeptideIndex[betaIndex], CommonParameters.ProductMassTolerance);
+
+            var beta_scores = CrosslinkMatrix.GetAllScore(beta_matrix);
+
+            //The crosslink can crosslink same or different amino acid. Pairs are potential crosslink sites for alpha or beta. 
+            List<Tuple<List<int>, List<int>>> pairs = new List<Tuple<List<int>, List<int>>>();
+
+            if (crosslinker.CrosslinkerModSites.Equals(crosslinker.CrosslinkerModSites2))
+            {
+                List<int> possibleAlphaXlSites = CrosslinkSpectralMatch.GetPossibleCrosslinkerModSites(crosslinker.CrosslinkerModSites.ToCharArray(), PeptideIndex[alphaIndex], CommonParameters.DigestionParams.InitiatorMethionineBehavior, CleaveAtCrosslinkSite);
+                List<int> possibleBetaXlSites = CrosslinkSpectralMatch.GetPossibleCrosslinkerModSites(crosslinker.CrosslinkerModSites.ToCharArray(), PeptideIndex[betaIndex], CommonParameters.DigestionParams.InitiatorMethionineBehavior, CleaveAtCrosslinkSite);
+
+                pairs.Add(new Tuple<List<int>, List<int>>(possibleAlphaXlSites, possibleBetaXlSites));
+            }
+            else
+            {
+                List<int> possibleAlphaXlSites = CrosslinkSpectralMatch.GetPossibleCrosslinkerModSites(crosslinker.CrosslinkerModSites.ToCharArray(), PeptideIndex[alphaIndex], CommonParameters.DigestionParams.InitiatorMethionineBehavior, CleaveAtCrosslinkSite);
+                List<int> possibleBetaXlSites = CrosslinkSpectralMatch.GetPossibleCrosslinkerModSites(crosslinker.CrosslinkerModSites2.ToCharArray(), PeptideIndex[betaIndex], CommonParameters.DigestionParams.InitiatorMethionineBehavior, CleaveAtCrosslinkSite);
+
+                pairs.Add(new Tuple<List<int>, List<int>>(possibleAlphaXlSites, possibleBetaXlSites));
+
+                List<int> possibleAlphaXlSites2 = CrosslinkSpectralMatch.GetPossibleCrosslinkerModSites(crosslinker.CrosslinkerModSites2.ToCharArray(), PeptideIndex[alphaIndex], CommonParameters.DigestionParams.InitiatorMethionineBehavior, CleaveAtCrosslinkSite);
+                List<int> possibleBetaXlSites2 = CrosslinkSpectralMatch.GetPossibleCrosslinkerModSites(crosslinker.CrosslinkerModSites.ToCharArray(), PeptideIndex[betaIndex], CommonParameters.DigestionParams.InitiatorMethionineBehavior, CleaveAtCrosslinkSite);
+
+                pairs.Add(new Tuple<List<int>, List<int>>(possibleAlphaXlSites2, possibleBetaXlSites2));
+            }
+
+            double best_score = 0;
+
+            foreach (var pair in pairs)
+            {
+                if (pair.Item1 != null && pair.Item2 != null)
+                {
+                    int bestAlphaSite = pair.Item1.First();
+                    int bestBetaSite = pair.Item2.First();
+
+                    foreach (var ind in pair.Item1)
+                    {
+                        if (alpha_scores[ind-1] > alpha_scores[bestAlphaSite-1])
+                        {
+                            bestAlphaSite = ind;
+                        }
+                    }
+
+                    foreach (var ind in pair.Item2)
+                    {
+                        if (beta_scores[ind-1] > beta_scores[bestBetaSite-1])
+                        {
+                            bestBetaSite = ind;
+                        }
+                    }
+
+                    double bestAlphaLocalizedScore = alpha_scores[bestAlphaSite - 1];
+                    double bestBetaLocalizedScore = beta_scores[bestBetaSite - 1];
+
+                    if (bestAlphaLocalizedScore + bestBetaLocalizedScore <= best_score)
+                    {
+                        continue;
+                    }
+
+                    var alpha_products = CrosslinkMatrix.GetProducts(alpha_matrix, bestAlphaSite);
+                    List<MatchedFragmentIon> bestMatchedAlphaIons = MatchFragmentIons(theScan, alpha_products, CommonParameters);
+
+                    var beta_products = CrosslinkMatrix.GetProducts(beta_matrix, bestBetaSite);
+                    List<MatchedFragmentIon> bestMatchedBetaIons = MatchFragmentIons(theScan, beta_products, CommonParameters);
+  
+                    Dictionary<int, List<MatchedFragmentIon>> bestMatchedChildAlphaIons = null;
+                    Dictionary<int, List<MatchedFragmentIon>> bestMatchedChildBetaIons = null;
+ 
+                    double bestMS3AlphaScore = 0;
+                    double bestMS3BetaScore = 0;
+
+                    //Remove any matched beta ions that also matched to the alpha peptide. The higher score one is alpha peptide.
+                    if (PeptideIndex[alphaIndex].FullSequence != PeptideIndex[betaIndex].FullSequence)
+                    {
+                        if (bestAlphaLocalizedScore < bestBetaLocalizedScore)
+                        {
+                            var betaMz = new HashSet<double>(bestMatchedBetaIons.Select(p => p.Mz));
+                            bestMatchedAlphaIons.RemoveAll(p => betaMz.Contains(p.Mz));
+                            if ((int)bestAlphaLocalizedScore > bestMatchedAlphaIons.Count())
+                            {
+                                bestAlphaLocalizedScore = CalculatePeptideScore(theScan.TheScan, bestMatchedAlphaIons);
+                            }
+                        }
+                        else
+                        {
+                            var alphaMz = new HashSet<double>(bestMatchedAlphaIons.Select(p => p.Mz));
+                            bestMatchedBetaIons.RemoveAll(p => alphaMz.Contains(p.Mz));
+                            if ((int)bestBetaLocalizedScore > bestMatchedBetaIons.Count())
+                            {
+                                bestBetaLocalizedScore = CalculatePeptideScore(theScan.TheScan, bestMatchedBetaIons);
+                            }
+                        }
+                    }
+
+                    if (bestAlphaLocalizedScore < CommonParameters.ScoreCutoff || bestBetaLocalizedScore < CommonParameters.ScoreCutoff)
+                    {
+                        continue;
+                    }
+
+                    var localizedAlpha = new CrosslinkSpectralMatch(PeptideIndex[alphaIndex], 0, bestAlphaLocalizedScore, 0, theScan, CommonParameters, bestMatchedAlphaIons);
+                    var localizedBeta = new CrosslinkSpectralMatch(PeptideIndex[betaIndex], 0, bestBetaLocalizedScore, 0, theScan, CommonParameters, bestMatchedBetaIons);
+
+                    localizedAlpha.ChildMatchedFragmentIons = bestMatchedChildAlphaIons;
+                    localizedBeta.ChildMatchedFragmentIons = bestMatchedChildBetaIons;
+
+                    localizedAlpha.LinkPositions = new List<int> { bestAlphaSite };
+                    localizedBeta.LinkPositions = new List<int> { bestBetaSite };
+
+                    if (crosslinker.Cleavable)
+                    {
+                        //cleavable crosslink parent ion information: intensity ranks
+
+                        var alphaM = bestMatchedAlphaIons.Where(p => p.NeutralTheoreticalProduct.ProductType == ProductType.M);
+
+                        localizedAlpha.ParentIonMaxIntensityRanks = new List<int>();
+
+                        foreach (var am in alphaM)
+                        {
+                            var ind = BinarySearchGetIndex(experimentFragmentMasses, am.NeutralTheoreticalProduct.NeutralMass);
+                            if (ind == experimentFragmentMasses.Length)
+                            {
+                                ind--;
+                            }
+                            localizedAlpha.ParentIonMaxIntensityRanks.Add(intensityRanks[ind]);
+                        }
+
+                        var betaM = bestMatchedBetaIons.Where(p => p.NeutralTheoreticalProduct.ProductType == ProductType.M);
+
+                        localizedBeta.ParentIonMaxIntensityRanks = new List<int>();
+
+                        foreach (var bm in betaM)
+                        {
+                            var ind = BinarySearchGetIndex(experimentFragmentMasses, bm.NeutralTheoreticalProduct.NeutralMass);
+                            if (ind == experimentFragmentMasses.Length)
+                            {
+                                ind--;
+                            }
+                            localizedBeta.ParentIonMaxIntensityRanks.Add(intensityRanks[ind]);
+                        }
+                    }
+
+                    localizedAlpha.MS3ChildScore = bestMS3AlphaScore;
+                    localizedBeta.MS3ChildScore = bestMS3BetaScore;
+
+                    //Decide which is alpha and which is beta.
+                    if (bestAlphaLocalizedScore < bestBetaLocalizedScore)
+                    {
+                        var x = localizedAlpha;
+                        localizedAlpha = localizedBeta;
+                        localizedBeta = x;
+                    }
+
+                    localizedAlpha.BetaPeptide = localizedBeta;
+
+                    //I think this is the only place where XLTotalScore is set
+                    localizedAlpha.XLTotalScore = localizedAlpha.Score + localizedBeta.Score;
+
+                    localizedAlpha.CrossType = PsmCrossType.Cross;
+
+                    localizedCrosslinkedSpectralMatch = localizedAlpha;
+    
                 }
             }
 
