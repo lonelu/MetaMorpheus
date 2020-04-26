@@ -31,6 +31,10 @@ namespace TaskLayer
                     case 2:
                         header = CrosslinkSpectralMatch.GetTabSepHeaderCross();
                         break;
+                    case 3:
+                        header = CrosslinkSpectralMatch.GetTabSepHeaderDeadend();
+                        break;
+
                     default:
                         break;
                 }

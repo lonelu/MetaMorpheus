@@ -91,7 +91,7 @@ namespace TaskLayer
             if (deadendPsms.Any())
             {
                 string writtenFileDeadend = Path.Combine(OutputFolder, "Deadends" + ".tsv");
-                WriteFile.WritePsmCrossToTsv(deadendPsms, writtenFileDeadend, 1);
+                WriteFile.WritePsmCrossToTsv(deadendPsms, writtenFileDeadend, 3);
                 FinishedWritingFile(writtenFileDeadend, new List<string> { taskId });
             }
             MyTaskResults.AddTaskSummaryText("Target deadend peptides within 1% FDR: " + deadendPsms.Count(p => p.FdrInfo.QValue <= 0.01 && !p.IsDecoy));

@@ -1074,6 +1074,8 @@ namespace EngineLayer.CrosslinkSearch
 
             csm.LinkPositions = new List<int> { bestPosition };
 
+            csm.XLSiteScores = alpha_scores;
+
             return csm;
         }
         /// <summary>
