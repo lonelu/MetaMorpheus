@@ -31,18 +31,7 @@ namespace EngineLayer.CrosslinkSearch
 
         }
 
-        public static CrosslinkMatrix XLGetTheoreticalFragmentsMatrix(Ms2ScanWithSpecificMass ms2Scan, DissociationType dissociationType, Crosslinker crosslinker, double otherPeptideMass, PeptideWithSetModifications peptide, Tolerance tolerance)
-        {
-            var matrix = BuildMatrix(dissociationType, crosslinker, otherPeptideMass, peptide);
-
-            CalMatrix(matrix, ms2Scan, tolerance);
-
-            //var scores = GetAllScore(matrix);
-
-            return matrix;
-        }
-
-        public static CrosslinkMatrix BuildMatrix(DissociationType dissociationType, Crosslinker crosslinker, double otherPeptideMass, PeptideWithSetModifications peptide)
+        public static List<double> GenerateMassesToLocalize(Crosslinker crosslinker, DissociationType dissociationType, double otherPeptideMass)
         {
             List<double> massesToLocalize = new List<double>();
             if (crosslinker.Cleavable && crosslinker.CleaveDissociationTypes.Contains(dissociationType))
@@ -55,6 +44,35 @@ namespace EngineLayer.CrosslinkSearch
                 massesToLocalize.Add(crosslinker.TotalMass + otherPeptideMass);
             }
 
+            return massesToLocalize;
+        }
+
+        public static CrosslinkMatrix XLGetCrosslinkMatrix(Ms2ScanWithSpecificMass ms2Scan, DissociationType dissociationType, Crosslinker crosslinker, double otherPeptideMass, PeptideWithSetModifications peptide, Tolerance tolerance)
+        {
+            List<double> massesToLocalize = GenerateMassesToLocalize(crosslinker, dissociationType, otherPeptideMass);
+
+            var matrix = BuildMatrix(dissociationType, massesToLocalize, peptide);
+
+            CalMatrix(matrix, ms2Scan, tolerance);
+
+            //var scores = GetAllScore(matrix);
+
+            return matrix;
+        }
+
+        public static CrosslinkMatrix XLGetDeadendMatrix(Ms2ScanWithSpecificMass ms2Scan, DissociationType dissociationType, double deadendMass, PeptideWithSetModifications peptide, Tolerance tolerance)
+        {
+            var matrix = BuildMatrix(dissociationType, new List<double> { deadendMass }, peptide);
+
+            CalMatrix(matrix, ms2Scan, tolerance);
+
+            //var scores = GetAllScore(matrix);
+
+            return matrix;
+        }
+
+        public static CrosslinkMatrix BuildMatrix(DissociationType dissociationType, List<double> massesToLocalize, PeptideWithSetModifications peptide)
+        {
             List<Product> nfragments = new List<Product>();
             peptide.Fragment(dissociationType, FragmentationTerminus.N, nfragments);
 

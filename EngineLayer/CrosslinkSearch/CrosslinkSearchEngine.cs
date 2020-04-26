@@ -323,7 +323,7 @@ namespace EngineLayer.CrosslinkSearch
                     if (possibleCrosslinkLocations != null)
                     {
                         // tris deadend
-                        possibleMatches.Add(LocalizeDeadEndSite(PeptideIndex[id], scan, CommonParameters, possibleCrosslinkLocations, TrisDeadEnd, 0, scanIndex));
+                        possibleMatches.Add(LocalizeDeadEndSiteHash(PeptideIndex[id], scan, CommonParameters, possibleCrosslinkLocations, TrisDeadEnd, 0, scanIndex));
                     }
                 }
                 else if (QuenchH2O && XLPrecusorSearchMode.Accepts(scan.PrecursorMass, massTable[id] + Crosslinker.DeadendMassH2O) >= 0)
@@ -331,7 +331,7 @@ namespace EngineLayer.CrosslinkSearch
                     if (possibleCrosslinkLocations != null)
                     {
                         // H2O deadend
-                        possibleMatches.Add(LocalizeDeadEndSite(PeptideIndex[id], scan, CommonParameters, possibleCrosslinkLocations, H2ODeadEnd, 0, scanIndex));
+                        possibleMatches.Add(LocalizeDeadEndSiteHash(PeptideIndex[id], scan, CommonParameters, possibleCrosslinkLocations, H2ODeadEnd, 0, scanIndex));
                     }
                 }
                 else if (QuenchNH2 && XLPrecusorSearchMode.Accepts(scan.PrecursorMass, massTable[id] + Crosslinker.DeadendMassNH2) >= 0)
@@ -339,7 +339,7 @@ namespace EngineLayer.CrosslinkSearch
                     if (possibleCrosslinkLocations != null)
                     {
                         // NH2 deadend
-                        possibleMatches.Add(LocalizeDeadEndSite(PeptideIndex[id], scan, CommonParameters, possibleCrosslinkLocations, NH2DeadEnd, 0, scanIndex));
+                        possibleMatches.Add(LocalizeDeadEndSiteHash(PeptideIndex[id], scan, CommonParameters, possibleCrosslinkLocations, NH2DeadEnd, 0, scanIndex));
                     }
                 }
                 else if (Crosslinker.LoopMass != 0 && XLPrecusorSearchMode.Accepts(scan.PrecursorMass, massTable[id] + Crosslinker.LoopMass) >= 0)
@@ -684,11 +684,11 @@ namespace EngineLayer.CrosslinkSearch
 
             //Get matrix of the crosslinked peptide candidates
             //The matrix currently hasn't been used for MS2-MS2 type of data. Which could limit the performance.
-            var alpha_matrix = CrosslinkMatrix.XLGetTheoreticalFragmentsMatrix(theScan, DissociationType, crosslinker, PeptideIndex[betaIndex].MonoisotopicMass, PeptideIndex[alphaIndex], CommonParameters.ProductMassTolerance);
+            var alpha_matrix = CrosslinkMatrix.XLGetCrosslinkMatrix(theScan, DissociationType, crosslinker, PeptideIndex[betaIndex].MonoisotopicMass, PeptideIndex[alphaIndex], CommonParameters.ProductMassTolerance);
 
             var alpha_scores = CrosslinkMatrix.GetAllScore(alpha_matrix);
 
-            var beta_matrix = CrosslinkMatrix.XLGetTheoreticalFragmentsMatrix(theScan, DissociationType, crosslinker, PeptideIndex[alphaIndex].MonoisotopicMass, PeptideIndex[betaIndex], CommonParameters.ProductMassTolerance);
+            var beta_matrix = CrosslinkMatrix.XLGetCrosslinkMatrix(theScan, DissociationType, crosslinker, PeptideIndex[alphaIndex].MonoisotopicMass, PeptideIndex[betaIndex], CommonParameters.ProductMassTolerance);
 
             var beta_scores = CrosslinkMatrix.GetAllScore(beta_matrix);
 
@@ -1026,6 +1026,56 @@ namespace EngineLayer.CrosslinkSearch
             return csm;
         }
 
+        /// <summary>
+        /// Localizes the deadend mod to a residue
+        /// </summary>
+        private CrosslinkSpectralMatch LocalizeDeadEndSiteHash(PeptideWithSetModifications originalPeptide, Ms2ScanWithSpecificMass theScan, CommonParameters commonParameters,
+            List<int> possiblePositions, Modification deadEndMod, int notch, int scanIndex)
+        {
+            double bestScore = 0;
+
+            int bestPosition = 0;
+
+            var alpha_matrix = CrosslinkMatrix.XLGetDeadendMatrix(theScan, DissociationType, deadEndMod.MonoisotopicMass.Value, originalPeptide, CommonParameters.ProductMassTolerance);
+
+            var alpha_scores = CrosslinkMatrix.GetAllScore(alpha_matrix);
+
+            foreach (var ind in possiblePositions)
+            {
+                if (alpha_scores[ind - 1] > bestScore)
+                {
+                    bestScore = alpha_scores[ind - 1];
+                    bestPosition = ind;
+                }
+            }
+
+            if (bestScore < commonParameters.ScoreCutoff)
+            {
+                return null;
+            }
+
+            var products = CrosslinkMatrix.GetProducts(alpha_matrix, bestPosition);
+            List<MatchedFragmentIon> bestMatchingFragments = MatchFragmentIons(theScan, products, CommonParameters);
+
+            var csm = new CrosslinkSpectralMatch(originalPeptide, notch, bestScore, scanIndex, theScan, commonParameters, bestMatchingFragments);
+
+            if (deadEndMod == TrisDeadEnd)
+            {
+                csm.CrossType = PsmCrossType.DeadEndTris;
+            }
+            else if (deadEndMod == H2ODeadEnd)
+            {
+                csm.CrossType = PsmCrossType.DeadEndH2O;
+            }
+            else if (deadEndMod == NH2DeadEnd)
+            {
+                csm.CrossType = PsmCrossType.DeadEndNH2;
+            }
+
+            csm.LinkPositions = new List<int> { bestPosition };
+
+            return csm;
+        }
         /// <summary>
         /// Localizes the loop to a begin and end residue
         /// </summary>
