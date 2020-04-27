@@ -183,9 +183,11 @@ namespace EngineLayer.CrosslinkSearch
                         {
                             GlobalCsms[scanIndex] = new List<CrosslinkSpectralMatch>();                       
                         }
-
-                        csms.AddRange(GlobalCsms[scanIndex]);
-                        GlobalCsms[scanIndex].Clear();
+                        else
+                        {
+                            csms.AddRange(GlobalCsms[scanIndex]);
+                            GlobalCsms[scanIndex].Clear();
+                        }
 
                         Add2GlobalCsms(ref csms, scanIndex);
                     }
