@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace TaskLayer
 {
@@ -37,6 +38,8 @@ namespace TaskLayer
                 string file = Path.Combine(OutputFolder, "XL_Interlinks.tsv");
                 WriteFile.WritePsmCrossToTsv(interCsms, file, 2);
                 FinishedWritingFile(file, new List<string> { taskId });
+                string fileSite = Path.Combine(OutputFolder, "XL_Interlinks_sites.tsv");
+                WriteXLSiteInfo(interCsms, fileSite);
             }
             MyTaskResults.AddTaskSummaryText("Target inter-crosslinks within 1% FDR: " + interCsms.Count(p => p.FdrInfo.QValue <= 0.01 && !p.IsDecoy && !p.BetaPeptide.IsDecoy));
 
@@ -53,6 +56,9 @@ namespace TaskLayer
                 string file = Path.Combine(OutputFolder, "XL_Intralinks.tsv");
                 WriteFile.WritePsmCrossToTsv(intraCsms, file, 2);
                 FinishedWritingFile(file, new List<string> { taskId });
+                string fileSite = Path.Combine(OutputFolder, "XL_Intralinks_sites.tsv");
+                WriteXLSiteInfo(intraCsms, fileSite);
+
             }
             MyTaskResults.AddTaskSummaryText("Target intra-crosslinks within 1% FDR: " + intraCsms.Count(p => p.FdrInfo.QValue <= 0.01 && !p.IsDecoy && !p.BetaPeptide.IsDecoy));
 
@@ -176,6 +182,120 @@ namespace TaskLayer
                 double pepQValue = csm.FdrInfo == null ? double.NaN : csm.FdrInfo.PEP_QValue;
 
                 csm.SetFdrValues(cumulativeTarget, cumulativeDecoy, qValue, 0, 0, qValueNotch, pep, pepQValue);
+            }
+        }
+
+        public static void WriteXLSiteInfo(List<CrosslinkSpectralMatch> csms, string filePath)
+        {
+            if (csms.Count == 0)
+            {
+                return;
+            }
+
+            using (StreamWriter output = new StreamWriter(filePath))
+            {
+                string header = CrosslinkSpectralMatch.GetTabSepHeaderCross();
+                header += "AlphaLinkScores\tAlpahBest\tAlphaLinkBestScores\tAlphaBestLinkSites\tAlphaBestMatchContainK\tAlphaBestKScore\tAlphaBestKSite\t";
+                header += "BetaLinkScores\tBetaBest\tBetaLinkBestScores\tBetaBestLinkSites\tBetaBestMatchContainK\tBetaBestKScore\tBetaBestKSite\t";
+                output.WriteLine(header);
+                foreach (var csm in csms)
+                {
+                    //alpha
+                    string a_site_score = "[";
+
+                    int a_max = (int)csm.XLSiteScores.Max();
+                    string a_best_score = "[";
+
+                    string a_best_site = "[";
+                    List<Tuple<int, int>> a_k_score = new List<Tuple<int, int>>();
+
+                    for (int i = 0; i < csm.XLSiteScores.Length; i++)
+                    {
+                        a_site_score += csm.BaseSequence[i] + "-" + csm.XLSiteScores[i].ToString("0.000") + ",";
+                        if ((int)csm.XLSiteScores[i] == a_max)
+                        {
+                            a_best_score += csm.BaseSequence[i] + "-" + ((int)csm.XLSiteScores[i]).ToString() + ",";
+                            a_best_site += (i + 1).ToString() + ",";
+                        }
+                        if (csm.BaseSequence[i] == 'K')
+                        {
+                            a_k_score.Add(new Tuple<int, int>((int)csm.XLSiteScores[i], i+1));
+                        }
+                    }
+                    a_site_score = a_site_score.Remove(a_site_score.Length - 1, 1) + "]";
+                    a_best_score = a_best_score.Remove(a_best_score.Length - 1, 1) + "]";
+                    a_best_site = a_best_site.Remove(a_best_site.Length - 1, 1) + "]";
+                    bool a_contain_k = a_best_score.Contains('K');
+                    int a_best_k_score = -1;
+                    int a_best_k_site = -1;
+                    foreach (var a in a_k_score)
+                    {
+                        if (a.Item1 > a_best_k_score)
+                        {
+                            a_best_k_score = a.Item1;
+                            a_best_k_site = a.Item2;
+                        }
+                    }
+
+
+                    //beta
+                    string b_site_score = "[";
+
+                    int b_max =  (int)csm.BetaPeptide.XLSiteScores.Max();
+                    string b_best_score = "[";
+
+                    string b_best_site = "[";
+                    List<Tuple<int, int>> b_k_score = new List<Tuple<int, int>>();
+
+                    for (int i = 0; i < csm.BetaPeptide.XLSiteScores.Length; i++)
+                    {
+                        b_site_score += csm.BetaPeptide.BaseSequence[i] + "-" + csm.BetaPeptide.XLSiteScores[i].ToString("0.000") + ",";
+                        if ((int)csm.BetaPeptide.XLSiteScores[i] == b_max)
+                        {
+                            b_best_score += csm.BetaPeptide.BaseSequence[i] + "-" + ((int)csm.BetaPeptide.XLSiteScores[i]).ToString() + ",";
+                            b_best_site += (i + 1).ToString() + ",";
+                        }
+                        if (csm.BetaPeptide.BaseSequence[i] == 'K')
+                        {
+                            b_k_score.Add(new Tuple<int, int>((int)csm.BetaPeptide.XLSiteScores[i], i + 1));
+                        }
+                    }
+                    b_site_score = b_site_score.Remove(b_site_score.Length - 1, 1) + "]";
+                    b_best_score = b_best_score.Remove(b_best_score.Length - 1, 1) + "]";
+                    b_best_site = b_best_site.Remove(b_best_site.Length - 1, 1) + "]";
+                    bool b_contain_k = b_best_score.Contains('K');
+                    int b_best_k_score = -1;
+                    int b_best_k_site = -1;
+                    foreach (var b in b_k_score)
+                    {
+                        if (b.Item1 > b_best_k_score)
+                        {
+                            b_best_k_score = b.Item1;
+                            b_best_k_site = b.Item2;
+                        }
+                    }
+
+
+                    output.WriteLine(
+                        csm.ToString()
+                        + a_site_score + "\t"
+                        + a_max + "\t"
+                        + a_best_score + "\t"
+                        + a_best_site + "\t"
+                        + a_contain_k + "\t"
+                        + a_best_k_score + "\t"
+                        + a_best_k_site + "\t"
+
+                        + b_site_score + "\t"
+                        + b_max + "\t"
+                        + b_best_score + "\t"
+                        + b_best_site + "\t"
+                        + b_contain_k + "\t"
+                        + b_best_k_score + "\t"
+                        + b_best_k_site + "\t"
+                        );
+                    
+                }
             }
         }
     }

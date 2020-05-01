@@ -160,7 +160,6 @@ namespace EngineLayer.CrosslinkSearch
             sb.Append(PsmTsvHeader.MatchedIonMassDiffPpm + '\t');
             sb.Append(PsmTsvHeader.MatchedIonIntensities + '\t');
             sb.Append(PsmTsvHeader.MatchedIonCounts + '\t');
-            sb.Append("Peptide link site scores" + '\t');
 
             sb.Append("Beta Peptide Info -->" + '\t');
             sb.Append(PsmTsvHeader.BetaPeptideProteinAccessionLabel + '\t');
@@ -176,7 +175,6 @@ namespace EngineLayer.CrosslinkSearch
             sb.Append("Beta Peptide Matched Ion Mass Diff (Ppm)" + '\t');
             sb.Append("Beta Peptide Matched Ion Intensities" + '\t');
             sb.Append("Beta Peptide Matched Ion Counts" + '\t');
-            sb.Append("Beta Peptide link site scores" + '\t');
 
 
             sb.Append("Summary Info -->" + '\t');
@@ -357,18 +355,6 @@ namespace EngineLayer.CrosslinkSearch
                 }
             }
 
-            if (CrossType != PsmCrossType.Single && CrossType != PsmCrossType.Loop)
-            {
-                string a_site_score = "[";
-                for (int i = 0; i < XLSiteScores.Length; i++)
-                {
-                    a_site_score += BaseSequence[i] + "-" + XLSiteScores[i].ToString("0.000") + ",";
-                }
-                a_site_score = a_site_score.Remove(a_site_score.Length - 1, 1) + "]";
-
-                sb.Append(a_site_score + "\t");
-            }
-
             if (BetaPeptide != null)
             {
                 sb.Append("\t"); //Intentionally left empty for readability in the tsv file.
@@ -414,15 +400,6 @@ namespace EngineLayer.CrosslinkSearch
                         sb.Append(s.ToString() + "\t");
                     }
                 }
-
-                string b_site_score = "[";
-                for (int i = 0; i < BetaPeptide.XLSiteScores.Length; i++)
-                {
-                    b_site_score += BetaPeptide.BaseSequence[i] + "-" + BetaPeptide.XLSiteScores[i].ToString("0.000") + ",";
-                }
-                b_site_score = b_site_score.Remove(b_site_score.Length - 1, 1) + "]";
-
-                sb.Append(b_site_score + "\t");
 
                 sb.Append("\t");
                 sb.Append(XLTotalScore + "\t");
