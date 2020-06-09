@@ -422,7 +422,7 @@ namespace MetaDrawGUI
             Model = ScanCompareViewModel.DrawBoxVsNormalId(diff_plot);
         }
 
-        //TO DD: What this funciton for?
+        //pTop result combine Fragmentation information
         public void IdFragmentationOptimize()
         {
             List<(SimplePsm, MsDataScan)> x = new List<(SimplePsm, MsDataScan)>();

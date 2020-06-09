@@ -38,7 +38,7 @@
                 <Label Content="Result:"/>
                 <Grid>
                     <ScrollViewer Height="400" VerticalScrollBarVisibility="Auto">
-                        <TextBlock x:Name="TbkCrosslinkValidateResult" Width="Auto" TextWrapping="Wrap" />
+                        <TextBox x:Name="TbkCrosslinkValidateResult" Width="Auto" TextWrapping="Wrap" IsReadOnly="True" />
                     </ScrollViewer>
                 </Grid>
                 

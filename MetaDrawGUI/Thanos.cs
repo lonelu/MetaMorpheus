@@ -150,12 +150,41 @@ namespace MetaDrawGUI
 
         public void ModelDrawPdf()
         {
-            var plotModel = deconvolutor.XicModel;
-            string fileName = Path.GetDirectoryName(this.MsDataFilePaths.First()) + "\\" + Path.GetFileNameWithoutExtension(this.MsDataFilePaths.First()) +  "current.pdf";
-            using (var stream = File.Create(fileName))
             {
-                PdfExporter pdf = new PdfExporter { Width = 800, Height = 500 };
-                pdf.Export(plotModel, stream);
+                var plotModel = deconvolutor.XicModel;
+                if (plotModel != null)
+                {
+                    string fileName = Path.GetDirectoryName(this.MsDataFilePaths.First()) + "\\" + Path.GetFileNameWithoutExtension(this.MsDataFilePaths.First()) + "current_xic_model.pdf";
+                    using (var stream = File.Create(fileName))
+                    {
+                        PdfExporter pdf = new PdfExporter { Width = 800, Height = 500 };
+                        pdf.Export(plotModel, stream);
+                    }
+                }
+            }
+            {
+                var plotModel = deconvolutor.Model;
+                if (plotModel != null)
+                {
+                    string fileName = Path.GetDirectoryName(this.MsDataFilePaths.First()) + "\\" + Path.GetFileNameWithoutExtension(this.MsDataFilePaths.First()) + "current_model.pdf";
+                    using (var stream = File.Create(fileName))
+                    {
+                        PdfExporter pdf = new PdfExporter { Width = 800, Height = 500 };
+                        pdf.Export(plotModel, stream);
+                    }
+                }
+            }
+            {
+                var plotModel = deconvolutor.DeconModel;
+                if (plotModel != null)
+                {
+                    string fileName = Path.GetDirectoryName(this.MsDataFilePaths.First()) + "\\" + Path.GetFileNameWithoutExtension(this.MsDataFilePaths.First()) + "current_decon_model.pdf";
+                    using (var stream = File.Create(fileName))
+                    {
+                        PdfExporter pdf = new PdfExporter { Width = 800, Height = 500 };
+                        pdf.Export(plotModel, stream);
+                    }
+                }
             }
         }
 

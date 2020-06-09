@@ -174,6 +174,9 @@ namespace MetaDrawGUI
                 case SweetorSkill.CorrectRT:
                     MainWindow.action = MainWindow.thanos.sweetor.CorrectRT;
                     break;
+                case SweetorSkill.PredictRT:
+                    MainWindow.action = MainWindow.thanos.sweetor.RelativeRTPrediction;
+                    break;
                 default:
                     break;
             }

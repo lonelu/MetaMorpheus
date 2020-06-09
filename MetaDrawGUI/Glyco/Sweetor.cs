@@ -20,6 +20,7 @@ using FlashLFQ;
 using MassSpectrometry;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using MathNet.Numerics.LinearRegression;
 
 namespace MetaDrawGUI
 {
@@ -33,7 +34,8 @@ namespace MetaDrawGUI
         Compare_Byonic_MetaMorpheus_EachScan = 5,
         MetaMorpheus_coisolation_Evaluation = 6,
         Compare_Seq_overlap = 7,
-        CorrectRT = 8
+        CorrectRT = 8,
+        PredictRT = 9
     }
 
     public class Sweetor:INotifyPropertyChanged
@@ -168,6 +170,68 @@ namespace MetaDrawGUI
             {
                 _thanos.PsmAnnoModel = _thanos.sweetor.PlotGlycoRT(Psms_byId.ElementAt(GlycoFamilyIndex).ToList());
                 GlycoFamilyIndex++;
+            }
+        }
+
+        public void RelativeRTPrediction()
+        {
+            List<double[]> x = new List<double[]>();
+            List<double> y = new List<double>();
+
+            int typeOfPsms = 0;
+            int psmTypeCount = Psms_byId.Where(p=>p.Count() >= 3).Count();
+            while (typeOfPsms < psmTypeCount)
+            {
+                var psms = Psms_byId.ElementAt(typeOfPsms);
+
+                foreach (var psm in psms)
+                {
+                    double[] _x = new double[psmTypeCount + 5];
+                    _x[typeOfPsms] = 1;
+                    _x[psmTypeCount] = psm.GlycanKind[0];
+                    _x[psmTypeCount + 1] = psm.GlycanKind[1];
+                    _x[psmTypeCount + 2] = psm.GlycanKind[2];
+                    _x[psmTypeCount + 3] = psm.GlycanKind[3];
+                    _x[psmTypeCount + 4] = psm.GlycanKind[4];
+                    x.Add(_x);
+                    y.Add(psm.RT);
+                }
+
+                typeOfPsms++;
+            }
+
+            double[] p = MultipleRegression.QR(x.ToArray(), y.ToArray(), intercept: false);
+
+            List<double> preY = new List<double>();
+            foreach (var _x in x)
+            {
+                double z = 0;
+                for (int i = 0; i < _x.Length; i++)
+                {
+                    z += p[i] * _x[i];
+                }
+                preY.Add(z);
+            }
+
+
+
+            //Output all parameters.
+            var filterPath = Path.Combine(Path.GetDirectoryName(_thanos.ResultFilePaths.First()), Path.GetFileNameWithoutExtension(_thanos.ResultFilePaths.First()) + "_RRT.tsv");
+
+            using (StreamWriter output = new StreamWriter(filterPath))
+            {
+                for (int i = 0; i < x.Count(); i++)
+                {
+                    string line = "";
+                    for (int j = 0; j < x.First().Length; j++)
+                    {
+                        line += x[i][j] + "\t";
+                    }
+                    line += y[i] + "\t";
+                    line += preY[i];
+                    output.WriteLine(line);
+
+                }
             }
         }
 

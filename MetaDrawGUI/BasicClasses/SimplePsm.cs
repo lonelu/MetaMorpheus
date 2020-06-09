@@ -46,7 +46,7 @@ namespace MetaDrawGUI
                 GlycanComposition = psmFromTsv.GlycanComposition;
                 GlycanStructure = psmFromTsv.GlycanStructure;
 
-                GlycanKind = Glycan.GetKind(GlycanStructure);
+                GlycanKind = Glycan.GetKindFromComp(GlycanComposition);       
                 GlycanAGNumber = GlycanKind[2] + GlycanKind[3];
             }
         }

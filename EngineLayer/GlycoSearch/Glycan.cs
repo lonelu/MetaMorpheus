@@ -435,6 +435,56 @@ namespace EngineLayer
             return kind;
         }
 
+        public static byte[] GetKindFromComp(string composition) 
+        {
+            byte[] kind = new byte[9];
+
+            var x = composition.Split(new char[] { 'H', 'N', 'A', 'G', 'F', 'P', 'S', 'Y', 'X' }, StringSplitOptions.RemoveEmptyEntries);
+
+            var y = composition.Split(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }, StringSplitOptions.RemoveEmptyEntries);
+
+            for (int i = 0; i < y.Length; i++)
+            {
+                if (y[i] == "H")
+                {
+                    kind[0] = byte.Parse(x[i]);
+                }
+                else if (y[i] == "N")
+                {
+                    kind[1] = byte.Parse(x[i]);
+                }
+                else if (y[i] == "A")
+                {
+                    kind[2] = byte.Parse(x[i]);
+                }
+                else if (y[i] == "G")
+                {
+                    kind[3] = byte.Parse(x[i]);
+                }
+                else if (y[i] == "F")
+                {
+                    kind[4] = byte.Parse(x[i]);
+                }
+                else if (y[i] == "P")
+                {
+                    kind[5] = byte.Parse(x[i]);
+                }
+                else if (y[i] == "S")
+                {
+                    kind[6] = byte.Parse(x[i]);
+                }
+                else if (y[i] == "Y")
+                {
+                    kind[7] = byte.Parse(x[i]);
+                }
+                else if(y[i] == "X")
+                {
+                    kind[8] = byte.Parse(x[i]);
+                }
+            }
+            return kind;
+        }
+
         public static string GetKindString(byte[] Kind)
         {
             string H = Kind[0]==0 ? "" : "H" + Kind[0].ToString();
