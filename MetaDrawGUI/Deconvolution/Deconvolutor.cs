@@ -27,7 +27,8 @@ namespace MetaDrawGUI
         DeconCompareBoxVsNormalId = 9,
         IdFragmentationOptimize = 10,
         IdProteoformOverlap = 11,
-        FindPartnerFromReadinFeature = 12
+        FindPartnerFromReadinFeature = 12, 
+        pTopResultMatchedPeakComparison = 13
     }
 
     public class Deconvolutor: INotifyPropertyChanged
@@ -444,7 +445,6 @@ namespace MetaDrawGUI
                         );
                 }
             }
-
         }
 
         //TO DD: What this funciton for?
@@ -482,6 +482,74 @@ namespace MetaDrawGUI
 
             MsDataFileDecon.WriteResults(Path.Combine(Path.GetDirectoryName(_thanos.ResultFilePaths.First()), @"ReadinNeucodesDoublets.tsv"), neuCodeDoublets);
         }
+
+        public void pTopResultMatchedPeakComparison()
+        {
+            List<string> fileNames = _thanos.simplePsms.Select(p => p.FileName).Distinct().OrderByDescending(p=>p).ToList();
+
+            Dictionary<string, pTopIds> comparisons = new Dictionary<string, pTopIds>();
+
+            foreach (var psm in _thanos.simplePsms)
+            {
+                if (!comparisons.ContainsKey(psm.FullSeq))
+                {
+                    pTopIds id = new pTopIds();
+                    id.matchedPeakCountFromDifferentFiles = new Dictionary<string, List<int>>();
+
+                    foreach (var f in fileNames)
+                    {
+                        id.matchedPeakCountFromDifferentFiles.Add(f, new List<int>());
+                    }
+
+                    id.matchedPeakCountFromDifferentFiles[psm.FileName].Add(psm.MatchedPeakNum);
+                    comparisons.Add(psm.FullSeq, id);
+                }
+                else
+                {
+                    comparisons[psm.FullSeq].matchedPeakCountFromDifferentFiles[psm.FileName].Add(psm.MatchedPeakNum);                   
+                }
+            }
+
+            var writtenFile = Path.Combine(Path.GetDirectoryName(_thanos.ResultFilePaths.First()), "pTopResultMatchedPeakComparison.tsv");
+
+            using (StreamWriter output = new StreamWriter(writtenFile))
+            {
+                string header = "FullSeq\t";
+
+                foreach (var f in fileNames)
+                {
+                    header += f + "\t";
+                }
+
+                output.WriteLine(header);
+
+                foreach (var c in comparisons)
+                {
+                    string line = c.Key + "\t";
+
+                    foreach (var f in fileNames)
+                    {
+                        int x = -1;
+                        if (c.Value.matchedPeakCountFromDifferentFiles[f].Count() > 0)
+                        {
+                            x = c.Value.matchedPeakCountFromDifferentFiles[f].Sum() / c.Value.matchedPeakCountFromDifferentFiles[f].Count();
+                        }
+                        string t = x == -1 ? "NA" : x.ToString();
+                        line +=  t + "\t";
+                    }
+
+                    if (!line.Contains("NA"))
+                    {
+                        output.WriteLine(line);
+                    }
+                }
+            }
+        }
+    }
+
+    public class pTopIds
+    {
+        public Dictionary<string, List<int>> matchedPeakCountFromDifferentFiles { get; set; }
 
         
     }

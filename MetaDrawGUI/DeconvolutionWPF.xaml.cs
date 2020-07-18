@@ -344,6 +344,9 @@ namespace MetaDrawGUI
                 case DeconvolutorSkill.FindPartnerFromReadinFeature:
                     MainWindow.action = MainWindow.thanos.deconvolutor.FindPartnerFromReadinFeature;
                     break;
+                case DeconvolutorSkill.pTopResultMatchedPeakComparison:
+                    MainWindow.action = MainWindow.thanos.deconvolutor.pTopResultMatchedPeakComparison;
+                    break;
                 default:
                     break;
             }
