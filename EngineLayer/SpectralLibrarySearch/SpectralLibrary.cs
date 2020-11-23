@@ -452,16 +452,16 @@ namespace EngineLayer
                     // read fragment intensity
                     var experIntensity = double.Parse(split[1], CultureInfo.InvariantCulture);
 
-                    // read fragment type, number
-                    Match regexMatchResult = IonParserRegex.Match(split[2]);
+                    // read fragment type, number      
 
-                    string fragmentType = regexMatchResult.Groups[1].Value;
-                    int fragmentNumber = int.Parse(regexMatchResult.Groups[2].Value);
+                    string fragmentType = split[2].ToCharArray()[0].ToString();
+                    int fragmentNumber = int.Parse(new string(split[2].Split(new char[] { '^' })[0].Where(Char.IsDigit).ToArray()));
                     int fragmentCharge = 1;
 
-                    if (regexMatchResult.Groups.Count > 3 && !string.IsNullOrWhiteSpace(regexMatchResult.Groups[3].Value))
+
+                    if (split[2].Contains('^'))
                     {
-                        fragmentCharge = int.Parse(regexMatchResult.Groups[3].Value);
+                        fragmentCharge = int.Parse(split[2].Split('^')[1]);
                     }
 
                     ProductType peakProductType = (ProductType)Enum.Parse(typeof(ProductType), fragmentType, true);
