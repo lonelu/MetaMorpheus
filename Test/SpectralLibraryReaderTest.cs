@@ -112,5 +112,16 @@ namespace Test
             testLibraryWithoutDecoy.CloseConnections();
             File.Delete(writtenPath);
         }
+
+        [Test]
+        public static void SpectralLibraryReaderTest_pDeep()
+        {
+            var path = Path.Combine(TestContext.CurrentContext.TestDirectory, @"TestData\yeast2fake_pdeep_lib.msp");
+
+            var testLibraryWithoutDecoy = new SpectralLibrary(new List<string> { path });
+            var librarySpectra = testLibraryWithoutDecoy.GetAllLibrarySpectra().ToList();
+
+            Assert.That(librarySpectra.Count == 5);
+        }
     }
 }
